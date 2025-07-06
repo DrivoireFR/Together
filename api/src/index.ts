@@ -6,6 +6,10 @@ import dotenv from 'dotenv';
 import { initializeDatabase } from './config/database';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
+import tagRoutes from './routes/tags';
+import groupRoutes from './routes/groups';
+import taskRoutes from './routes/tasks';
+import actionRoutes from './routes/actions';
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -24,6 +28,10 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/tags', tagRoutes);
+app.use('/api/groups', groupRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/actions', actionRoutes);
 
 // Route de test
 app.get('/api/health', (req, res) => {
@@ -62,6 +70,10 @@ const startServer = async () => {
       console.log(`📋 Route de santé: http://localhost:${PORT}/api/health`);
       console.log(`🔐 Routes d'authentification: http://localhost:${PORT}/api/auth`);
       console.log(`👥 Routes utilisateurs: http://localhost:${PORT}/api/users`);
+      console.log(`🏷️  Routes tags: http://localhost:${PORT}/api/tags`);
+      console.log(`👥 Routes groupes: http://localhost:${PORT}/api/groups`);
+      console.log(`📋 Routes tâches: http://localhost:${PORT}/api/tasks`);
+      console.log(`⚡ Routes actions: http://localhost:${PORT}/api/actions`);
     });
   } catch (error) {
     console.error('Erreur lors du démarrage du serveur:', error);

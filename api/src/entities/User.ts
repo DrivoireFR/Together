@@ -1,6 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate, ManyToMany, OneToMany } from 'typeorm';
 import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import * as bcrypt from 'bcryptjs';
+import { Group } from './Group';
+import { Action } from './Action';
 
 @Entity()
 export class User {
@@ -29,6 +31,12 @@ export class User {
 
   @Column({ nullable: true })
   icone?: string;
+
+  @ManyToMany(() => Group, group => group.users)
+  groups: Group[];
+
+  @OneToMany(() => Action, action => action.user)
+  actions: Action[];
 
   @CreateDateColumn()
   createdAt: Date;

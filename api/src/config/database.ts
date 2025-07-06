@@ -1,5 +1,9 @@
 import { DataSource } from 'typeorm';
 import { User } from '../entities/User';
+import { Group } from '../entities/Group';
+import { Task } from '../entities/Task';
+import { Action } from '../entities/Action';
+import { Tag } from '../entities/Tag';
 import * as path from 'path';
 
 export const AppDataSource = new DataSource({
@@ -7,7 +11,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DATABASE_PATH || './database.sqlite',
   synchronize: true, // En production, utiliser des migrations
   logging: process.env.NODE_ENV === 'development',
-  entities: [User],
+  entities: [User, Group, Task, Action, Tag],
   migrations: [path.join(__dirname, '../migrations/**/*{.ts,.js}')],
   subscribers: [path.join(__dirname, '../subscribers/**/*{.ts,.js}')],
 });
