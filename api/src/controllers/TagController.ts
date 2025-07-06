@@ -2,26 +2,52 @@ import { Request, Response } from 'express';
 import { validate } from 'class-validator';
 import { AppDataSource } from '../config/database';
 import { Tag } from '../entities/Tag';
+import { Group } from '../entities/Group';
 import { AuthRequest } from '../middleware/auth';
 
 export class TagController {
   async create(req: AuthRequest, res: Response) {
     try {
-      const { label, color } = req.body;
+      const { label, color, groupId } = req.body;
 
-      if (!label || !color) {
+      if (!label || !color || !groupId) {
         return res.status(400).json({
-          message: 'Label et couleur requis'
+          message: 'Label, couleur et groupe requis'
         });
       }
 
       const tagRepository = AppDataSource.getRepository(Tag);
+      const groupRepository = AppDataSource.getRepository(Group);
 
-      // Vérifier si le tag existe déjà
-      const existingTag = await tagRepository.findOne({ where: { label } });
+      // Vérifier si le groupe existe
+      const group = await groupRepository.findOne({
+        where: { id: groupId },
+        relations: ['users']
+      });
+
+      if (!group) {
+        return res.status(404).json({
+          message: 'Groupe non trouvé'
+        });
+      }
+
+      // Vérifier si l'utilisateur est membre du groupe
+      const userId = req.user!.id;
+      const isMember = group.users.some(user => user.id === userId);
+      if (!isMember) {
+        return res.status(403).json({
+          message: 'Vous devez être membre du groupe pour créer un tag'
+        });
+      }
+
+      // Vérifier si le tag existe déjà dans ce groupe
+      const existingTag = await tagRepository.findOne({
+        where: { label, group: { id: groupId } }
+      });
+
       if (existingTag) {
         return res.status(400).json({
-          message: 'Un tag avec ce nom existe déjà'
+          message: 'Un tag avec ce nom existe déjà dans ce groupe'
         });
       }
 
@@ -29,6 +55,7 @@ export class TagController {
       const tag = new Tag();
       tag.label = label;
       tag.color = color;
+      tag.group = group;
 
       // Valider les données
       const errors = await validate(tag);
@@ -60,7 +87,7 @@ export class TagController {
     try {
       const tagRepository = AppDataSource.getRepository(Tag);
       const tags = await tagRepository.find({
-        relations: ['tasks']
+        relations: ['group', 'tasks']
       });
 
       res.json({
@@ -75,6 +102,50 @@ export class TagController {
     }
   }
 
+  async getByGroupId(req: AuthRequest, res: Response) {
+    try {
+      const { groupId } = req.params;
+      const tagRepository = AppDataSource.getRepository(Tag);
+      const groupRepository = AppDataSource.getRepository(Group);
+
+      // Vérifier si le groupe existe
+      const group = await groupRepository.findOne({
+        where: { id: parseInt(groupId) },
+        relations: ['users']
+      });
+
+      if (!group) {
+        return res.status(404).json({
+          message: 'Groupe non trouvé'
+        });
+      }
+
+      // Vérifier si l'utilisateur est membre du groupe
+      const userId = req.user!.id;
+      const isMember = group.users.some(user => user.id === userId);
+      if (!isMember) {
+        return res.status(403).json({
+          message: 'Vous devez être membre du groupe pour voir ses tags'
+        });
+      }
+
+      const tags = await tagRepository.find({
+        where: { group: { id: parseInt(groupId) } },
+        relations: ['group', 'tasks']
+      });
+
+      res.json({
+        message: 'Tags du groupe récupérés avec succès',
+        tags
+      });
+    } catch (error) {
+      console.error('Erreur lors de la récupération des tags du groupe:', error);
+      res.status(500).json({
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
   async getById(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
@@ -82,12 +153,33 @@ export class TagController {
       
       const tag = await tagRepository.findOne({
         where: { id: parseInt(id) },
-        relations: ['tasks']
+        relations: ['group', 'tasks']
       });
 
       if (!tag) {
         return res.status(404).json({
           message: 'Tag non trouvé'
+        });
+      }
+
+      // Vérifier si l'utilisateur est membre du groupe
+      const userId = req.user!.id;
+      const groupRepository = AppDataSource.getRepository(Group);
+      const group = await groupRepository.findOne({
+        where: { id: tag.group.id },
+        relations: ['users']
+      });
+
+      if (!group) {
+        return res.status(404).json({
+          message: 'Groupe associé non trouvé'
+        });
+      }
+
+      const isMember = group.users.some(user => user.id === userId);
+      if (!isMember) {
+        return res.status(403).json({
+          message: 'Vous devez être membre du groupe pour voir ce tag'
         });
       }
 
@@ -109,9 +201,11 @@ export class TagController {
       const { label, color } = req.body;
 
       const tagRepository = AppDataSource.getRepository(Tag);
+      const groupRepository = AppDataSource.getRepository(Group);
       
       const tag = await tagRepository.findOne({
-        where: { id: parseInt(id) }
+        where: { id: parseInt(id) },
+        relations: ['group']
       });
 
       if (!tag) {
@@ -120,12 +214,34 @@ export class TagController {
         });
       }
 
-      // Vérifier si le nouveau label existe déjà
+      // Vérifier si l'utilisateur est membre du groupe
+      const userId = req.user!.id;
+      const group = await groupRepository.findOne({
+        where: { id: tag.group.id },
+        relations: ['users']
+      });
+
+      if (!group) {
+        return res.status(404).json({
+          message: 'Groupe associé non trouvé'
+        });
+      }
+
+      const isMember = group.users.some(user => user.id === userId);
+      if (!isMember) {
+        return res.status(403).json({
+          message: 'Vous devez être membre du groupe pour modifier ce tag'
+        });
+      }
+
+      // Vérifier si le nouveau label existe déjà dans ce groupe
       if (label && label !== tag.label) {
-        const existingTag = await tagRepository.findOne({ where: { label } });
+        const existingTag = await tagRepository.findOne({
+          where: { label, group: { id: tag.group.id } }
+        });
         if (existingTag) {
           return res.status(400).json({
-            message: 'Un tag avec ce nom existe déjà'
+            message: 'Un tag avec ce nom existe déjà dans ce groupe'
           });
         }
       }
@@ -164,15 +280,36 @@ export class TagController {
     try {
       const { id } = req.params;
       const tagRepository = AppDataSource.getRepository(Tag);
+      const groupRepository = AppDataSource.getRepository(Group);
       
       const tag = await tagRepository.findOne({
         where: { id: parseInt(id) },
-        relations: ['tasks']
+        relations: ['group', 'tasks']
       });
 
       if (!tag) {
         return res.status(404).json({
           message: 'Tag non trouvé'
+        });
+      }
+
+      // Vérifier si l'utilisateur est membre du groupe
+      const userId = req.user!.id;
+      const group = await groupRepository.findOne({
+        where: { id: tag.group.id },
+        relations: ['users']
+      });
+
+      if (!group) {
+        return res.status(404).json({
+          message: 'Groupe associé non trouvé'
+        });
+      }
+
+      const isMember = group.users.some(user => user.id === userId);
+      if (!isMember) {
+        return res.status(403).json({
+          message: 'Vous devez être membre du groupe pour supprimer ce tag'
         });
       }
 

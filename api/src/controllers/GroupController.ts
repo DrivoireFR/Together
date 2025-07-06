@@ -60,7 +60,7 @@ export class GroupController {
     try {
       const groupRepository = AppDataSource.getRepository(Group);
       const groups = await groupRepository.find({
-        relations: ['users', 'tasks', 'actions']
+        relations: ['users', 'tasks', 'actions', 'tags']
       });
 
       res.json({
@@ -82,7 +82,7 @@ export class GroupController {
       
       const group = await groupRepository.findOne({
         where: { id: parseInt(id) },
-        relations: ['users', 'tasks', 'actions']
+        relations: ['users', 'tasks', 'actions', 'tags']
       });
 
       if (!group) {
@@ -120,6 +120,7 @@ export class GroupController {
         .where('group.nom LIKE :nom', { nom: `%${nom}%` })
         .leftJoinAndSelect('group.users', 'users')
         .leftJoinAndSelect('group.tasks', 'tasks')
+        .leftJoinAndSelect('group.tags', 'tags')
         .getMany();
 
       res.json({
@@ -151,6 +152,7 @@ export class GroupController {
         .leftJoinAndSelect('group.users', 'users')
         .where('users.email = :email', { email })
         .leftJoinAndSelect('group.tasks', 'tasks')
+        .leftJoinAndSelect('group.tags', 'tags')
         .getMany();
 
       res.json({
@@ -322,7 +324,7 @@ export class GroupController {
       
       const group = await groupRepository.findOne({
         where: { id: parseInt(id) },
-        relations: ['users', 'tasks', 'actions']
+        relations: ['users', 'tasks', 'actions', 'tags']
       });
 
       if (!group) {
@@ -331,7 +333,7 @@ export class GroupController {
         });
       }
 
-      // Vérifier si le groupe a des tâches ou actions
+      // Vérifier si le groupe a des tâches, actions ou tags
       if (group.tasks && group.tasks.length > 0) {
         return res.status(400).json({
           message: 'Impossible de supprimer le groupe car il contient des tâches'
@@ -341,6 +343,12 @@ export class GroupController {
       if (group.actions && group.actions.length > 0) {
         return res.status(400).json({
           message: 'Impossible de supprimer le groupe car il contient des actions'
+        });
+      }
+
+      if (group.tags && group.tags.length > 0) {
+        return res.status(400).json({
+          message: 'Impossible de supprimer le groupe car il contient des tags'
         });
       }
 

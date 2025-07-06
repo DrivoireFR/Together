@@ -32,12 +32,23 @@ export class TaskController {
       // Vérifier si le tag existe (optionnel)
       let tag: Tag | undefined = undefined;
       if (tagId) {
-        const foundTag = await tagRepository.findOne({ where: { id: tagId } });
+        const foundTag = await tagRepository.findOne({ 
+          where: { id: tagId },
+          relations: ['group']
+        });
         if (!foundTag) {
           return res.status(404).json({
             message: 'Tag non trouvé'
           });
         }
+        
+        // Vérifier que le tag appartient au même groupe que la tâche
+        if (foundTag.group.id !== groupId) {
+          return res.status(400).json({
+            message: 'Le tag doit appartenir au même groupe que la tâche'
+          });
+        }
+        
         tag = foundTag;
       }
 
@@ -167,12 +178,23 @@ export class TaskController {
       // Vérifier si le tag existe (optionnel)
       let tag: Tag | undefined = undefined;
       if (tagId) {
-        const foundTag = await tagRepository.findOne({ where: { id: tagId } });
+        const foundTag = await tagRepository.findOne({ 
+          where: { id: tagId },
+          relations: ['group']
+        });
         if (!foundTag) {
           return res.status(404).json({
             message: 'Tag non trouvé'
           });
         }
+        
+        // Vérifier que le tag appartient au même groupe que la tâche
+        if (foundTag.group.id !== task.group.id) {
+          return res.status(400).json({
+            message: 'Le tag doit appartenir au même groupe que la tâche'
+          });
+        }
+        
         tag = foundTag;
       }
 

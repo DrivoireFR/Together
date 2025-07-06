@@ -11,6 +11,9 @@ router.post('/', authMiddleware, tagController.create);
 // GET /api/tags - Récupérer tous les tags
 router.get('/', authMiddleware, tagController.getAll);
 
+// GET /api/tags/group/:groupId - Récupérer les tags d'un groupe
+router.get('/group/:groupId', authMiddleware, tagController.getByGroupId);
+
 // GET /api/tags/:id - Récupérer un tag par ID
 router.get('/:id', authMiddleware, tagController.getById);
 

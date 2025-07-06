@@ -3,6 +3,7 @@ import { IsNotEmpty } from 'class-validator';
 import { User } from './User';
 import { Task } from './Task';
 import { Action } from './Action';
+import { Tag } from './Tag';
 
 @Entity()
 export class Group {
@@ -22,6 +23,9 @@ export class Group {
 
   @OneToMany(() => Action, action => action.group)
   actions: Action[];
+
+  @OneToMany(() => Tag, tag => tag.group)
+  tags: Tag[];
 
   @CreateDateColumn()
   createdAt: Date;
