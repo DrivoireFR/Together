@@ -5,6 +5,7 @@ import { Action } from '../entities/Action';
 import { Task } from '../entities/Task';
 import { User } from '../entities/User';
 import { Group } from '../entities/Group';
+import { UserTaskState } from '../entities/UserTaskState';
 import { AuthRequest } from '../middleware/auth';
 
 export class ActionController {
@@ -22,6 +23,7 @@ export class ActionController {
       const actionRepository = AppDataSource.getRepository(Action);
       const taskRepository = AppDataSource.getRepository(Task);
       const userRepository = AppDataSource.getRepository(User);
+      const userTaskStateRepository = AppDataSource.getRepository(UserTaskState);
 
       // Vérifier si la tâche existe
       const task = await taskRepository.findOne({
@@ -55,12 +57,23 @@ export class ActionController {
         });
       }
 
+      // Vérifier si l'utilisateur est concerné par la tâche
+      const userTaskState = await userTaskStateRepository.findOne({
+        where: { 
+          user: { id: userId },
+          task: { id: taskId }
+        }
+      });
+
+      const isUserConcerned = userTaskState?.isConcerned || false;
+
       // Créer l'action
       const action = new Action();
       action.task = task;
       action.user = user;
       action.group = task.group;
       action.date = new Date(date);
+      action.isHelpingHand = !isUserConcerned; // Si l'utilisateur n'est pas concerné, c'est un coup de main
 
       // Valider les données
       const errors = await validate(action);
