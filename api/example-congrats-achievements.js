@@ -103,18 +103,20 @@ async function exemplesAchievements() {
     if (congrats.length > 0) {
       const achievement = await makeRequest('POST', '/achievements', {
         userId: userId,
+        groupId: 1, // Supposons que le groupe 1 existe
         congratsId: congrats[0].id,
         achievedAt: new Date().toISOString()
       });
       console.log('Achievement attribué:', {
         user: achievement.user.nom + ' ' + achievement.user.prenom,
+        group: achievement.group.nom,
         message: achievement.congrats.message,
         category: achievement.congrats.tag.label,
         level: achievement.congrats.level
       });
     }
   } catch (error) {
-    console.log('Note: Attribution d\'achievement échouée (peut-être déjà attribué)');
+    console.log('Note: Attribution d\'achievement échouée (peut-être déjà attribué ou groupe inexistant)');
   }
 }
 
@@ -138,14 +140,17 @@ async function exempleWorkflowComplet() {
       
       // Simuler l'attribution de l'achievement
       const userId = 1;
+      const groupId = 1; // Dans le contexte d'un groupe spécifique
       try {
         const achievement = await makeRequest('POST', '/achievements', {
           userId: userId,
+          groupId: groupId,
           congratsId: menageCongrats.id
         });
         console.log('5. Achievement enregistré avec succès ! 🎉');
+        console.log(`   Attribué dans le groupe: ${achievement.group.nom}`);
       } catch (error) {
-        console.log('5. Achievement déjà attribué précédemment');
+        console.log('5. Achievement déjà attribué précédemment pour ce groupe');
       }
     }
   } catch (error) {

@@ -16,6 +16,9 @@ router.get('/user/:userId', (req, res) => achievementController.getByUser(req, r
 // GET /api/achievements/user/:userId/stats - Récupérer les statistiques d'un utilisateur
 router.get('/user/:userId/stats', (req, res) => achievementController.getStats(req, res));
 
+// GET /api/achievements/group/:groupId - Récupérer les achievements d'un groupe
+router.get('/group/:groupId', (req, res) => achievementController.getByGroup(req, res));
+
 // POST /api/achievements - Créer un nouvel achievement
 router.post('/', (req, res) => achievementController.create(req, res));
 

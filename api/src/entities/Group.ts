@@ -4,6 +4,7 @@ import { User } from './User';
 import { Task } from './Task';
 import { Action } from './Action';
 import { Tag } from './Tag';
+import { Achievement } from './Achievement';
 
 @Entity()
 export class Group {
@@ -26,6 +27,9 @@ export class Group {
 
   @OneToMany(() => Tag, tag => tag.group)
   tags: Tag[];
+
+  @OneToMany(() => Achievement, achievement => achievement.group)
+  achievements: Achievement[];
 
   @CreateDateColumn()
   createdAt: Date;

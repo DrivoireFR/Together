@@ -23,11 +23,12 @@ Représente un message de félicitation lié à une catégorie (Tag) et un nivea
 - `updatedAt: Date` - Date de dernière modification
 
 ### 3. Achievement (Nouvelle entité)
-Représente l'attribution d'un Congrats à un utilisateur à une date donnée.
+Représente l'attribution d'un Congrats à un utilisateur dans un groupe spécifique à une date donnée.
 
 **Propriétés :**
 - `id: number` - Identifiant unique
 - `user: User` - Relation vers l'utilisateur
+- `group: Group` - Relation vers le groupe concerné
 - `congrats: Congrats` - Relation vers le congrats attribué
 - `achievedAt: Date` - Date d'obtention de l'achievement
 - `createdAt: Date` - Date de création
@@ -103,23 +104,31 @@ Récupère un achievement spécifique par son ID.
 #### GET /api/achievements/user/:userId
 Récupère tous les achievements d'un utilisateur (triés par date décroissante).
 
+#### GET /api/achievements/group/:groupId
+Récupère tous les achievements d'un groupe (triés par date décroissante).
+
 #### GET /api/achievements/user/:userId/stats
 Récupère les statistiques d'achievements d'un utilisateur.
+Paramètre optionnel : `?groupId=X` pour filtrer par groupe.
 ```json
 {
   "totalAchievements": 5,
   "statsByTag": {
     "Ménage": { "level1": 2, "level2": 1, "total": 3 },
     "Cuisine": { "level1": 1, "level2": 1, "total": 2 }
+  },
+  "statsByGroup": {
+    "Famille": { "level1": 3, "level2": 2, "total": 5 }
   }
 }
 ```
 
 #### POST /api/achievements
-Attribue un achievement à un utilisateur.
+Attribue un achievement à un utilisateur dans un groupe spécifique.
 ```json
 {
   "userId": 1,
+  "groupId": 1,
   "congratsId": 1,
   "achievedAt": "2024-01-15T10:30:00Z" // optionnel, date actuelle par défaut
 }
@@ -155,10 +164,10 @@ ts-node src/scripts/runSeeder.ts
 ## Utilisation en pratique
 
 ### Attribution d'un Achievement
-1. L'utilisateur accomplit une tâche d'une catégorie spécifique
-2. Le système détermine le niveau de progression (1 ou 2)
-3. Un Achievement est créé avec le Congrats correspondant
-4. L'utilisateur reçoit le message de félicitation
+1. L'utilisateur accomplit une tâche d'une catégorie spécifique dans un groupe
+2. Le système détermine le niveau de progression (1 ou 2) basé sur la participation dans ce groupe
+3. Un Achievement est créé avec le Congrats correspondant pour ce groupe spécifique
+4. L'utilisateur reçoit le message de félicitation dans le contexte du groupe
 
 ### Consultation des Achievements
 - L'utilisateur peut consulter ses achievements via `/api/achievements/user/:userId`

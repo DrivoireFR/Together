@@ -1,5 +1,27 @@
 # Changelog - Système Congrats & Achievements
 
+## Version 1.1.1 - Ajout de la Relation Group aux Achievements
+
+### 🔄 Modifications Importantes
+
+#### Achievement ↔ Group Relation
+- **BREAKING CHANGE** : Les Achievements sont maintenant liés à un Group en plus de l'User
+- Justification : Les achievements sont décernés en fonction de la participation dans un groupe spécifique
+- Impact : `POST /api/achievements` nécessite maintenant un `groupId`
+
+#### Nouvelles Fonctionnalités
+- **GET `/api/achievements/group/:groupId`** : Récupération des achievements par groupe
+- **Statistiques enrichies** : Répartition par groupe dans `/api/achievements/user/:userId/stats`
+- **Filtrage optionnel** : Paramètre `?groupId=X` pour les statistiques utilisateur
+
+#### Modifications Techniques
+- **Achievement.ts** : Ajout de la relation `@ManyToOne(() => Group)`
+- **Group.ts** : Ajout de la relation `@OneToMany(() => Achievement)`
+- **AchievementController** : Méthodes mises à jour pour inclure le groupe
+- **Routes** : Nouvelle route pour les achievements par groupe
+
+---
+
 ## Version 1.1.0 - Ajout du Système de Félicitations et Achievements
 
 ### 🎉 Nouvelles Fonctionnalités
