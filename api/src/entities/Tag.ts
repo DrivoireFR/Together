@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { IsNotEmpty, IsHexColor } from 'class-validator';
 import { Task } from './Task';
 import { Group } from './Group';
+import { Congrats } from './Congrats';
 
 @Entity()
 export class Tag {
@@ -16,11 +17,17 @@ export class Tag {
   @IsHexColor()
   color: string;
 
+  @Column({ default: false })
+  isDefault: boolean;
+
   @ManyToOne(() => Group, group => group.tags)
   group: Group;
 
   @OneToMany(() => Task, task => task.tag)
   tasks: Task[];
+
+  @OneToMany(() => Congrats, congrats => congrats.tag)
+  congrats: Congrats[];
 
   @CreateDateColumn()
   createdAt: Date;
