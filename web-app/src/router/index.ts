@@ -1,0 +1,65 @@
+import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/domain/stores/authStore'
+import { ROUTES } from '@/shared/constants'
+
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes: [
+    {
+      path: '/',
+      redirect: '/groups'
+    },
+    {
+      path: '/login',
+      name: 'Login',
+      component: () => import('@/presentation/views/LoginView.vue'),
+      meta: { 
+        requiresAuth: false,
+        layout: 'auth'
+      }
+    },
+    {
+      path: '/groups',
+      name: 'Groups',
+      component: () => import('@/presentation/views/GroupsView.vue'),
+      meta: { 
+        requiresAuth: true,
+        layout: 'app'
+      }
+    },
+    {
+      path: '/groups/:id',
+      name: 'GroupDetail',
+      component: () => import('@/presentation/views/GroupDetailView.vue'),
+      meta: { 
+        requiresAuth: true,
+        layout: 'app'
+      }
+    }
+  ]
+})
+
+// Navigation guards
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+  
+  // Initialize auth if not done yet
+  if (!authStore.isAuthenticated && !authStore.user) {
+    authStore.initializeAuth()
+  }
+  
+  const requiresAuth = to.meta.requiresAuth !== false
+  const isAuthenticated = authStore.isAuthenticated
+  
+  if (requiresAuth && !isAuthenticated) {
+    // Redirect to login if authentication is required
+    next('/login')
+  } else if (to.path === '/login' && isAuthenticated) {
+    // Redirect to dashboard if already authenticated
+    next('/groups')
+  } else {
+    next()
+  }
+})
+
+export default router
