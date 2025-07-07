@@ -3,6 +3,7 @@ import { IsNotEmpty, IsPositive, IsUrl, IsOptional } from 'class-validator';
 import { Group } from './Group';
 import { Tag } from './Tag';
 import { Action } from './Action';
+import { UserTaskState } from './UserTaskState';
 
 export enum FrequencyUnit {
   JOUR = 'jour',
@@ -35,6 +36,10 @@ export class Task {
   })
   uniteFrequence: FrequencyUnit;
 
+  @Column({ type: 'int', default: 0 })
+  @IsPositive()
+  points: number;
+
   @ManyToOne(() => Group, group => group.tasks)
   group: Group;
 
@@ -43,6 +48,9 @@ export class Task {
 
   @OneToMany(() => Action, action => action.task)
   actions: Action[];
+
+  @OneToMany(() => UserTaskState, (userTaskState: UserTaskState) => userTaskState.task)
+  userStates: UserTaskState[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -3,6 +3,7 @@ import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import * as bcrypt from 'bcryptjs';
 import { Group } from './Group';
 import { Action } from './Action';
+import { UserTaskState } from './UserTaskState';
 
 @Entity()
 export class User {
@@ -37,6 +38,9 @@ export class User {
 
   @OneToMany(() => Action, action => action.user)
   actions: Action[];
+
+  @OneToMany(() => UserTaskState, (userTaskState: UserTaskState) => userTaskState.user)
+  taskStates: UserTaskState[];
 
   @CreateDateColumn()
   createdAt: Date;
