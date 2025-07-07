@@ -1,22 +1,22 @@
 <template>
   <AppLayout>
-    <div class="space-y-6">
+    <div class="groups-container">
       <!-- Header -->
-      <div class="flex justify-between items-center">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">Mes groupes</h1>
-          <p class="text-gray-600">Gérez vos groupes et rejoignez-en de nouveaux</p>
+      <div class="groups-header">
+        <div class="header-text">
+          <h1 class="page-title">Mes groupes</h1>
+          <p class="page-subtitle">Gérez vos groupes et rejoignez-en de nouveaux</p>
         </div>
         
         <BaseButton @click="showCreateForm = true">
-          <PlusIcon class="h-4 w-4 mr-2" />
+          <PlusIcon class="btn-icon-left" />
           Créer un groupe
         </BaseButton>
       </div>
       
       <!-- Search section -->
       <BaseCard title="Rechercher des groupes">
-        <div class="space-y-4">
+        <div class="search-container">
           <BaseInput
             v-model="searchQuery"
             type="search"
@@ -26,9 +26,9 @@
           />
           
           <!-- Search results -->
-          <div v-if="searchResults.length > 0" class="space-y-3">
-            <h3 class="text-sm font-medium text-gray-700">Résultats de recherche :</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-if="searchResults.length > 0" class="search-results">
+            <h3 class="search-results-title">Résultats de recherche :</h3>
+            <div class="groups-grid">
               <GroupCard
                 v-for="group in searchResults"
                 :key="group.id"
@@ -41,7 +41,7 @@
             </div>
           </div>
           
-          <div v-else-if="searchQuery && !groupStore.isSearching" class="text-center py-8 text-gray-500">
+          <div v-else-if="searchQuery && !groupStore.isSearching" class="no-results">
             Aucun groupe trouvé pour "{{ searchQuery }}"
           </div>
         </div>
@@ -49,12 +49,12 @@
       
       <!-- My groups -->
       <BaseCard title="Mes groupes">
-        <div v-if="groupStore.isLoading" class="text-center py-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p class="mt-2 text-gray-500">Chargement...</p>
+        <div v-if="groupStore.isLoading" class="loading-state">
+          <div class="loading-spinner"></div>
+          <p class="loading-text">Chargement...</p>
         </div>
         
-        <div v-else-if="groupStore.hasGroups" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-else-if="groupStore.hasGroups" class="groups-grid groups-grid--large">
           <GroupCard
             v-for="group in groupStore.groups"
             :key="group.id"
@@ -68,19 +68,19 @@
           />
         </div>
         
-        <div v-else class="text-center py-12">
-          <UserGroupIcon class="h-12 w-12 text-gray-400 mx-auto" />
-          <h3 class="mt-4 text-lg font-medium text-gray-900">Aucun groupe</h3>
-          <p class="mt-2 text-gray-500">Créez votre premier groupe ou rejoignez un groupe existant</p>
+        <div v-else class="empty-state">
+          <UserGroupIcon class="empty-icon" />
+          <h3 class="empty-title">Aucun groupe</h3>
+          <p class="empty-description">Créez votre premier groupe ou rejoignez un groupe existant</p>
         </div>
       </BaseCard>
     </div>
     
     <!-- Create Group Modal -->
-    <div v-if="showCreateForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-lg max-w-md w-full">
-        <div class="p-6">
-          <h2 class="text-lg font-medium text-gray-900 mb-4">Créer un nouveau groupe</h2>
+    <div v-if="showCreateForm" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h2 class="modal-title">Créer un nouveau groupe</h2>
           <CreateGroupForm
             :loading="groupStore.isLoading"
             :global-error="groupStore.error"
@@ -180,3 +180,165 @@ onMounted(() => {
   groupStore.fetchGroups()
 })
 </script>
+
+<style scoped>
+.groups-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.groups-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-text h1 {
+  margin: 0;
+}
+
+.header-text p {
+  margin: 0;
+}
+
+.page-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
+}
+
+.page-subtitle {
+  color: var(--color-gray-600);
+}
+
+.btn-icon-left {
+  width: var(--spacing-4);
+  height: var(--spacing-4);
+  margin-right: var(--spacing-2);
+}
+
+.search-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.search-results-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+  margin: 0;
+}
+
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: var(--spacing-4);
+}
+
+.groups-grid--large {
+  gap: var(--spacing-6);
+}
+
+.no-results {
+  text-align: center;
+  padding: var(--spacing-8) 0;
+  color: var(--color-gray-500);
+}
+
+.loading-state {
+  text-align: center;
+  padding: var(--spacing-8) 0;
+}
+
+.loading-spinner {
+  width: var(--spacing-8);
+  height: var(--spacing-8);
+  border: 2px solid var(--color-primary);
+  border-top-color: transparent;
+  border-radius: var(--border-radius-full);
+  margin: 0 auto var(--spacing-2);
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin: 0;
+  color: var(--color-gray-500);
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-12) 0;
+}
+
+.empty-icon {
+  width: var(--spacing-12);
+  height: var(--spacing-12);
+  color: var(--color-gray-400);
+  margin: 0 auto var(--spacing-4);
+}
+
+.empty-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-900);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.empty-description {
+  color: var(--color-gray-500);
+  margin: 0;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4);
+  z-index: var(--z-modal);
+}
+
+.modal-content {
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  max-width: 28rem;
+  width: 100%;
+}
+
+.modal-body {
+  padding: var(--spacing-6);
+}
+
+.modal-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-900);
+  margin: 0 0 var(--spacing-4) 0;
+}
+
+/* Responsive grid */
+@media (min-width: 768px) {
+  .groups-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .groups-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+</style>

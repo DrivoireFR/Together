@@ -1,6 +1,6 @@
 <template>
   <form @submit.prevent="handleSubmit">
-    <div class="space-y-4">
+    <div class="form-container">
       <!-- Email -->
       <BaseInput
         v-model="form.email"
@@ -26,7 +26,7 @@
       />
       
       <!-- Error message -->
-      <div v-if="globalError" class="text-red-600 text-sm">
+      <div v-if="globalError" class="form-error">
         {{ globalError }}
       </div>
       
@@ -35,7 +35,7 @@
         type="submit"
         :loading="loading"
         :disabled="!isFormValid"
-        class="w-full"
+        class="form-submit"
       >
         Se connecter
       </BaseButton>
@@ -118,3 +118,25 @@ const handleSubmit = () => {
   }
 }
 </script>
+
+<style scoped>
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.form-error {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  padding: var(--spacing-2);
+  background-color: var(--color-danger-light);
+  border-radius: var(--border-radius);
+  border: var(--border-width) solid var(--color-danger);
+}
+
+.form-submit {
+  width: 100%;
+}
+</style>

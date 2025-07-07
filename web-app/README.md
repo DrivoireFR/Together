@@ -38,7 +38,7 @@ src/
 - **TypeScript** pour le typage statique
 - **Pinia** pour la gestion d'état
 - **Vue Router** pour la navigation
-- **Tailwind CSS** pour le styling
+- **CSS Vanilla** avec variables CSS custom pour le styling
 - **Axios** pour les requêtes HTTP
 - **Vite** comme bundler
 
@@ -105,41 +105,96 @@ VITE_API_BASE_URL=http://localhost:3000/api
 - `POST /groups/:id/join` - Rejoindre un groupe
 - `POST /groups/:id/leave` - Quitter un groupe
 
-## 🎨 Design System
+## 🎨 Design System avec CSS Vanilla
 
-### Composants Atomiques
+### Variables CSS Custom
+
+L'application utilise un système de design basé sur des variables CSS custom définies dans `src/assets/main.css` :
+
+#### Couleurs
+```css
+:root {
+  /* Couleurs principales */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-light: #dbeafe;
+  
+  /* Couleurs d'état */
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  
+  /* Couleurs neutres */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  /* ... */
+}
+```
+
+#### Espacement
+```css
+:root {
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  /* ... */
+}
+```
+
+#### Typographie
+```css
+:root {
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  /* ... */
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+}
+```
+
+### Composants Stylés
 
 **BaseButton**
-- Variants : `primary`, `secondary`, `danger`, `outline`, `ghost`
-- Tailles : `sm`, `md`, `lg`
-- Props : `loading`, `disabled`, `iconBefore`, `iconAfter`
+- Classes CSS scoped avec variantes (`btn--primary`, `btn--secondary`, etc.)
+- Gestion des états (hover, disabled, loading)
+- Tailles configurables (`btn--sm`, `btn--md`, `btn--lg`)
 
 **BaseInput**
-- Types : `text`, `email`, `password`, `number`, etc.
-- Props : `label`, `error`, `helpText`, `iconBefore`, `iconAfter`
+- Styles cohérents avec validation d'erreur
+- Support des icônes avant/après
+- États focus et disabled
 
 **BaseCard**
-- Variants : `default`, `elevated`, `outlined`, `flat`
-- Props : `title`, `hover`, `clickable`
+- Système de cartes avec variantes d'ombres
+- Support hover et clickable
+- Header et footer optionnels
 
-### Composants Moléculaires
+### Utilitaires CSS
 
-**LoginForm**
-- Validation côté client
-- Gestion des erreurs
-- États de loading
+L'application inclut des classes utilitaires similaires à Tailwind mais utilisant les variables CSS :
 
-**GroupCard**
-- Affichage des informations du groupe
-- Actions (rejoindre/quitter)
-- Prévisualisation des membres
+```css
+.flex { display: flex; }
+.grid { display: grid; }
+.text-center { text-align: center; }
+.bg-white { background-color: var(--color-white); }
+.text-gray-500 { color: var(--color-gray-500); }
+.p-4 { padding: var(--spacing-4); }
+.mt-2 { margin-top: var(--spacing-2); }
+/* ... */
+```
 
 ## 🔧 Configuration
 
-### Tailwind CSS
-Configuration dans `tailwind.config.js` avec :
-- Plugin `@tailwindcss/forms`
-- Classes utilitaires personnalisées
+### CSS Vanilla
+- Variables CSS custom dans `src/assets/main.css`
+- Composants avec styles scoped
+- Utilitaires réutilisables basés sur les variables
+- Responsive design avec media queries
 
 ### TypeScript
 Configuration stricte avec chemins absolus (`@/` pour `src/`)
@@ -191,6 +246,41 @@ export const useAuthStore = defineStore('auth', () => {
 })
 ```
 
+### Component Styling Pattern
+```vue
+<!-- Composant avec styles scoped -->
+<template>
+  <button :class="buttonClasses">
+    <slot />
+  </button>
+</template>
+
+<script setup lang="ts">
+const buttonClasses = computed(() => [
+  'btn',
+  `btn--${props.variant}`,
+  `btn--${props.size}`
+].join(' '))
+</script>
+
+<style scoped>
+.btn {
+  /* Styles de base utilisant les variables CSS */
+  background-color: var(--color-primary);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--border-radius-md);
+}
+
+.btn--primary {
+  background-color: var(--color-primary);
+}
+
+.btn--sm {
+  padding: var(--spacing-1) var(--spacing-3);
+}
+</style>
+```
+
 ## 🔐 Sécurité
 
 - Tokens JWT stockés dans localStorage
@@ -207,7 +297,7 @@ export const useAuthStore = defineStore('auth', () => {
 - [ ] Actions sur les tâches
 - [ ] Statistiques et tableaux de bord
 - [ ] Notifications temps réel
-- [ ] Mode sombre
+- [ ] Mode sombre (facilité par les variables CSS)
 - [ ] Tests unitaires et e2e
 
 ## 🤝 Contribution
@@ -217,7 +307,9 @@ export const useAuthStore = defineStore('auth', () => {
 3. Typer toutes les interfaces
 4. Aucune logique métier dans les vues
 5. Utiliser les stores pour la gestion d'état
-6. Tester les composants critiques
+6. Utiliser les variables CSS pour tous les styles
+7. Préférer les styles scoped aux classes globales
+8. Tester les composants critiques
 
 ## 📝 Notes Techniques
 
@@ -226,3 +318,23 @@ export const useAuthStore = defineStore('auth', () => {
 - La logique métier est centralisée dans les stores Pinia
 - Les composants sont purement présentationnels
 - L'API est typée de bout en bout avec TypeScript
+- **CSS Vanilla** avec variables custom pour un contrôle total du styling
+- Système de design cohérent et maintenable
+- Performance optimisée sans framework CSS externe
+
+## 🎨 Migration CSS
+
+Cette application a été migrée de **Tailwind CSS** vers **CSS Vanilla** avec variables custom pour :
+
+### Avantages
+- ✅ **Contrôle total** : Pas de dépendance externe pour le styling
+- ✅ **Performance** : CSS plus léger et optimisé
+- ✅ **Maintenabilité** : Variables CSS centralisées et cohérentes
+- ✅ **Flexibilité** : Styles custom sans contraintes de framework
+- ✅ **Bundle size** : Réduction significative de la taille du bundle
+
+### Structure CSS
+- Variables CSS dans `main.css` pour toutes les valeurs design
+- Composants avec styles scoped pour l'encapsulation
+- Classes utilitaires réutilisables basées sur les variables
+- Responsive design natif avec media queries

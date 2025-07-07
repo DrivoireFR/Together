@@ -5,11 +5,11 @@
     :type="type"
     @click="$emit('click', $event)"
   >
-    <div class="flex items-center justify-center">
+    <div class="btn-content">
       <!-- Loading spinner -->
       <svg
         v-if="loading"
-        class="animate-spin h-4 w-4 mr-2"
+        class="btn-spinner"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -33,7 +33,7 @@
       <component
         v-if="iconBefore && !loading"
         :is="iconBefore"
-        class="h-4 w-4 mr-2"
+        class="btn-icon btn-icon-before"
       />
       
       <!-- Contenu du bouton -->
@@ -43,7 +43,7 @@
       <component
         v-if="iconAfter && !loading"
         :is="iconAfter"
-        class="h-4 w-4 ml-2"
+        class="btn-icon btn-icon-after"
       />
     </div>
   </button>
@@ -75,26 +75,133 @@ defineEmits<{
 }>()
 
 const buttonClasses = computed(() => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
-  
-  const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base'
-  }
-  
-  const variantClasses = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-    secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    outline: 'border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50 focus:ring-blue-500',
-    ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-blue-500'
-  }
-  
   return [
-    baseClasses,
-    sizeClasses[props.size],
-    variantClasses[props.variant]
+    'btn',
+    `btn--${props.variant}`,
+    `btn--${props.size}`
   ].join(' ')
 })
 </script>
+
+<style scoped>
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--border-radius-md);
+  transition: var(--transition-fast);
+  transition-property: color, background-color, border-color, box-shadow;
+  border: var(--border-width) solid transparent;
+  cursor: pointer;
+  outline: none;
+  text-decoration: none;
+}
+
+.btn:focus {
+  box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-primary);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon {
+  width: var(--spacing-4);
+  height: var(--spacing-4);
+  flex-shrink: 0;
+}
+
+.btn-icon-before {
+  margin-right: var(--spacing-2);
+}
+
+.btn-icon-after {
+  margin-left: var(--spacing-2);
+}
+
+.btn-spinner {
+  width: var(--spacing-4);
+  height: var(--spacing-4);
+  margin-right: var(--spacing-2);
+  animation: spin 1s linear infinite;
+}
+
+/* Sizes */
+.btn--sm {
+  padding: var(--spacing-1) var(--spacing-3);
+  font-size: var(--font-size-sm);
+}
+
+.btn--md {
+  padding: var(--spacing-2) var(--spacing-4);
+  font-size: var(--font-size-sm);
+}
+
+.btn--lg {
+  padding: var(--spacing-3) var(--spacing-6);
+  font-size: var(--font-size-base);
+}
+
+/* Variants */
+.btn--primary {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.btn--secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-white);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background-color: var(--color-secondary-hover);
+}
+
+.btn--danger {
+  background-color: var(--color-danger);
+  color: var(--color-white);
+}
+
+.btn--danger:hover:not(:disabled) {
+  background-color: var(--color-danger-hover);
+}
+
+.btn--outline {
+  border-color: var(--color-gray-300);
+  background-color: transparent;
+  color: var(--color-gray-700);
+}
+
+.btn--outline:hover:not(:disabled) {
+  background-color: var(--color-gray-50);
+}
+
+.btn--outline:focus {
+  box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-primary);
+}
+
+.btn--ghost {
+  background-color: transparent;
+  color: var(--color-gray-700);
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background-color: var(--color-gray-100);
+}
+
+.btn--ghost:focus {
+  box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-primary);
+}
+</style>

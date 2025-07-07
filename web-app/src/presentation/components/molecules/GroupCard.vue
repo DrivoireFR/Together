@@ -4,31 +4,33 @@
     :hover="true"
     @click="handleClick"
   >
-    <div class="flex items-start justify-between">
+    <div class="group-card-header">
       <!-- Group info -->
-      <div class="flex-1 min-w-0">
-        <h3 class="text-lg font-medium text-gray-900 truncate">
+      <div class="group-info">
+        <h3 class="group-name">
           {{ group.nom }}
         </h3>
         
-        <div class="mt-2 flex items-center text-sm text-gray-500">
-          <UserGroupIcon class="h-4 w-4 mr-1" />
-          <span>{{ group.users.length }} membre{{ group.users.length > 1 ? 's' : '' }}</span>
-        </div>
-        
-        <div class="mt-1 flex items-center text-sm text-gray-500">
-          <ClipboardDocumentListIcon class="h-4 w-4 mr-1" />
-          <span>{{ group.tasks?.length || 0 }} tâche{{ (group.tasks?.length || 0) > 1 ? 's' : '' }}</span>
-        </div>
-        
-        <div class="mt-1 flex items-center text-sm text-gray-500">
-          <TagIcon class="h-4 w-4 mr-1" />
-          <span>{{ group.tags?.length || 0 }} tag{{ (group.tags?.length || 0) > 1 ? 's' : '' }}</span>
+        <div class="group-stats">
+          <div class="group-stat">
+            <UserGroupIcon class="group-stat-icon" />
+            <span>{{ group.users.length }} membre{{ group.users.length > 1 ? 's' : '' }}</span>
+          </div>
+          
+          <div class="group-stat">
+            <ClipboardDocumentListIcon class="group-stat-icon" />
+            <span>{{ group.tasks?.length || 0 }} tâche{{ (group.tasks?.length || 0) > 1 ? 's' : '' }}</span>
+          </div>
+          
+          <div class="group-stat">
+            <TagIcon class="group-stat-icon" />
+            <span>{{ group.tags?.length || 0 }} tag{{ (group.tags?.length || 0) > 1 ? 's' : '' }}</span>
+          </div>
         </div>
       </div>
       
       <!-- Actions -->
-      <div class="flex flex-col space-y-2 ml-4">
+      <div class="group-actions">
         <!-- Join button -->
         <BaseButton
           v-if="showJoinButton"
@@ -57,25 +59,25 @@
           variant="ghost"
           @click.stop="$emit('menu', group)"
         >
-          <EllipsisVerticalIcon class="h-4 w-4" />
+          <EllipsisVerticalIcon class="menu-icon" />
         </BaseButton>
       </div>
     </div>
     
     <!-- Members preview -->
-    <div v-if="showMembers && group.users.length > 0" class="mt-4 pt-4 border-t border-gray-100">
-      <p class="text-sm font-medium text-gray-700 mb-2">Membres :</p>
-      <div class="flex flex-wrap gap-2">
+    <div v-if="showMembers && group.users.length > 0" class="group-members">
+      <p class="members-title">Membres :</p>
+      <div class="members-list">
         <span
           v-for="user in group.users.slice(0, 3)"
           :key="user.id"
-          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+          class="member-tag member-tag--user"
         >
           {{ user.nom }}
         </span>
         <span
           v-if="group.users.length > 3"
-          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+          class="member-tag member-tag--count"
         >
           +{{ group.users.length - 3 }}
         </span>
@@ -129,3 +131,95 @@ const handleClick = () => {
   }
 }
 </script>
+
+<style scoped>
+.group-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.group-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.group-name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.group-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.group-stat {
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+}
+
+.group-stat-icon {
+  width: var(--spacing-4);
+  height: var(--spacing-4);
+  margin-right: var(--spacing-1);
+}
+
+.group-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-left: var(--spacing-4);
+}
+
+.menu-icon {
+  width: var(--spacing-4);
+  height: var(--spacing-4);
+}
+
+.group-members {
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: var(--border-width) solid var(--color-gray-100);
+}
+
+.members-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.members-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.member-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-1) calc(var(--spacing-2) + var(--spacing-1));
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.member-tag--user {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+.member-tag--count {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-800);
+}
+</style>

@@ -10,7 +10,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const token = ref<string | null>(null)
   const isLoading = ref(false)
-  const error = ref<string | null>(null)
+  const error = ref<string | undefined>(undefined)
 
   // Getters
   const isAuthenticated = computed(() => !!token.value && !!user.value)
@@ -30,7 +30,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (payload: LoginPayload) => {
     isLoading.value = true
-    error.value = null
+    error.value = undefined
 
     try {
       const result = await authRepository.login(payload)
@@ -59,7 +59,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const register = async (payload: RegisterPayload) => {
     isLoading.value = true
-    error.value = null
+    error.value = undefined
 
     try {
       const result = await authRepository.register(payload)
@@ -89,7 +89,7 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = () => {
     user.value = null
     token.value = null
-    error.value = null
+    error.value = undefined
     
     // Nettoyer le localStorage
     StorageUtil.removeItem(STORAGE_KEYS.TOKEN)
@@ -119,7 +119,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const clearError = () => {
-    error.value = null
+    error.value = undefined
   }
 
   return {

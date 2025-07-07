@@ -10,7 +10,7 @@ export const useGroupStore = defineStore('group', () => {
   const searchResults = ref<Group[]>([])
   const isLoading = ref(false)
   const isSearching = ref(false)
-  const error = ref<string | null>(null)
+  const error = ref<string | undefined>(undefined)
 
   // Getters
   const groupsCount = computed(() => groups.value.length)
@@ -21,7 +21,7 @@ export const useGroupStore = defineStore('group', () => {
   // Actions
   const fetchGroups = async () => {
     isLoading.value = true
-    error.value = null
+    error.value = undefined
 
     try {
       const result = await groupRepository.getAllGroups()
@@ -40,7 +40,7 @@ export const useGroupStore = defineStore('group', () => {
 
   const fetchGroupById = async (id: number) => {
     isLoading.value = true
-    error.value = null
+    error.value = undefined
 
     try {
       const result = await groupRepository.getGroupById(id)
@@ -62,7 +62,7 @@ export const useGroupStore = defineStore('group', () => {
 
   const createGroup = async (payload: CreateGroupPayload) => {
     isLoading.value = true
-    error.value = null
+    error.value = undefined
 
     try {
       const result = await groupRepository.createGroup(payload)
@@ -90,7 +90,7 @@ export const useGroupStore = defineStore('group', () => {
     }
 
     isSearching.value = true
-    error.value = null
+    error.value = undefined
 
     try {
       const result = await groupRepository.searchGroupsByName(nom)
@@ -111,7 +111,7 @@ export const useGroupStore = defineStore('group', () => {
 
   const joinGroup = async (groupId: number) => {
     isLoading.value = true
-    error.value = null
+    error.value = undefined
 
     try {
       const result = await groupRepository.joinGroup(groupId)
@@ -135,7 +135,7 @@ export const useGroupStore = defineStore('group', () => {
 
   const leaveGroup = async (groupId: number) => {
     isLoading.value = true
-    error.value = null
+    error.value = undefined
 
     try {
       const result = await groupRepository.leaveGroup(groupId)
@@ -165,7 +165,7 @@ export const useGroupStore = defineStore('group', () => {
 
   const updateGroup = async (id: number, payload: Partial<CreateGroupPayload>) => {
     isLoading.value = true
-    error.value = null
+    error.value = undefined
 
     try {
       const result = await groupRepository.updateGroup(id, payload)
@@ -205,7 +205,7 @@ export const useGroupStore = defineStore('group', () => {
   }
 
   const clearError = () => {
-    error.value = null
+    error.value = undefined
   }
 
   return {

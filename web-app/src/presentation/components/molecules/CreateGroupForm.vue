@@ -1,6 +1,6 @@
 <template>
   <form @submit.prevent="handleSubmit">
-    <div class="space-y-4">
+    <div class="form-container">
       <!-- Nom du groupe -->
       <BaseInput
         v-model="form.nom"
@@ -14,12 +14,12 @@
       />
       
       <!-- Error message -->
-      <div v-if="globalError" class="text-red-600 text-sm">
+      <div v-if="globalError" class="form-error">
         {{ globalError }}
       </div>
       
       <!-- Actions -->
-      <div class="flex space-x-3">
+      <div class="form-actions">
         <BaseButton
           type="button"
           variant="outline"
@@ -33,7 +33,7 @@
           type="submit"
           :loading="loading"
           :disabled="!isFormValid"
-          class="flex-1"
+          class="form-submit-primary"
         >
           Créer le groupe
         </BaseButton>
@@ -102,3 +102,30 @@ const handleSubmit = () => {
   }
 }
 </script>
+
+<style scoped>
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.form-error {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  padding: var(--spacing-2);
+  background-color: var(--color-danger-light);
+  border-radius: var(--border-radius);
+  border: var(--border-width) solid var(--color-danger);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.form-submit-primary {
+  flex: 1;
+}
+</style>

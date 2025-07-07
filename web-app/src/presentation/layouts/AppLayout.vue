@@ -1,25 +1,25 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="app-layout">
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
+    <nav class="app-nav">
+      <div class="nav-container">
+        <div class="nav-content">
           <!-- Left side -->
-          <div class="flex items-center">
+          <div class="nav-left">
             <!-- Logo -->
-            <router-link to="/" class="flex items-center">
-              <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <UserGroupIcon class="h-5 w-5 text-white" />
+            <router-link to="/" class="nav-logo">
+              <div class="nav-logo-icon">
+                <UserGroupIcon class="nav-logo-svg" />
               </div>
-              <span class="ml-2 text-xl font-bold text-gray-900">Groups</span>
+              <span class="nav-logo-text">Groups</span>
             </router-link>
             
             <!-- Navigation links -->
-            <div class="hidden md:flex ml-10 space-x-8">
+            <div class="nav-links">
               <router-link
                 to="/groups"
-                class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
-                active-class="text-blue-600 bg-blue-50"
+                class="nav-link"
+                active-class="nav-link--active"
               >
                 Mes groupes
               </router-link>
@@ -27,16 +27,16 @@
           </div>
           
           <!-- Right side -->
-          <div class="flex items-center space-x-4">
+          <div class="nav-right">
             <!-- User menu -->
-            <div class="flex items-center space-x-3">
-              <span class="text-sm text-gray-700">{{ authStore.userName }}</span>
+            <div class="user-menu">
+              <span class="user-name">{{ authStore.userName }}</span>
               <BaseButton
                 variant="ghost"
                 size="sm"
                 @click="handleLogout"
               >
-                <ArrowRightOnRectangleIcon class="h-4 w-4" />
+                <ArrowRightOnRectangleIcon class="logout-icon" />
                 Déconnexion
               </BaseButton>
             </div>
@@ -46,7 +46,7 @@
     </nav>
     
     <!-- Main content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="app-main">
       <slot />
     </main>
   </div>
@@ -66,3 +66,142 @@ const handleLogout = () => {
   router.push('/login')
 }
 </script>
+
+<style scoped>
+.app-layout {
+  min-height: 100vh;
+  background-color: var(--color-gray-50);
+}
+
+.app-nav {
+  background-color: var(--color-white);
+  box-shadow: var(--shadow-sm);
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+}
+
+.nav-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 var(--spacing-4);
+}
+
+.nav-content {
+  display: flex;
+  justify-content: space-between;
+  height: var(--spacing-16);
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.nav-logo-icon {
+  width: var(--spacing-8);
+  height: var(--spacing-8);
+  background-color: var(--color-primary);
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-logo-svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-white);
+}
+
+.nav-logo-text {
+  margin-left: var(--spacing-2);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
+}
+
+.nav-links {
+  display: none;
+  margin-left: var(--spacing-10);
+  gap: var(--spacing-8);
+}
+
+.nav-link {
+  color: var(--color-gray-500);
+  text-decoration: none;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: var(--transition-fast);
+  transition-property: color, background-color;
+}
+
+.nav-link:hover {
+  color: var(--color-gray-700);
+}
+
+.nav-link--active {
+  color: var(--color-primary) !important;
+  background-color: var(--color-primary-light) !important;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.user-name {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+}
+
+.logout-icon {
+  width: var(--spacing-4);
+  height: var(--spacing-4);
+}
+
+.app-main {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-4);
+}
+
+/* Responsive design */
+@media (min-width: 768px) {
+  .nav-links {
+    display: flex;
+  }
+  
+  .nav-container {
+    padding: 0 var(--spacing-6);
+  }
+  
+  .app-main {
+    padding: var(--spacing-8) var(--spacing-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .nav-container {
+    padding: 0 var(--spacing-8);
+  }
+  
+  .app-main {
+    padding: var(--spacing-8) var(--spacing-8);
+  }
+}
+</style>

@@ -1,9 +1,9 @@
 <template>
-  <div :class="cardClasses">
+  <div :class="cardClasses" @click="handleClick">
     <!-- Header -->
-    <div v-if="$slots.header || title" class="px-6 py-4 border-b border-gray-200">
+    <div v-if="$slots.header || title" class="card-header">
       <slot name="header">
-        <h3 v-if="title" class="text-lg font-medium text-gray-900">
+        <h3 v-if="title" class="card-title">
           {{ title }}
         </h3>
       </slot>
@@ -15,7 +15,7 @@
     </div>
     
     <!-- Footer -->
-    <div v-if="$slots.footer" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+    <div v-if="$slots.footer" class="card-footer">
       <slot name="footer" />
     </div>
   </div>
@@ -39,41 +39,105 @@ const props = withDefaults(defineProps<Props>(), {
   clickable: false
 })
 
+const emit = defineEmits<{
+  click: [event: MouseEvent]
+}>()
+
 const cardClasses = computed(() => {
-  const baseClasses = 'bg-white rounded-lg overflow-hidden transition-all duration-200'
-  
-  const variantClasses = {
-    default: 'shadow-sm border border-gray-200',
-    elevated: 'shadow-lg',
-    outlined: 'border-2 border-gray-200',
-    flat: 'border border-gray-100'
-  }
-  
-  const interactionClasses = []
-  
-  if (props.hover) {
-    interactionClasses.push('hover:shadow-md')
-  }
-  
-  if (props.clickable) {
-    interactionClasses.push('cursor-pointer hover:shadow-lg transform hover:-translate-y-1')
-  }
-  
   return [
-    baseClasses,
-    variantClasses[props.variant],
-    ...interactionClasses
-  ].join(' ')
+    'card',
+    `card--${props.variant}`,
+    {
+      'card--hover': props.hover,
+      'card--clickable': props.clickable
+    }
+  ].filter(Boolean).join(' ')
 })
 
 const contentClasses = computed(() => {
-  const paddingClasses = {
-    none: '',
-    sm: 'p-3',
-    md: 'p-6',
-    lg: 'p-8'
-  }
-  
-  return paddingClasses[props.padding]
+  return [
+    'card-content',
+    `card-content--${props.padding}`
+  ].join(' ')
 })
+
+const handleClick = (event: MouseEvent) => {
+  if (props.clickable) {
+    emit('click', event)
+  }
+}
 </script>
+
+<style scoped>
+.card {
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  transition: var(--transition-normal);
+  transition-property: transform, box-shadow;
+}
+
+.card--default {
+  box-shadow: var(--shadow-sm);
+  border: var(--border-width) solid var(--color-gray-200);
+}
+
+.card--elevated {
+  box-shadow: var(--shadow-lg);
+}
+
+.card--outlined {
+  border: 2px solid var(--color-gray-200);
+}
+
+.card--flat {
+  border: var(--border-width) solid var(--color-gray-100);
+}
+
+.card--hover:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card--clickable {
+  cursor: pointer;
+}
+
+.card--clickable:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-0.125rem);
+}
+
+.card-header {
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-4);
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+}
+
+.card-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.card-content--none {
+  padding: 0;
+}
+
+.card-content--sm {
+  padding: var(--spacing-3);
+}
+
+.card-content--md {
+  padding: var(--spacing-6);
+}
+
+.card-content--lg {
+  padding: var(--spacing-8);
+}
+
+.card-footer {
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-4);
+  border-top: var(--border-width) solid var(--color-gray-200);
+  background-color: var(--color-gray-50);
+}
+</style>

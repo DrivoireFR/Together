@@ -17,7 +17,7 @@
     <template #footer>
       <router-link
         to="/register"
-        class="text-blue-600 hover:text-blue-500 text-sm font-medium"
+        class="auth-link"
       >
         Pas encore de compte ? Inscrivez-vous
       </router-link>
@@ -43,3 +43,17 @@ const handleLogin = async (payload: LoginPayload) => {
   }
 }
 </script>
+
+<style scoped>
+.auth-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: var(--transition-fast);
+}
+
+.auth-link:hover {
+  color: var(--color-primary-hover);
+}
+</style>

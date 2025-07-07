@@ -1,22 +1,22 @@
 <template>
-  <div class="w-full">
+  <div class="input-wrapper">
     <!-- Label -->
     <label
       v-if="label"
       :for="inputId"
-      class="block text-sm font-medium text-gray-700 mb-1"
+      class="input-label"
     >
       {{ label }}
-      <span v-if="required" class="text-red-500 ml-1">*</span>
+      <span v-if="required" class="input-required">*</span>
     </label>
     
     <!-- Input container -->
-    <div class="relative">
+    <div class="input-container">
       <!-- Icon avant -->
       <component
         v-if="iconBefore"
         :is="iconBefore"
-        class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
+        class="input-icon input-icon-before"
       />
       
       <!-- Input field -->
@@ -38,14 +38,14 @@
       <component
         v-if="iconAfter"
         :is="iconAfter"
-        class="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
+        class="input-icon input-icon-after"
       />
     </div>
     
     <!-- Message d'erreur -->
     <p
       v-if="error"
-      class="mt-1 text-sm text-red-600"
+      class="input-error"
     >
       {{ error }}
     </p>
@@ -53,7 +53,7 @@
     <!-- Message d'aide -->
     <p
       v-else-if="helpText"
-      class="mt-1 text-sm text-gray-500"
+      class="input-help"
     >
       {{ helpText }}
     </p>
@@ -95,29 +95,14 @@ const emit = defineEmits<{
 const inputId = computed(() => `input-${Math.random().toString(36).substr(2, 9)}`)
 
 const inputClasses = computed(() => {
-  const baseClasses = 'block w-full border-gray-300 rounded-md shadow-sm transition-colors focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed'
-  
-  const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-3 py-2 text-sm',
-    lg: 'px-4 py-3 text-base'
-  }
-  
-  const paddingClasses = {
-    iconBefore: props.iconBefore ? 'pl-10' : '',
-    iconAfter: props.iconAfter ? 'pr-10' : ''
-  }
-  
-  const errorClasses = props.error 
-    ? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500'
-    : ''
-  
   return [
-    baseClasses,
-    sizeClasses[props.size],
-    paddingClasses.iconBefore,
-    paddingClasses.iconAfter,
-    errorClasses
+    'input-field',
+    `input-field--${props.size}`,
+    {
+      'input-field--error': props.error,
+      'input-field--with-icon-before': props.iconBefore,
+      'input-field--with-icon-after': props.iconAfter
+    }
   ].filter(Boolean).join(' ')
 })
 
@@ -127,3 +112,141 @@ const handleInput = (event: Event) => {
   emit('update:modelValue', value)
 }
 </script>
+
+<style scoped>
+.input-wrapper {
+  width: 100%;
+}
+
+.input-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+  margin-bottom: var(--spacing-1);
+}
+
+.input-required {
+  color: var(--color-danger);
+  margin-left: var(--spacing-1);
+}
+
+.input-container {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-gray-400);
+  pointer-events: none;
+}
+
+.input-icon-before {
+  left: var(--spacing-3);
+}
+
+.input-icon-after {
+  right: var(--spacing-3);
+}
+
+.input-field {
+  display: block;
+  width: 100%;
+  border: var(--border-width) solid var(--color-gray-300);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-fast);
+  transition-property: border-color, box-shadow;
+  background-color: var(--color-white);
+  color: var(--color-gray-900);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.input-field:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--color-gray-50);
+}
+
+.input-field::placeholder {
+  color: var(--color-gray-400);
+}
+
+/* Sizes */
+.input-field--sm {
+  padding: var(--spacing-1) var(--spacing-3);
+  font-size: var(--font-size-sm);
+}
+
+.input-field--md {
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-sm);
+}
+
+.input-field--lg {
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--font-size-base);
+}
+
+/* Icon spacing adjustments */
+.input-field--with-icon-before.input-field--sm {
+  padding-left: 2.5rem;
+}
+
+.input-field--with-icon-before.input-field--md {
+  padding-left: 2.5rem;
+}
+
+.input-field--with-icon-before.input-field--lg {
+  padding-left: 2.75rem;
+}
+
+.input-field--with-icon-after.input-field--sm {
+  padding-right: 2.5rem;
+}
+
+.input-field--with-icon-after.input-field--md {
+  padding-right: 2.5rem;
+}
+
+.input-field--with-icon-after.input-field--lg {
+  padding-right: 2.75rem;
+}
+
+/* Error state */
+.input-field--error {
+  border-color: var(--color-danger);
+  color: var(--color-gray-900);
+}
+
+.input-field--error::placeholder {
+  color: var(--color-danger);
+  opacity: 0.6;
+}
+
+.input-field--error:focus {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 1px var(--color-danger);
+}
+
+.input-error {
+  margin-top: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
+.input-help {
+  margin-top: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+}
+</style>

@@ -1,19 +1,19 @@
 <template>
   <AppLayout>
-    <div class="space-y-6">
-      <div v-if="groupStore.isLoading" class="text-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <p class="mt-2 text-gray-500">Chargement du groupe...</p>
+    <div class="group-detail-container">
+      <div v-if="groupStore.isLoading" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Chargement du groupe...</p>
       </div>
       
-      <div v-else-if="groupStore.currentGroup">
-        <h1 class="text-2xl font-bold text-gray-900">{{ groupStore.currentGroup.nom }}</h1>
-        <p class="text-gray-600">Détails du groupe - À implémenter</p>
+      <div v-else-if="groupStore.currentGroup" class="group-content">
+        <h1 class="group-title">{{ groupStore.currentGroup.nom }}</h1>
+        <p class="group-description">Détails du groupe - À implémenter</p>
       </div>
       
-      <div v-else class="text-center py-12">
-        <h3 class="text-lg font-medium text-gray-900">Groupe non trouvé</h3>
-        <p class="mt-2 text-gray-500">Ce groupe n'existe pas ou vous n'y avez pas accès</p>
+      <div v-else class="error-state">
+        <h3 class="error-title">Groupe non trouvé</h3>
+        <p class="error-description">Ce groupe n'existe pas ou vous n'y avez pas accès</p>
       </div>
     </div>
   </AppLayout>
@@ -35,3 +35,66 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+.group-detail-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.loading-state {
+  text-align: center;
+  padding: var(--spacing-8) 0;
+}
+
+.loading-spinner {
+  width: var(--spacing-8);
+  height: var(--spacing-8);
+  border: 2px solid var(--color-primary);
+  border-top-color: transparent;
+  border-radius: var(--border-radius-full);
+  margin: 0 auto var(--spacing-2);
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin: 0;
+  color: var(--color-gray-500);
+}
+
+.group-content h1 {
+  margin: 0;
+}
+
+.group-content p {
+  margin: 0;
+}
+
+.group-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
+}
+
+.group-description {
+  color: var(--color-gray-600);
+}
+
+.error-state {
+  text-align: center;
+  padding: var(--spacing-12) 0;
+}
+
+.error-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-900);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.error-description {
+  color: var(--color-gray-500);
+  margin: 0;
+}
+</style>
