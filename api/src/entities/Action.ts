@@ -13,6 +13,9 @@ export class Action {
   @IsDateString()
   date: Date;
 
+  @Column({ type: 'boolean', default: false })
+  isHelpingHand: boolean;
+
   @ManyToOne(() => Task, task => task.actions)
   task: Task;
 
