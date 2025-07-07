@@ -4,6 +4,7 @@ import * as bcrypt from 'bcryptjs';
 import { Group } from './Group';
 import { Action } from './Action';
 import { UserTaskState } from './UserTaskState';
+import { Achievement } from './Achievement';
 
 @Entity()
 export class User {
@@ -41,6 +42,9 @@ export class User {
 
   @OneToMany(() => UserTaskState, (userTaskState: UserTaskState) => userTaskState.user)
   taskStates: UserTaskState[];
+
+  @OneToMany(() => Achievement, achievement => achievement.user)
+  achievements: Achievement[];
 
   @CreateDateColumn()
   createdAt: Date;
