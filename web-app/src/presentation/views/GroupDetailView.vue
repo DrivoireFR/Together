@@ -1,38 +1,179 @@
 <template>
   <AppLayout>
     <div class="group-detail-container">
-      <div v-if="groupStore.isLoading" class="loading-state">
+      <div v-if="isLoading" class="loading-state">
         <div class="loading-spinner"></div>
         <p class="loading-text">Chargement du groupe...</p>
       </div>
       
       <div v-else-if="groupStore.currentGroup" class="group-content">
-        <h1 class="group-title">{{ groupStore.currentGroup.nom }}</h1>
-        <p class="group-description">Détails du groupe - À implémenter</p>
+        <!-- Header du groupe -->
+        <div class="group-header">
+          <h1 class="group-title">{{ groupStore.currentGroup.nom }}</h1>
+          <div class="group-stats">
+            <span class="stat-item">
+              {{ tasksStore.tasksCount }} tâche{{ tasksStore.tasksCount > 1 ? 's' : '' }}
+            </span>
+            <span class="stat-item">
+              {{ tasksStore.tagsCount }} tag{{ tasksStore.tagsCount > 1 ? 's' : '' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Filtres par tags -->
+        <TagFilter
+          v-if="tasksStore.hasTags || tasksStore.hasTasks"
+          :tags="tasksStore.tags"
+          :tasks="tasksStore.tasks"
+          :selected-tag="tasksStore.selectedTagFilter"
+          @tag-selected="handleTagFilterChange"
+        />
+
+        <!-- Liste des tâches -->
+        <TaskList
+          :tasks="tasksStore.filteredTasks"
+          :selected-tag="tasksStore.selectedTagFilter"
+          :show-actions="true"
+          @tag-click="handleTagClick"
+          @task-edit="handleTaskEdit"
+          @task-delete="handleTaskDelete"
+        >
+          <template #empty-actions>
+            <BaseButton
+              variant="primary"
+              @click="openCreateTaskModal"
+            >
+              Créer ma première tâche
+            </BaseButton>
+          </template>
+        </TaskList>
       </div>
       
       <div v-else class="error-state">
         <h3 class="error-title">Groupe non trouvé</h3>
         <p class="error-description">Ce groupe n'existe pas ou vous n'y avez pas accès</p>
       </div>
+
+      <!-- Panneau d'actions flottant -->
+      <FloatingActionPanel
+        v-if="groupStore.currentGroup"
+        @create-task="openCreateTaskModal"
+        @create-tag="openCreateTagModal"
+      />
+
+      <!-- Modal de création de tâche -->
+      <BaseModal
+        :is-open="isCreateTaskModalOpen"
+        title="Créer une nouvelle tâche"
+        @close="closeCreateTaskModal"
+      >
+        <CreateTaskForm
+          :tags="tasksStore.tags"
+          :group-id="groupId"
+          :is-loading="tasksStore.isLoading"
+          @submit="handleCreateTask"
+          @cancel="closeCreateTaskModal"
+        />
+      </BaseModal>
     </div>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useGroupStore } from '@/domain/stores/groupStore'
+import { useTasksStore } from '@/domain/stores/tasksStore'
+import type { Tag, Task, CreateTaskPayload } from '@/shared/types/api'
 import AppLayout from '@/presentation/layouts/AppLayout.vue'
+import TagFilter from '@/presentation/components/molecules/TagFilter.vue'
+import TaskList from '@/presentation/components/molecules/TaskList.vue'
+import FloatingActionPanel from '@/presentation/components/molecules/FloatingActionPanel.vue'
+import BaseModal from '@/presentation/components/atoms/BaseModal.vue'
+import CreateTaskForm from '@/presentation/components/molecules/CreateTaskForm.vue'
+import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 
 const route = useRoute()
+const router = useRouter()
 const groupStore = useGroupStore()
+const tasksStore = useTasksStore()
 
-onMounted(async () => {
-  const groupId = Number(route.params.id)
-  if (groupId) {
-    await groupStore.fetchGroupById(groupId)
+const isCreateTaskModalOpen = ref(false)
+const isCreateTagModalOpen = ref(false)
+
+const groupId = computed(() => Number(route.params.id))
+const isLoading = computed(() => groupStore.isLoading || tasksStore.isLoading)
+
+// Actions pour les modales
+const openCreateTaskModal = () => {
+  isCreateTaskModalOpen.value = true
+}
+
+const closeCreateTaskModal = () => {
+  isCreateTaskModalOpen.value = false
+}
+
+const openCreateTagModal = () => {
+  isCreateTagModalOpen.value = true
+}
+
+const closeCreateTagModal = () => {
+  isCreateTagModalOpen.value = false
+}
+
+// Gestion des tags et filtres
+const handleTagFilterChange = (tag: Tag | null) => {
+  tasksStore.setTagFilter(tag)
+}
+
+const handleTagClick = (tag: Tag) => {
+  tasksStore.setTagFilter(tag)
+}
+
+// Gestion des tâches
+const handleCreateTask = async (payload: CreateTaskPayload) => {
+  const result = await tasksStore.createTask(payload)
+  
+  if (result.success) {
+    closeCreateTaskModal()
+    // Optionnel: notification de succès
+  } else {
+    // Optionnel: notification d'erreur
+    console.error('Erreur lors de la création de la tâche:', result.error)
   }
+}
+
+const handleTaskEdit = (task: Task) => {
+  // À implémenter: ouvrir modal d'édition
+  console.log('Éditer la tâche:', task)
+}
+
+const handleTaskDelete = async (task: Task) => {
+  if (confirm(`Êtes-vous sûr de vouloir supprimer la tâche "${task.label}" ?`)) {
+    const result = await tasksStore.deleteTask(task.id)
+    
+    if (!result.success) {
+      console.error('Erreur lors de la suppression:', result.error)
+      // Optionnel: notification d'erreur
+    }
+  }
+}
+
+// Initialisation
+onMounted(async () => {
+  const id = groupId.value
+  if (id && !isNaN(id)) {
+    // Charger les données du groupe et les tâches/tags en parallèle
+    await Promise.all([
+      groupStore.fetchGroupById(id),
+      tasksStore.fetchGroupData(id)
+    ])
+  }
+})
+
+// Nettoyage
+onUnmounted(() => {
+  tasksStore.clearData()
 })
 </script>
 
@@ -41,6 +182,8 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6);
+  min-height: 100vh;
+  padding-bottom: 6rem; /* Espace pour le panneau flottant */
 }
 
 .loading-state {
@@ -63,22 +206,44 @@ onMounted(async () => {
   color: var(--color-gray-500);
 }
 
-.group-content h1 {
-  margin: 0;
+.group-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
 }
 
-.group-content p {
-  margin: 0;
+.group-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-6);
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--border-radius-lg);
 }
 
 .group-title {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-gray-900);
+  margin: 0;
 }
 
-.group-description {
-  color: var(--color-gray-600);
+.group-stats {
+  display: flex;
+  gap: var(--spacing-4);
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-1) var(--spacing-3);
+  background: var(--color-gray-100);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
 }
 
 .error-state {
@@ -96,5 +261,39 @@ onMounted(async () => {
 .error-description {
   color: var(--color-gray-500);
   margin: 0;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .group-detail-container {
+    gap: var(--spacing-4);
+    padding-bottom: 5rem;
+  }
+  
+  .group-header {
+    padding: var(--spacing-4);
+  }
+  
+  .group-title {
+    font-size: var(--font-size-xl);
+  }
+  
+  .group-stats {
+    gap: var(--spacing-2);
+  }
+  
+  .stat-item {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-1) var(--spacing-2);
+  }
 }
 </style>
