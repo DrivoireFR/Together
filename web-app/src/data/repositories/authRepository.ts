@@ -23,6 +23,10 @@ export class AuthRepository {
   async refreshToken(): Promise<ApiResult<AuthResponse>> {
     return apiClient.post<AuthResponse>('/auth/refresh')
   }
+
+  async rememberMe(): Promise<ApiResult<AuthResponse>> {
+    return apiClient.get<AuthResponse>('/auth/remember-me')
+  }
 }
 
 export const authRepository = new AuthRepository()

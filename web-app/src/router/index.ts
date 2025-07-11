@@ -40,12 +40,23 @@ const router = createRouter({
 })
 
 // Navigation guards
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
-  // Initialize auth if not done yet
-  if (!authStore.isAuthenticated && !authStore.user) {
-    authStore.initializeAuth()
+  // Si l'authStore est en cours de chargement (initialisation), attendre
+  if (authStore.isLoading) {
+    // Attendre que le chargement soit terminé
+    const checkLoading = () => {
+      return new Promise<void>((resolve) => {
+        const interval = setInterval(() => {
+          if (!authStore.isLoading) {
+            clearInterval(interval)
+            resolve()
+          }
+        }, 10)
+      })
+    }
+    await checkLoading()
   }
   
   const requiresAuth = to.meta.requiresAuth !== false
