@@ -10,6 +10,7 @@ import tagRoutes from './routes/tags';
 import groupRoutes from './routes/groups';
 import taskRoutes from './routes/tasks';
 import actionRoutes from './routes/actions';
+import userTaskStateRoutes from './routes/userTaskStates';
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -32,6 +33,7 @@ app.use('/api/tags', tagRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/actions', actionRoutes);
+app.use('/api/user-task-states', userTaskStateRoutes);
 
 // Route de test
 app.get('/api/health', (req, res) => {
@@ -74,6 +76,7 @@ const startServer = async () => {
       console.log(`👥 Routes groupes: http://localhost:${PORT}/api/groups`);
       console.log(`📋 Routes tâches: http://localhost:${PORT}/api/tasks`);
       console.log(`⚡ Routes actions: http://localhost:${PORT}/api/actions`);
+      console.log(`📋 Routes états tâches: http://localhost:${PORT}/api/user-task-states`);
     });
   } catch (error) {
     console.error('Erreur lors du démarrage du serveur:', error);

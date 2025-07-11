@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { taskRepository } from '@/data/repositories/taskRepository'
-import type { Task, Tag, Action, CreateTaskPayload, CreateTagPayload, CreateActionPayload } from '@/shared/types/api'
+import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload } from '@/shared/types/api'
 
 export const useTasksStore = defineStore('tasks', () => {
   // State
@@ -11,6 +11,11 @@ export const useTasksStore = defineStore('tasks', () => {
   const selectedTagFilter = ref<Tag | null>(null)
   const isLoading = ref(false)
   const error = ref<string | undefined>(undefined)
+  
+  // État pour la gestion de reconnaissance des tâches
+  const unacknowledgedTasks = ref<Task[]>([])
+  const currentUnacknowledgedTaskIndex = ref(0)
+  const showTaskAcknowledgmentModal = ref(false)
 
   // Getters
   const tasksCount = computed(() => tasks.value.length)
@@ -35,6 +40,18 @@ export const useTasksStore = defineStore('tasks', () => {
       groupedTasks[tagLabel].push(task)
     })
     return groupedTasks
+  })
+
+  const currentUnacknowledgedTask = computed(() => {
+    return unacknowledgedTasks.value[currentUnacknowledgedTaskIndex.value] || null
+  })
+
+  const hasUnacknowledgedTasks = computed(() => {
+    return unacknowledgedTasks.value.length > 0
+  })
+
+  const isLastUnacknowledgedTask = computed(() => {
+    return currentUnacknowledgedTaskIndex.value >= unacknowledgedTasks.value.length - 1
   })
 
   // Actions
@@ -89,6 +106,17 @@ export const useTasksStore = defineStore('tasks', () => {
       
       if (tasksResult.isSuccess) {
         tasks.value = tasksResult.data.tasks
+        
+        // Identifier les tâches non reconnues par l'utilisateur
+        const newUnacknowledgedTasks = tasks.value.filter(task => 
+          !task.userTaskState || !task.userTaskState.isAcknowledged
+        )
+        
+        if (newUnacknowledgedTasks.length > 0) {
+          unacknowledgedTasks.value = newUnacknowledgedTasks
+          currentUnacknowledgedTaskIndex.value = 0
+          showTaskAcknowledgmentModal.value = true
+        }
       } else {
         error.value = tasksResult.message
       }
@@ -259,6 +287,68 @@ export const useTasksStore = defineStore('tasks', () => {
     currentTask.value = null
     selectedTagFilter.value = null
     error.value = undefined
+    unacknowledgedTasks.value = []
+    currentUnacknowledgedTaskIndex.value = 0
+    showTaskAcknowledgmentModal.value = false
+  }
+
+  // Actions pour la gestion de reconnaissance des tâches
+  const acknowledgeTask = async (taskId: number, isConcerned: boolean) => {
+    try {
+      const payload: UpdateUserTaskStatePayload = {
+        isAcknowledged: true,
+        isConcerned
+      }
+      
+      const result = await taskRepository.updateUserTaskState(taskId, payload)
+      
+      if (result.isSuccess) {
+        // Mettre à jour la tâche dans la liste locale
+        const taskIndex = tasks.value.findIndex(t => t.id === taskId)
+        if (taskIndex !== -1) {
+          tasks.value[taskIndex].userTaskState = result.data.userTaskState
+        }
+        
+        return { success: true }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors de la mise à jour de l\'état de la tâche'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    }
+  }
+
+  const handleTaskDecision = async (isConcerned: boolean) => {
+    const currentTask = currentUnacknowledgedTask.value
+    if (!currentTask) return
+
+    const result = await acknowledgeTask(currentTask.id, isConcerned)
+    
+    if (result.success) {
+      // Passer à la tâche suivante ou fermer la modale
+      if (isLastUnacknowledgedTask.value) {
+        closeTaskAcknowledgmentModal()
+      } else {
+        currentUnacknowledgedTaskIndex.value++
+      }
+    }
+  }
+
+  const closeTaskAcknowledgmentModal = () => {
+    showTaskAcknowledgmentModal.value = false
+    unacknowledgedTasks.value = []
+    currentUnacknowledgedTaskIndex.value = 0
+  }
+
+  const skipTaskAcknowledgment = () => {
+    if (isLastUnacknowledgedTask.value) {
+      closeTaskAcknowledgmentModal()
+    } else {
+      currentUnacknowledgedTaskIndex.value++
+    }
   }
 
   return {
@@ -269,6 +359,9 @@ export const useTasksStore = defineStore('tasks', () => {
     selectedTagFilter,
     isLoading,
     error,
+    unacknowledgedTasks,
+    currentUnacknowledgedTaskIndex,
+    showTaskAcknowledgmentModal,
     // Getters
     tasksCount,
     tagsCount,
@@ -276,6 +369,9 @@ export const useTasksStore = defineStore('tasks', () => {
     hasTags,
     filteredTasks,
     tasksByTag,
+    currentUnacknowledgedTask,
+    hasUnacknowledgedTasks,
+    isLastUnacknowledgedTask,
     // Actions
     fetchTasksByGroupId,
     fetchTagsByGroupId,
@@ -289,6 +385,10 @@ export const useTasksStore = defineStore('tasks', () => {
     clearTagFilter,
     clearCurrentTask,
     clearError,
-    clearData
+    clearData,
+    acknowledgeTask,
+    handleTaskDecision,
+    closeTaskAcknowledgmentModal,
+    skipTaskAcknowledgment
   }
 })

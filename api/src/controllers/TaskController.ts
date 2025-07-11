@@ -137,16 +137,36 @@ export class TaskController {
   async getByGroupId(req: AuthRequest, res: Response) {
     try {
       const { groupId } = req.params;
+      const userId = req.user!.id;
       const taskRepository = AppDataSource.getRepository(Task);
       
       const tasks = await taskRepository.find({
         where: { group: { id: parseInt(groupId) } },
-        relations: ['group', 'tag', 'actions']
+        relations: ['group', 'tag', 'actions', 'userStates', 'userStates.user']
+      });
+
+      // Enrichir les tâches avec l'état de l'utilisateur actuel
+      const tasksWithUserState = tasks.map((task: Task) => {
+        const userTaskState = task.userStates?.find(state => state.user.id === userId);
+        return {
+          ...task,
+          userTaskState: userTaskState ? {
+            id: userTaskState.id,
+            isAcknowledged: userTaskState.isAcknowledged,
+            isConcerned: userTaskState.isConcerned,
+            acknowledgedAt: userTaskState.acknowledgedAt,
+            concernedAt: userTaskState.concernedAt,
+            createdAt: userTaskState.createdAt,
+            updatedAt: userTaskState.updatedAt
+          } : null,
+          // Supprimer la relation userStates du JSON de réponse pour éviter la surcharge
+          userStates: undefined
+        };
       });
 
       res.json({
         message: 'Tâches du groupe récupérées avec succès',
-        tasks
+        tasks: tasksWithUserState
       });
     } catch (error) {
       console.error('Erreur lors de la récupération des tâches du groupe:', error);
