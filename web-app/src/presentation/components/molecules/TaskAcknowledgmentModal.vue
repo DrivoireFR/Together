@@ -1,65 +1,64 @@
 <template>
   <div 
     v-if="show" 
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    class="modal-overlay"
     @click.self="closeModal"
   >
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-      <div class="text-center">
+    <div class="modal-content">
+      <div class="modal-inner">
         <!-- En-tête -->
-        <div class="mb-4">
-          <h3 class="text-xl font-semibold text-gray-900 mb-2">
+        <div class="modal-header">
+          <h3 class="modal-title">
             Nouvelle tâche détectée
           </h3>
-          <p class="text-sm text-gray-600 mb-4">
+          <p class="modal-progress">
             {{ currentTaskIndex + 1 }} / {{ totalTasks }}
           </p>
         </div>
 
         <!-- Informations sur la tâche -->
-        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-          <div class="flex items-center justify-center mb-3">
+        <div class="task-info">
+          <div class="task-main-info">
             <div 
               v-if="task?.iconUrl" 
-              class="w-12 h-12 rounded-lg overflow-hidden mr-3"
+              class="task-icon"
             >
               <img 
                 :src="task.iconUrl" 
                 :alt="task.label"
-                class="w-full h-full object-cover"
+                class="task-icon-image"
               />
             </div>
-            <div class="text-center">
-              <h4 class="font-medium text-gray-900">{{ task?.label }}</h4>
-              <p class="text-sm text-gray-600">
+            <div class="task-details">
+              <h4 class="task-title">{{ task?.label }}</h4>
+              <p class="task-frequency">
                 {{ task?.frequenceEstimee }} fois par {{ task?.uniteFrequence }}
               </p>
             </div>
           </div>
           
-          <div v-if="task?.tag" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+          <div v-if="task?.tag" class="task-tag"
                :style="{ backgroundColor: task.tag.color + '20', color: task.tag.color }">
             {{ task.tag.label }}
           </div>
         </div>
 
         <!-- Question -->
-        <div class="mb-6">
-          <p class="text-gray-700 mb-4">
+        <div class="modal-question">
+          <p class="question-main">
             Cette tâche vous concerne-t-elle ?
           </p>
-          <p class="text-sm text-gray-500">
+          <p class="question-sub">
             Vous pouvez toujours modifier votre choix plus tard dans les paramètres.
           </p>
         </div>
 
         <!-- Boutons d'action -->
-        <div class="flex space-x-3">
+        <div class="action-buttons">
           <button
             @click="handleDecision(false)"
             :disabled="isLoading"
-            class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 
-                   transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="btn btn-secondary"
           >
             {{ isLoading ? 'Traitement...' : 'Non concerné' }}
           </button>
@@ -67,20 +66,18 @@
           <button
             @click="handleDecision(true)"
             :disabled="isLoading"
-            class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-                   transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="btn btn-primary"
           >
             {{ isLoading ? 'Traitement...' : 'Je suis concerné' }}
           </button>
         </div>
 
         <!-- Option pour passer -->
-        <div class="mt-4">
+        <div class="skip-option">
           <button
             @click="skipTask"
             :disabled="isLoading"
-            class="text-sm text-gray-500 hover:text-gray-700 transition-colors 
-                   disabled:opacity-50 disabled:cursor-not-allowed"
+            class="skip-button"
           >
             Passer pour le moment
           </button>
@@ -89,9 +86,9 @@
         <!-- Bouton fermer -->
         <button
           @click="closeModal"
-          class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+          class="close-button"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="close-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
@@ -135,6 +132,212 @@ const closeModal = () => {
 </script>
 
 <style scoped>
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--spacing-4);
+}
+
+.modal-content {
+  background: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-6);
+  max-width: 28rem;
+  width: 100%;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  position: relative;
+}
+
+.modal-inner {
+  text-align: center;
+}
+
+/* En-tête */
+.modal-header {
+  margin-bottom: var(--spacing-4);
+}
+
+.modal-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.modal-progress {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  margin: 0 0 var(--spacing-4) 0;
+}
+
+/* Informations sur la tâche */
+.task-info {
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-4);
+  background: var(--color-gray-50);
+  border-radius: var(--border-radius-lg);
+}
+
+.task-main-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--spacing-3);
+}
+
+.task-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  margin-right: var(--spacing-3);
+  flex-shrink: 0;
+}
+
+.task-icon-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.task-details {
+  text-align: center;
+}
+
+.task-title {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.task-frequency {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+.task-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Question */
+.modal-question {
+  margin-bottom: var(--spacing-6);
+}
+
+.question-main {
+  color: var(--color-gray-700);
+  margin: 0 0 var(--spacing-4) 0;
+}
+
+.question-sub {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+  margin: 0;
+}
+
+/* Boutons d'action */
+.action-buttons {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.btn {
+  flex: 1;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--border-radius-lg);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: var(--font-weight-medium);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-gray-200);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+/* Option pour passer */
+.skip-option {
+  margin-top: var(--spacing-4);
+}
+
+.skip-button {
+  background: none;
+  border: none;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.skip-button:hover:not(:disabled) {
+  color: var(--color-gray-700);
+}
+
+.skip-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Bouton fermer */
+.close-button {
+  position: absolute;
+  top: var(--spacing-4);
+  right: var(--spacing-4);
+  background: none;
+  border: none;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-button:hover {
+  color: var(--color-gray-600);
+}
+
+.close-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 /* Animations pour les transitions */
 .modal-enter-active, .modal-leave-active {
   transition: opacity 0.3s ease;
@@ -150,5 +353,27 @@ const closeModal = () => {
 
 .modal-content-enter-from, .modal-content-leave-to {
   transform: scale(0.9) translateY(-20px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-content {
+    max-width: none;
+    margin: var(--spacing-4);
+  }
+  
+  .task-main-info {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .task-icon {
+    margin-right: 0;
+    margin-bottom: var(--spacing-2);
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
 }
 </style>
