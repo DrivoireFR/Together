@@ -76,6 +76,11 @@
           @cancel="closeCreateTaskModal"
         />
       </BaseModal>
+
+      <!-- Modal de reconnaissance des tâches -->
+      <TaskAcknowledgmentModal
+        :show="tasksStore.showTaskAcknowledgmentModal"
+      />
     </div>
   </AppLayout>
 </template>
@@ -93,6 +98,7 @@ import FloatingActionPanel from '@/presentation/components/molecules/FloatingAct
 import BaseModal from '@/presentation/components/atoms/BaseModal.vue'
 import CreateTaskForm from '@/presentation/components/molecules/CreateTaskForm.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
+import TaskAcknowledgmentModal from '@/presentation/components/molecules/TaskAcknowledgmentModal.vue'
 
 const route = useRoute()
 const router = useRouter()

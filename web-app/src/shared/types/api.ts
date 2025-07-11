@@ -27,6 +27,7 @@ export interface Task {
   group: Group
   tag?: Tag
   actions: Action[]
+  userTaskState?: UserTaskState | null
   createdAt: string
   updatedAt: string
 }
@@ -48,6 +49,18 @@ export interface Tag {
   color: string
   group: Group
   tasks: Task[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface UserTaskState {
+  id: number
+  taskId: number
+  userId: number
+  isAcknowledged: boolean
+  isConcerned: boolean
+  acknowledgedAt?: string
+  concernedAt?: string
   createdAt: string
   updatedAt: string
 }
@@ -90,6 +103,11 @@ export interface CreateTagPayload {
 export interface CreateActionPayload {
   taskId: number
   date: string
+}
+
+export interface UpdateUserTaskStatePayload {
+  isAcknowledged?: boolean
+  isConcerned?: boolean
 }
 
 // Responses de l'API

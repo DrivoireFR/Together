@@ -4,9 +4,11 @@ import type {
   Task,
   Tag,
   Action,
+  UserTaskState,
   CreateTaskPayload,
   CreateTagPayload,
-  CreateActionPayload
+  CreateActionPayload,
+  UpdateUserTaskStatePayload
 } from '@/shared/types/api'
 
 export class TaskRepository {
@@ -63,6 +65,15 @@ export class TaskRepository {
   // Actions
   async createAction(payload: CreateActionPayload): Promise<ApiResult<{ action: Action }>> {
     return apiClient.post<{ action: Action }>('/actions', payload)
+  }
+
+  // UserTaskState
+  async updateUserTaskState(taskId: number, payload: UpdateUserTaskStatePayload): Promise<ApiResult<{ userTaskState: UserTaskState }>> {
+    return apiClient.put<{ userTaskState: UserTaskState }>(`/user-task-states/${taskId}`, payload)
+  }
+
+  async getUserTaskStates(groupId: number): Promise<ApiResult<{ userTaskStates: UserTaskState[] }>> {
+    return apiClient.get<{ userTaskStates: UserTaskState[] }>(`/user-task-states/group/${groupId}`)
   }
 }
 
