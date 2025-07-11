@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { taskRepository } from '@/data/repositories/taskRepository'
-import type { Task, Tag, CreateTaskPayload, CreateTagPayload } from '@/shared/types/api'
+import type { Task, Tag, Action, CreateTaskPayload, CreateTagPayload, CreateActionPayload } from '@/shared/types/api'
 
 export const useTasksStore = defineStore('tasks', () => {
   // State
@@ -210,6 +210,33 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
+  const createActionForTask = async (taskId: number) => {
+    isLoading.value = true
+    error.value = undefined
+
+    try {
+      const payload: CreateActionPayload = {
+        taskId,
+        date: new Date().toISOString()
+      }
+      
+      const result = await taskRepository.createAction(payload)
+      
+      if (result.isSuccess) {
+        return { success: true, action: result.data.action }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors de la création de l\'action'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   const setTagFilter = (tag: Tag | null) => {
     selectedTagFilter.value = tag
   }
@@ -257,6 +284,7 @@ export const useTasksStore = defineStore('tasks', () => {
     createTag,
     updateTask,
     deleteTask,
+    createActionForTask,
     setTagFilter,
     clearTagFilter,
     clearCurrentTask,

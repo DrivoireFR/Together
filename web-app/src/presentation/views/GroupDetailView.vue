@@ -37,6 +37,7 @@
           @tag-click="handleTagClick"
           @task-edit="handleTaskEdit"
           @task-delete="handleTaskDelete"
+          @task-click="handleTaskClick"
         >
           <template #empty-actions>
             <BaseButton
@@ -156,6 +157,18 @@ const handleTaskDelete = async (task: Task) => {
       console.error('Erreur lors de la suppression:', result.error)
       // Optionnel: notification d'erreur
     }
+  }
+}
+
+const handleTaskClick = async (task: Task) => {
+  const result = await tasksStore.createActionForTask(task.id)
+  
+  if (result.success) {
+    console.log('Action créée avec succès:', result.action)
+    // Optionnel: notification de succès
+  } else {
+    console.error('Erreur lors de la création de l\'action:', result.error)
+    // Optionnel: notification d'erreur
   }
 }
 

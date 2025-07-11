@@ -34,6 +34,7 @@ export interface Task {
 export interface Action {
   id: number
   date: string
+  isHelpingHand: boolean
   task: Task
   user: User
   group: Group
