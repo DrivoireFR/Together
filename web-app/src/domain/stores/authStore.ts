@@ -18,13 +18,37 @@ export const useAuthStore = defineStore('auth', () => {
   const userEmail = computed(() => user.value?.email || '')
 
   // Actions
-  const initializeAuth = () => {
+  const initializeAuth = async () => {
     const savedToken = StorageUtil.getItem<string>(STORAGE_KEYS.TOKEN)
-    const savedUser = StorageUtil.getItem<User>(STORAGE_KEYS.USER)
     
-    if (savedToken && savedUser) {
-      token.value = savedToken
-      user.value = savedUser
+    if (savedToken) {
+      // Si on a un token, essayer de vérifier avec remember-me
+      isLoading.value = true
+      
+      try {
+        const result = await authRepository.rememberMe()
+        
+        if (result.isSuccess) {
+          // Le remember-me a fonctionné, mettre à jour avec les nouvelles données
+          token.value = result.data.token
+          user.value = result.data.user
+          
+          // Mettre à jour le localStorage avec le nouveau token
+          StorageUtil.setItem(STORAGE_KEYS.TOKEN, result.data.token)
+          StorageUtil.setItem(STORAGE_KEYS.USER, result.data.user)
+        } else {
+          // Le token n'est plus valide, nettoyer le localStorage
+          logout()
+        }
+      } catch (err) {
+        // Erreur lors de la vérification, nettoyer le localStorage
+        logout()
+      } finally {
+        isLoading.value = false
+      }
+    } else {
+      // Pas de token sauvegardé, nettoyer au cas où
+      logout()
     }
   }
 
