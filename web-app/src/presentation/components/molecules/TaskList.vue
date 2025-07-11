@@ -20,6 +20,7 @@
         @tag-click="$emit('tag-click', $event)"
         @edit="$emit('task-edit', task)"
         @delete="$emit('task-delete', task)"
+        @click="$emit('task-click', task)"
       />
     </div>
     
@@ -55,6 +56,7 @@ defineEmits<{
   'tag-click': [tag: Tag]
   'task-edit': [task: Task]
   'task-delete': [task: Task]
+  'task-click': [task: Task]
 }>()
 
 const filteredTasks = computed(() => {

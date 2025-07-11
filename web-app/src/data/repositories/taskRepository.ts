@@ -3,8 +3,10 @@ import type { ApiResult } from '@/shared/types/DataResult'
 import type { 
   Task,
   Tag,
+  Action,
   CreateTaskPayload,
-  CreateTagPayload
+  CreateTagPayload,
+  CreateActionPayload
 } from '@/shared/types/api'
 
 export class TaskRepository {
@@ -56,6 +58,11 @@ export class TaskRepository {
 
   async deleteTag(id: number): Promise<ApiResult<void>> {
     return apiClient.delete<void>(`/tags/${id}`)
+  }
+
+  // Actions
+  async createAction(payload: CreateActionPayload): Promise<ApiResult<{ action: Action }>> {
+    return apiClient.post<{ action: Action }>('/actions', payload)
   }
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <div :class="cardClasses">
+  <div :class="cardClasses" @click="$emit('click')" class="task-card-clickable">
     <div class="task-header">
       <div class="task-icon" v-if="task.iconUrl">
         <img :src="task.iconUrl" :alt="task.label" />
@@ -60,6 +60,7 @@ defineEmits<{
   'tag-click': [tag: Tag]
   edit: []
   delete: []
+  click: []
 }>()
 
 const cardClasses = computed(() => [
@@ -92,6 +93,14 @@ const frequencyText = computed(() => {
 .task-card:hover {
   border-color: var(--color-gray-300);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task-card-clickable {
+  cursor: pointer;
+}
+
+.task-card-clickable:hover {
+  transform: translateY(-2px);
 }
 
 .task-card--compact {
