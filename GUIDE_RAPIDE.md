@@ -29,11 +29,12 @@ Chaque push sur `main` ou `test-mockup` met à jour automatiquement votre démo.
 
 ## 🛠️ En cas d'erreur de build
 ```bash
-# Corriger les erreurs Vue.js
-./fix-defineemits-error.sh
+# Corriger toutes les erreurs (TypeScript + Vue.js + GitHub Actions)
+./fix-typescript-errors.sh
 
-# Corriger les erreurs GitHub Actions  
-./fix-deploy-error.sh
+# Ou individuellement :
+./fix-defineemits-error.sh    # Erreurs Vue.js
+./fix-deploy-error.sh         # Erreurs GitHub Actions
 ```
 
 ## 🛠️ Personnalisation
