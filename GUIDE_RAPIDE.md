@@ -2,27 +2,20 @@
 
 ## 🎯 En 3 étapes simples
 
-### 1. Lancez le script d'automatisation
+### 1. Lancez le script de branche de test
 ```bash
-node setup-github-pages.js
+./setup-test-branch.sh
 ```
 
-### 2. Poussez sur GitHub
-```bash
-git add .
-git commit -m "Configure GitHub Pages demo"
-git push origin main
-```
-
-### 3. Configurez GitHub Pages
-1. Allez dans **Settings > Pages** de votre repository
+### 2. Configurez GitHub Pages
+1. Allez sur **https://github.com/DrivoireFR/Together/settings/pages**
 2. Sélectionnez **"GitHub Actions"** comme source
 3. Attendez quelques minutes ⏱️
 
-## 🎉 C'est terminé !
+### 3. C'est terminé !
 
 Votre application sera disponible sur :
-**`https://VOTRE-USERNAME.github.io/NOM-DU-REPO/`**
+**`https://drivoirefr.github.io/Together/`**
 
 ## 🔐 Connexion démo
 - **Email** : `demo@example.com`

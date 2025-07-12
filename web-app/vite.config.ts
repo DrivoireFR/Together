@@ -20,7 +20,7 @@ export default defineConfig({
     host: true
   },
   // Configuration pour GitHub Pages
-  base: '/',
+  base: '/Together/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
