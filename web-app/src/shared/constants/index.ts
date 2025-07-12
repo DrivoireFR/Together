@@ -1,5 +1,17 @@
 export const API_BASE_URL = 'http://localhost:3000/api'
 
+// Détection du mode démo
+const isDemoMode = (): boolean => {
+  // Vérifier si on est sur GitHub Pages ou autres plateformes de démo
+  const hostname = window.location.hostname
+  return hostname.indexOf('github.io') !== -1 || 
+         hostname.indexOf('pages.dev') !== -1 ||
+         hostname.indexOf('netlify.app') !== -1 ||
+         hostname.indexOf('vercel.app') !== -1
+}
+
+export const IS_DEMO_MODE = isDemoMode()
+
 export const STORAGE_KEYS = {
   TOKEN: 'auth_token',
   USER: 'user_data'
