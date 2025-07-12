@@ -25,7 +25,16 @@ Votre application sera disponible sur :
 Ouvrez simplement l'URL sur votre téléphone !
 
 ## 🔄 Mises à jour
-Chaque push sur `main` met à jour automatiquement votre démo.
+Chaque push sur `main` ou `test-mockup` met à jour automatiquement votre démo.
+
+## 🛠️ En cas d'erreur de build
+```bash
+# Corriger les erreurs Vue.js
+./fix-defineemits-error.sh
+
+# Corriger les erreurs GitHub Actions  
+./fix-deploy-error.sh
+```
 
 ## 🛠️ Personnalisation
 Modifiez les données dans `web-app/src/data/mocks/mockData.ts`

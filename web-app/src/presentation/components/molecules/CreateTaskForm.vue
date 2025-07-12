@@ -139,11 +139,6 @@ const props = withDefaults(defineProps<Props>(), {
   isLoading: false
 })
 
-defineEmits<{
-  submit: [payload: CreateTaskPayload]
-  cancel: []
-}>()
-
 const formData = ref<CreateTaskPayload>({
   label: '',
   frequenceEstimee: 1,

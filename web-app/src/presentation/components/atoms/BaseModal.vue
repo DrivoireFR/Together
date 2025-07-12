@@ -52,10 +52,6 @@ const props = withDefaults(defineProps<Props>(), {
   closeButtonLabel: 'Fermer'
 })
 
-defineEmits<{
-  close: []
-}>()
-
 const modalClasses = computed(() => [
   'modal-content',
   `modal-content--${props.size}`
