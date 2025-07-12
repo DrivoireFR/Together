@@ -2,9 +2,9 @@
 
 ## 🎯 En 3 étapes simples
 
-### 1. Lancez le script de branche de test
+### 1. Nettoyage complet et corrections (NOUVEAU)
 ```bash
-./setup-test-branch.sh
+./clean-and-fix-all.sh
 ```
 
 ### 2. Configurez GitHub Pages
@@ -27,7 +27,21 @@ Ouvrez simplement l'URL sur votre téléphone !
 ## 🔄 Mises à jour
 Chaque push sur `main` ou `test-mockup` met à jour automatiquement votre démo.
 
-## 🛠️ En cas d'erreur de build
+## � ERREURS TypeScript persistantes ?
+
+Si vous avez encore des erreurs comme :
+```
+Error: src/data/repositories/demoAwareRepositories.ts(32,24): error TS2339: Property 'post' does not exist...
+```
+
+**SOLUTION** : Lancez le nettoyage complet
+```bash
+./clean-and-fix-all.sh
+```
+
+Cela supprime les fichiers problématiques et corrige tout automatiquement.
+
+## 🛠️ Autres erreurs de build
 ```bash
 # Corriger toutes les erreurs (TypeScript + Vue.js + GitHub Actions)
 ./fix-typescript-errors.sh
@@ -35,6 +49,11 @@ Chaque push sur `main` ou `test-mockup` met à jour automatiquement votre démo.
 # Ou individuellement :
 ./fix-defineemits-error.sh    # Erreurs Vue.js
 ./fix-deploy-error.sh         # Erreurs GitHub Actions
+```
+
+## 🔍 Diagnostics
+```bash
+./check-imports.sh            # Vérifier les imports
 ```
 
 ## 🛠️ Personnalisation
