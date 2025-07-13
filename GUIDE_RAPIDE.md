@@ -41,7 +41,21 @@ Error: src/data/repositories/demoAwareRepositories.ts(32,24): error TS2339: Prop
 
 Cela supprime les fichiers problématiques et corrige tout automatiquement.
 
-## 🛠️ Autres erreurs de build
+## � GitHub Actions "this Check has no steps" ?
+
+Si GitHub Actions affiche ce message :
+```
+"this Check has no steps"
+```
+
+**SOLUTION** : Corrigez les workflows
+```bash
+./fix-github-actions-no-steps.sh
+```
+
+Puis configurez GitHub Pages source sur "GitHub Actions".
+
+## �🛠️ Autres erreurs de build
 ```bash
 # Corriger toutes les erreurs (TypeScript + Vue.js + GitHub Actions)
 ./fix-typescript-errors.sh
