@@ -18,5 +18,21 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true
+  },
+  // Configuration pour GitHub Pages
+  base: '/Together/',
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    emptyOutDir: true,
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['vue', 'vue-router', 'pinia'],
+          axios: ['axios']
+        }
+      }
+    }
   }
 })

@@ -56,10 +56,6 @@ interface Props {
 
 const props = defineProps<Props>()
 
-defineEmits<{
-  'tag-selected': [tag: Tag | null]
-}>()
-
 const allTasksTag = computed((): Tag => ({
   id: -1,
   label: 'Toutes les tâches',

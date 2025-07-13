@@ -80,12 +80,6 @@ const actions = computed(() =>
   props.actions.length > 0 ? props.actions : defaultActions.value
 )
 
-defineEmits<{
-  'create-task': []
-  'create-tag': []
-  'action-click': [action: FloatingAction]
-}>()
-
 const togglePanel = () => {
   isExpanded.value = !isExpanded.value
 }
