@@ -13,7 +13,16 @@ const router = createRouter({
       path: '/login',
       name: 'Login',
       component: () => import('@/presentation/views/LoginView.vue'),
-      meta: { 
+      meta: {
+        requiresAuth: false,
+        layout: 'auth'
+      }
+    },
+    {
+      path: '/register',
+      name: 'Register',
+      component: () => import('@/presentation/views/RegisterView.vue'),
+      meta: {
         requiresAuth: false,
         layout: 'auth'
       }
@@ -22,7 +31,7 @@ const router = createRouter({
       path: '/groups',
       name: 'Groups',
       component: () => import('@/presentation/views/GroupsView.vue'),
-      meta: { 
+      meta: {
         requiresAuth: true,
         layout: 'app'
       }
@@ -31,7 +40,7 @@ const router = createRouter({
       path: '/groups/:id',
       name: 'GroupDetail',
       component: () => import('@/presentation/views/GroupDetailView.vue'),
-      meta: { 
+      meta: {
         requiresAuth: true,
         layout: 'app'
       }
@@ -39,10 +48,10 @@ const router = createRouter({
   ]
 })
 
-// Navigation guards
+// // Navigation guards
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  
+
   // Si l'authStore est en cours de chargement (initialisation), attendre
   if (authStore.isLoading) {
     // Attendre que le chargement soit terminé
@@ -58,14 +67,14 @@ router.beforeEach(async (to, from, next) => {
     }
     await checkLoading()
   }
-  
+
   const requiresAuth = to.meta.requiresAuth !== false
   const isAuthenticated = authStore.isAuthenticated
-  
+
   if (requiresAuth && !isAuthenticated) {
     // Redirect to login if authentication is required
     next('/login')
-  } else if (to.path === '/login' && isAuthenticated) {
+  } else if ((to.path === '/login' || to.path === '/register') && isAuthenticated) {
     // Redirect to dashboard if already authenticated
     next('/groups')
   } else {

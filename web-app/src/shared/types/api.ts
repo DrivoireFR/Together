@@ -73,8 +73,11 @@ export interface LoginPayload {
 
 export interface RegisterPayload {
   nom: string
+  prenom: string
+  pseudo: string
   email: string
   password: string
+  icone?: string
 }
 
 export interface CreateGroupPayload {

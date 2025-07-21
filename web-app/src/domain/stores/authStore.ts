@@ -20,35 +20,34 @@ export const useAuthStore = defineStore('auth', () => {
   // Actions
   const initializeAuth = async () => {
     const savedToken = StorageUtil.getItem<string>(STORAGE_KEYS.TOKEN)
-    
+    const savedUser = StorageUtil.getItem<User>(STORAGE_KEYS.USER)
+
+    // Toujours restaurer l'état local d'abord
+    if (savedToken && savedUser) {
+      token.value = savedToken
+      user.value = savedUser
+    }
+
+    // Marquer comme terminé immédiatement pour éviter les boucles
+    isLoading.value = false
+
+    // Vérification en arrière-plan (non-bloquante)
     if (savedToken) {
-      // Si on a un token, essayer de vérifier avec remember-me
-      isLoading.value = true
-      
       try {
-        const result = await authRepository.rememberMe()
-        
-        if (result.isSuccess) {
-          // Le remember-me a fonctionné, mettre à jour avec les nouvelles données
-          token.value = result.data.token
-          user.value = result.data.user
-          
-          // Mettre à jour le localStorage avec le nouveau token
-          StorageUtil.setItem(STORAGE_KEYS.TOKEN, result.data.token)
-          StorageUtil.setItem(STORAGE_KEYS.USER, result.data.user)
+        const verifyResult = await authRepository.getProfile()
+
+        if (verifyResult.isSuccess) {
+          // Mettre à jour les données utilisateur
+          user.value = verifyResult.data
+          StorageUtil.setItem(STORAGE_KEYS.USER, verifyResult.data)
         } else {
-          // Le token n'est plus valide, nettoyer le localStorage
+          // Token invalide, déconnecter silencieusement
           logout()
         }
       } catch (err) {
-        // Erreur lors de la vérification, nettoyer le localStorage
-        logout()
-      } finally {
-        isLoading.value = false
+        // Ignorer les erreurs réseau
+        console.warn('Vérification du token échouée:', err)
       }
-    } else {
-      // Pas de token sauvegardé, nettoyer au cas où
-      logout()
     }
   }
 
@@ -58,15 +57,15 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const result = await authRepository.login(payload)
-      
+
       if (result.isSuccess) {
         token.value = result.data.token
         user.value = result.data.user
-        
+
         // Sauvegarder dans le localStorage
         StorageUtil.setItem(STORAGE_KEYS.TOKEN, result.data.token)
         StorageUtil.setItem(STORAGE_KEYS.USER, result.data.user)
-        
+
         return { success: true }
       } else {
         error.value = result.message
@@ -87,15 +86,15 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const result = await authRepository.register(payload)
-      
+
       if (result.isSuccess) {
         token.value = result.data.token
         user.value = result.data.user
-        
+
         // Sauvegarder dans le localStorage
         StorageUtil.setItem(STORAGE_KEYS.TOKEN, result.data.token)
         StorageUtil.setItem(STORAGE_KEYS.USER, result.data.user)
-        
+
         return { success: true }
       } else {
         error.value = result.message
@@ -114,7 +113,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     token.value = null
     error.value = undefined
-    
+
     // Nettoyer le localStorage
     StorageUtil.removeItem(STORAGE_KEYS.TOKEN)
     StorageUtil.removeItem(STORAGE_KEYS.USER)
@@ -124,10 +123,10 @@ export const useAuthStore = defineStore('auth', () => {
     if (!token.value) return
 
     isLoading.value = true
-    
+
     try {
       const result = await authRepository.getProfile()
-      
+
       if (result.isSuccess) {
         user.value = result.data
         StorageUtil.setItem(STORAGE_KEYS.USER, result.data)
