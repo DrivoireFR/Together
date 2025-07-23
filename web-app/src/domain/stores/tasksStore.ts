@@ -7,6 +7,7 @@ export const useTasksStore = defineStore('tasks', () => {
   // State
   const tasks = ref<Task[]>([])
   const tags = ref<Tag[]>([])
+  const actions = ref<Action[]>([])
   const currentTask = ref<Task | null>(null)
   const selectedTagFilter = ref<Tag | null>(null)
   const isLoading = ref(false)
@@ -20,8 +21,10 @@ export const useTasksStore = defineStore('tasks', () => {
   // Getters
   const tasksCount = computed(() => tasks.value.length)
   const tagsCount = computed(() => tags.value.length)
+  const actionsCount = computed(() => actions.value.length)
   const hasTasks = computed(() => tasks.value.length > 0)
   const hasTags = computed(() => tags.value.length > 0)
+  const hasActions = computed(() => actions.value.length > 0)
 
   const filteredTasks = computed(() => {
     if (!selectedTagFilter.value) {
@@ -278,6 +281,29 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
+  const fetchRecentActionsByGroupId = async (groupId: number) => {
+    isLoading.value = true
+    error.value = undefined
+
+    try {
+      const result = await taskRepository.getRecentActionsByGroupId(groupId)
+
+      if (result.isSuccess) {
+        actions.value = result.data.actions
+        return { success: true, actions: result.data.actions, total: result.data.total }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors du chargement des actions récentes'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   const setTagFilter = (tag: Tag | null) => {
     selectedTagFilter.value = tag
   }
@@ -297,6 +323,7 @@ export const useTasksStore = defineStore('tasks', () => {
   const clearData = () => {
     tasks.value = []
     tags.value = []
+    actions.value = []
     currentTask.value = null
     selectedTagFilter.value = null
     error.value = undefined
@@ -368,6 +395,7 @@ export const useTasksStore = defineStore('tasks', () => {
     // State
     tasks,
     tags,
+    actions,
     currentTask,
     selectedTagFilter,
     isLoading,
@@ -378,8 +406,10 @@ export const useTasksStore = defineStore('tasks', () => {
     // Getters
     tasksCount,
     tagsCount,
+    actionsCount,
     hasTasks,
     hasTags,
+    hasActions,
     filteredTasks,
     tasksByTag,
     currentUnacknowledgedTask,
@@ -389,6 +419,7 @@ export const useTasksStore = defineStore('tasks', () => {
     fetchTasksByGroupId,
     fetchTagsByGroupId,
     fetchGroupData,
+    fetchRecentActionsByGroupId,
     createTask,
     createTag,
     updateTask,

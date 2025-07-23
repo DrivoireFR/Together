@@ -97,6 +97,12 @@
       <TaskAcknowledgmentModal
         :show="tasksStore.showTaskAcknowledgmentModal"
       />
+
+      <!-- Panneau d'historique -->
+      <HistoryPanel
+        v-if="groupStore.currentGroup"
+        :actions="tasksStore.actions"
+      />
     </div>
   </AppLayout>
 </template>
@@ -116,6 +122,7 @@ import CreateTaskForm from '@/presentation/components/molecules/CreateTaskForm.v
 import EditTaskForm from '@/presentation/components/molecules/EditTaskForm.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import TaskAcknowledgmentModal from '@/presentation/components/molecules/TaskAcknowledgmentModal.vue'
+import HistoryPanel from '@/presentation/components/organisms/HistoryPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -213,6 +220,8 @@ const handleTaskClick = async (task: Task) => {
   
   if (result.success) {
     console.log('Action créée avec succès:', result.action)
+    // Recharger l'historique des actions
+    await tasksStore.fetchRecentActionsByGroupId(groupId.value)
     // Optionnel: notification de succès
   } else {
     console.error('Erreur lors de la création de l\'action:', result.error)
@@ -224,8 +233,12 @@ const handleTaskClick = async (task: Task) => {
 onMounted(async () => {
   const id = groupId.value
   if (id && !isNaN(id)) {
-    // Charger les données du groupe et les tâches/tags en parallèle
-    await groupStore.fetchGroupById(id)
+    // Charger les données du groupe, tâches/tags et historique en parallèle
+    await Promise.all([
+      groupStore.fetchGroupById(id),
+      tasksStore.fetchGroupData(id),
+      tasksStore.fetchRecentActionsByGroupId(id)
+    ])
   }
 })
 

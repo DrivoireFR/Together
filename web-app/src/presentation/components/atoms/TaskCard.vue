@@ -15,7 +15,7 @@
         :tag="task.tag" 
         variant="ghost" 
         size="sm"
-        @click="$emit('tag-click', task.tag)"
+        @click.stop="$emit('tag-click', task.tag)"
       />
     </div>
     

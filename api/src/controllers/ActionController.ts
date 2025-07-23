@@ -192,6 +192,33 @@ export class ActionController {
     }
   }
 
+  async getRecentByGroupId(req: AuthRequest, res: Response) {
+    try {
+      const { groupId } = req.params;
+      const actionRepository = AppDataSource.getRepository(Action);
+
+      const actions = await actionRepository.find({
+        where: { group: { id: parseInt(groupId) } },
+        relations: ['task', 'user', 'group'],
+        order: { createdAt: 'DESC' },
+        take: 50
+      });
+
+      res.json({
+        message: '50 dernières actions du groupe récupérées avec succès',
+        actions,
+        total: actions.length
+      });
+    } catch (error) {
+      console.error('Erreur lors de la récupération des dernières actions du groupe:', error);
+      res.status(500).json({
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+
+
   async getByTaskId(req: AuthRequest, res: Response) {
     try {
       const { taskId } = req.params;

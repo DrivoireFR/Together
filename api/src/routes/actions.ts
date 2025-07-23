@@ -23,6 +23,9 @@ router.get('/user/:userId', authMiddleware, actionController.getByUserId);
 // GET /api/actions/group/:groupId - Récupérer les actions d'un groupe
 router.get('/group/:groupId', authMiddleware, actionController.getByGroupId);
 
+// GET /api/actions/group/:groupId/recent - Récupérer les 50 dernières actions d'un groupe
+router.get('/group/:groupId/recent', authMiddleware, actionController.getRecentByGroupId);
+
 // GET /api/actions/task/:taskId - Récupérer les actions d'une tâche
 router.get('/task/:taskId', authMiddleware, actionController.getByTaskId);
 

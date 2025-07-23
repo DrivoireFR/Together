@@ -10,7 +10,8 @@ import type {
   CreateActionPayload,
   UpdateUserTaskStatePayload,
   CreateTaskResponse,
-  CreateActionResponse
+  CreateActionResponse,
+  GetRecentActionsResponse
 } from '@/shared/types/api'
 
 export class TaskRepository {
@@ -67,6 +68,10 @@ export class TaskRepository {
   // Actions
   async createAction(payload: CreateActionPayload): Promise<ApiResult<CreateActionResponse>> {
     return apiClient.post<CreateActionResponse>('/actions', payload)
+  }
+
+  async getRecentActionsByGroupId(groupId: number): Promise<ApiResult<GetRecentActionsResponse>> {
+    return apiClient.get<GetRecentActionsResponse>(`/actions/group/${groupId}/recent`)
   }
 
   // UserTaskState

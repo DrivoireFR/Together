@@ -126,6 +126,12 @@ export interface CreateActionResponse {
   action: Action
 }
 
+export interface GetRecentActionsResponse {
+  message: string
+  actions: Action[]
+  total: number
+}
+
 export interface UpdateUserTaskStatePayload {
   isAcknowledged?: boolean
   isConcerned?: boolean

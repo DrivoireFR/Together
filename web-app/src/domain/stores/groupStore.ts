@@ -32,6 +32,7 @@ export const useGroupStore = defineStore('group', () => {
       if (result.isSuccess) {
         currentGroup.value = result.data
         tasksStore.fetchTasksByGroupId(id)
+        tasksStore.fetchRecentActionsByGroupId(id)
         return result.data
       } else {
         error.value = result.message
