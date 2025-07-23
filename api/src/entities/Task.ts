@@ -46,7 +46,7 @@ export class Task {
   @ManyToOne(() => Tag, tag => tag.tasks, { nullable: true })
   tag?: Tag;
 
-  @OneToMany(() => Action, action => action.task)
+  @OneToMany(() => Action, action => action.task, { cascade: ['remove'] })
   actions: Action[];
 
   @OneToMany(() => UserTaskState, (userTaskState: UserTaskState) => userTaskState.task)

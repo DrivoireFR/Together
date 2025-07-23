@@ -268,13 +268,6 @@ export class TaskController {
         });
       }
 
-      // Vérifier si la tâche a des actions
-      if (task.actions && task.actions.length > 0) {
-        return res.status(400).json({
-          message: 'Impossible de supprimer la tâche car elle contient des actions'
-        });
-      }
-
       await taskRepository.remove(task);
 
       res.json({

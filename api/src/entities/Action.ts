@@ -16,7 +16,9 @@ export class Action {
   @Column({ type: 'boolean', default: false })
   isHelpingHand: boolean;
 
-  @ManyToOne(() => Task, task => task.actions)
+  @ManyToOne(() => Task, task => task.actions, {
+    onDelete: 'CASCADE'
+  })
   task: Task;
 
   @ManyToOne(() => User, user => user.actions)
