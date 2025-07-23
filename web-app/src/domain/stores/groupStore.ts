@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { groupRepository } from '@/data/repositories/groupRepository'
 import type { Group, CreateGroupPayload } from '@/shared/types/api'
+import { useTasksStore } from './tasksStore'
+
 
 export const useGroupStore = defineStore('group', () => {
   // State
@@ -18,6 +20,7 @@ export const useGroupStore = defineStore('group', () => {
   const currentGroupName = computed(() => currentGroup.value?.nom || '')
   const currentGroupMembers = computed(() => currentGroup.value?.users || [])
 
+  const tasksStore = useTasksStore()
   // Actions
   const fetchGroupById = async (id: number) => {
     isLoading.value = true
@@ -28,6 +31,7 @@ export const useGroupStore = defineStore('group', () => {
 
       if (result.isSuccess) {
         currentGroup.value = result.data
+        tasksStore.fetchTasksByGroupId(id)
         return result.data
       } else {
         error.value = result.message

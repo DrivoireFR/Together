@@ -225,10 +225,7 @@ onMounted(async () => {
   const id = groupId.value
   if (id && !isNaN(id)) {
     // Charger les données du groupe et les tâches/tags en parallèle
-    await Promise.all([
-      groupStore.fetchGroupById(id),
-      tasksStore.fetchGroupData(id)
-    ])
+    await groupStore.fetchGroupById(id)
   }
 })
 

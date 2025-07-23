@@ -11,7 +11,7 @@ export const useTasksStore = defineStore('tasks', () => {
   const selectedTagFilter = ref<Tag | null>(null)
   const isLoading = ref(false)
   const error = ref<string | undefined>(undefined)
-  
+
   // État pour la gestion de reconnaissance des tâches
   const unacknowledgedTasks = ref<Task[]>([])
   const currentUnacknowledgedTaskIndex = ref(0)
@@ -22,7 +22,7 @@ export const useTasksStore = defineStore('tasks', () => {
   const tagsCount = computed(() => tags.value.length)
   const hasTasks = computed(() => tasks.value.length > 0)
   const hasTags = computed(() => tags.value.length > 0)
-  
+
   const filteredTasks = computed(() => {
     if (!selectedTagFilter.value) {
       return tasks.value
@@ -61,9 +61,10 @@ export const useTasksStore = defineStore('tasks', () => {
 
     try {
       const result = await taskRepository.getTasksByGroupId(groupId)
-      
+
       if (result.isSuccess) {
         tasks.value = result.data.tasks
+        setTagsFromTasks()
       } else {
         error.value = result.message
       }
@@ -74,13 +75,25 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
+  const setTagsFromTasks = () => {
+    const uniqueTagsMap = new Map<number, Tag>()
+
+    tasks.value.forEach(task => {
+      if (task.tag && !uniqueTagsMap.has(task.tag.id)) {
+        uniqueTagsMap.set(task.tag.id, task.tag)
+      }
+    })
+
+    tags.value = Array.from(uniqueTagsMap.values())
+  }
+
   const fetchTagsByGroupId = async (groupId: number) => {
     isLoading.value = true
     error.value = undefined
 
     try {
       const result = await taskRepository.getTagsByGroupId(groupId)
-      
+
       if (result.isSuccess) {
         tags.value = result.data.tags
       } else {
@@ -103,15 +116,15 @@ export const useTasksStore = defineStore('tasks', () => {
         taskRepository.getTasksByGroupId(groupId),
         taskRepository.getTagsByGroupId(groupId)
       ])
-      
+
       if (tasksResult.isSuccess) {
         tasks.value = tasksResult.data.tasks
-        
+
         // Identifier les tâches non reconnues par l'utilisateur
-        const newUnacknowledgedTasks = tasks.value.filter(task => 
+        const newUnacknowledgedTasks = tasks.value.filter(task =>
           !task.userTaskState || !task.userTaskState.isAcknowledged
         )
-        
+
         if (newUnacknowledgedTasks.length > 0) {
           unacknowledgedTasks.value = newUnacknowledgedTasks
           currentUnacknowledgedTaskIndex.value = 0
@@ -139,7 +152,7 @@ export const useTasksStore = defineStore('tasks', () => {
 
     try {
       const result = await taskRepository.createTask(payload)
-      
+
       if (result.isSuccess) {
         tasks.value.push(result.data.task)
         return { success: true, task: result.data.task }
@@ -162,7 +175,7 @@ export const useTasksStore = defineStore('tasks', () => {
 
     try {
       const result = await taskRepository.createTag(payload)
-      
+
       if (result.isSuccess) {
         tags.value.push(result.data.tag)
         return { success: true, tag: result.data.tag }
@@ -185,17 +198,17 @@ export const useTasksStore = defineStore('tasks', () => {
 
     try {
       const result = await taskRepository.updateTask(id, payload)
-      
+
       if (result.isSuccess) {
         const index = tasks.value.findIndex(t => t.id === id)
         if (index !== -1) {
           tasks.value[index] = result.data.task
         }
-        
+
         if (currentTask.value?.id === id) {
           currentTask.value = result.data.task
         }
-        
+
         return { success: true, task: result.data.task }
       } else {
         error.value = result.message
@@ -216,14 +229,14 @@ export const useTasksStore = defineStore('tasks', () => {
 
     try {
       const result = await taskRepository.deleteTask(id)
-      
+
       if (result.isSuccess) {
         tasks.value = tasks.value.filter(t => t.id !== id)
-        
+
         if (currentTask.value?.id === id) {
           currentTask.value = null
         }
-        
+
         return { success: true }
       } else {
         error.value = result.message
@@ -247,9 +260,9 @@ export const useTasksStore = defineStore('tasks', () => {
         taskId,
         date: new Date().toISOString()
       }
-      
+
       const result = await taskRepository.createAction(payload)
-      
+
       if (result.isSuccess) {
         return { success: true, action: result.data.action }
       } else {
@@ -299,16 +312,16 @@ export const useTasksStore = defineStore('tasks', () => {
         isAcknowledged: true,
         isConcerned
       }
-      
+
       const result = await taskRepository.updateUserTaskState(taskId, payload)
-      
+
       if (result.isSuccess) {
         // Mettre à jour la tâche dans la liste locale
         const taskIndex = tasks.value.findIndex(t => t.id === taskId)
         if (taskIndex !== -1) {
           tasks.value[taskIndex].userTaskState = result.data.userTaskState
         }
-        
+
         return { success: true }
       } else {
         error.value = result.message
@@ -326,7 +339,7 @@ export const useTasksStore = defineStore('tasks', () => {
     if (!currentTask) return
 
     const result = await acknowledgeTask(currentTask.id, isConcerned)
-    
+
     if (result.success) {
       // Passer à la tâche suivante ou fermer la modale
       if (isLastUnacknowledgedTask.value) {
