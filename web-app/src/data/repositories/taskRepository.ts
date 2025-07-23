@@ -1,6 +1,6 @@
 import { apiClient } from '../api/apiClient'
 import type { ApiResult } from '@/shared/types/DataResult'
-import type { 
+import type {
   Task,
   Tag,
   Action,
@@ -8,7 +8,8 @@ import type {
   CreateTaskPayload,
   CreateTagPayload,
   CreateActionPayload,
-  UpdateUserTaskStatePayload
+  UpdateUserTaskStatePayload,
+  CreateTaskResponse
 } from '@/shared/types/api'
 
 export class TaskRepository {
@@ -25,8 +26,8 @@ export class TaskRepository {
     return apiClient.get<{ task: Task }>(`/tasks/${id}`)
   }
 
-  async createTask(payload: CreateTaskPayload): Promise<ApiResult<{ task: Task }>> {
-    return apiClient.post<{ task: Task }>('/tasks', payload)
+  async createTask(payload: CreateTaskPayload): Promise<ApiResult<CreateTaskResponse>> {
+    return apiClient.post<CreateTaskResponse>('/tasks', payload)
   }
 
   async updateTask(id: number, payload: Partial<CreateTaskPayload>): Promise<ApiResult<{ task: Task }>> {

@@ -36,7 +36,7 @@ export class Task {
   })
   uniteFrequence: FrequencyUnit;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'int', default: 1 })
   @IsPositive()
   points: number;
 

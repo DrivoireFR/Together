@@ -22,6 +22,21 @@
       </div>
 
       <div class="form-group">
+        <label for="points" class="form-label">
+          Importance de la tâche
+        </label>
+        <BaseInput
+          id="points"
+          v-model.number="formData.points"
+          type="number"
+          min="0"
+          placeholder="Ex: 10"
+          :error="errors.points"
+          required
+        />
+      </div>
+
+      <div class="form-group">
         <label for="iconUrl" class="form-label">
           URL de l'icône (optionnel)
         </label>
@@ -125,7 +140,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { Tag, CreateTaskPayload } from '@/shared/types/api'
+import { type Tag, type CreateTaskPayload, UniteFrequence } from '@/shared/types/api'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 
@@ -142,10 +157,11 @@ const props = withDefaults(defineProps<Props>(), {
 const formData = ref<CreateTaskPayload>({
   label: '',
   frequenceEstimee: 1,
-  uniteFrequence: 'semaine',
+  uniteFrequence: UniteFrequence.SEMAINE,
   groupId: props.groupId,
   iconUrl: '',
-  tagId: undefined
+  tagId: undefined,
+  points: 0
 })
 
 const errors = ref<Partial<Record<keyof CreateTaskPayload, string>>>({})
@@ -155,8 +171,8 @@ const frequencyText = computed(() => {
   
   if (!frequenceEstimee || frequenceEstimee < 1) return ''
   
-  const unit = uniteFrequence === 'jour' ? 'jour' : 
-               uniteFrequence === 'semaine' ? 'semaine' : 'mois'
+  const unit = uniteFrequence === UniteFrequence.JOUR ? 'jour' : 
+               uniteFrequence === UniteFrequence.SEMAINE ? 'semaine' : 'mois'
   
   if (frequenceEstimee === 1) {
     return `1 fois par ${unit}`

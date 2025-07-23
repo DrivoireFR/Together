@@ -18,18 +18,39 @@ export interface Group {
   updatedAt: string
 }
 
+export enum UniteFrequence {
+  JOUR = 'jour',
+  SEMAINE = 'semaine',
+  MOIS = 'mois'
+}
+
 export interface Task {
   id: number
   label: string
   iconUrl?: string
   frequenceEstimee: number
-  uniteFrequence: 'jour' | 'semaine' | 'mois'
+  uniteFrequence: UniteFrequence
   group: Group
   tag?: Tag
   actions: Action[]
   userTaskState?: UserTaskState | null
   createdAt: string
   updatedAt: string
+}
+
+export interface CreateTaskPayload {
+  label: string
+  iconUrl?: string
+  frequenceEstimee: number
+  uniteFrequence: UniteFrequence
+  groupId: number
+  tagId?: number
+  points: number
+}
+
+export interface CreateTaskResponse {
+  message: string
+  task: Task
 }
 
 export interface Action {
@@ -86,15 +107,6 @@ export interface CreateGroupPayload {
 
 export interface JoinGroupPayload {
   groupId: number
-}
-
-export interface CreateTaskPayload {
-  label: string
-  frequenceEstimee: number
-  uniteFrequence: 'jour' | 'semaine' | 'mois'
-  groupId: number
-  tagId?: number
-  iconUrl?: string
 }
 
 export interface CreateTagPayload {

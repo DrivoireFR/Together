@@ -9,7 +9,7 @@ import { AuthRequest } from '../middleware/auth';
 export class TaskController {
   async create(req: AuthRequest, res: Response) {
     try {
-      const { label, iconUrl, frequenceEstimee, uniteFrequence, groupId, tagId } = req.body;
+      const { label, iconUrl, frequenceEstimee, uniteFrequence, groupId, tagId, points } = req.body;
 
       if (!label || !frequenceEstimee || !groupId) {
         return res.status(400).json({
@@ -32,7 +32,7 @@ export class TaskController {
       // Vérifier si le tag existe (optionnel)
       let tag: Tag | undefined = undefined;
       if (tagId) {
-        const foundTag = await tagRepository.findOne({ 
+        const foundTag = await tagRepository.findOne({
           where: { id: tagId },
           relations: ['group']
         });
@@ -41,14 +41,14 @@ export class TaskController {
             message: 'Tag non trouvé'
           });
         }
-        
+
         // Vérifier que le tag appartient au même groupe que la tâche
         if (foundTag.group.id !== groupId) {
           return res.status(400).json({
             message: 'Le tag doit appartenir au même groupe que la tâche'
           });
         }
-        
+
         tag = foundTag;
       }
 
@@ -60,6 +60,7 @@ export class TaskController {
       task.uniteFrequence = uniteFrequence || FrequencyUnit.SEMAINE;
       task.group = group;
       task.tag = tag;
+      task.points = points;
 
       // Valider les données
       const errors = await validate(task);
@@ -110,7 +111,7 @@ export class TaskController {
     try {
       const { id } = req.params;
       const taskRepository = AppDataSource.getRepository(Task);
-      
+
       const task = await taskRepository.findOne({
         where: { id: parseInt(id) },
         relations: ['group', 'tag', 'actions']
@@ -139,7 +140,7 @@ export class TaskController {
       const { groupId } = req.params;
       const userId = req.user!.id;
       const taskRepository = AppDataSource.getRepository(Task);
-      
+
       const tasks = await taskRepository.find({
         where: { group: { id: parseInt(groupId) } },
         relations: ['group', 'tag', 'actions', 'userStates', 'userStates.user']
@@ -183,7 +184,7 @@ export class TaskController {
 
       const taskRepository = AppDataSource.getRepository(Task);
       const tagRepository = AppDataSource.getRepository(Tag);
-      
+
       const task = await taskRepository.findOne({
         where: { id: parseInt(id) },
         relations: ['group', 'tag']
@@ -198,7 +199,7 @@ export class TaskController {
       // Vérifier si le tag existe (optionnel)
       let tag: Tag | undefined = undefined;
       if (tagId) {
-        const foundTag = await tagRepository.findOne({ 
+        const foundTag = await tagRepository.findOne({
           where: { id: tagId },
           relations: ['group']
         });
@@ -207,14 +208,14 @@ export class TaskController {
             message: 'Tag non trouvé'
           });
         }
-        
+
         // Vérifier que le tag appartient au même groupe que la tâche
         if (foundTag.group.id !== task.group.id) {
           return res.status(400).json({
             message: 'Le tag doit appartenir au même groupe que la tâche'
           });
         }
-        
+
         tag = foundTag;
       }
 
@@ -255,7 +256,7 @@ export class TaskController {
     try {
       const { id } = req.params;
       const taskRepository = AppDataSource.getRepository(Task);
-      
+
       const task = await taskRepository.findOne({
         where: { id: parseInt(id) },
         relations: ['actions']
