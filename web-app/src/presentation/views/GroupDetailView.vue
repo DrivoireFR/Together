@@ -77,6 +77,22 @@
         />
       </BaseModal>
 
+      <!-- Modal d'édition de tâche -->
+      <BaseModal
+        :is-open="isEditTaskModalOpen"
+        title="Modifier la tâche"
+        @close="closeEditTaskModal"
+      >
+        <EditTaskForm
+          v-if="taskToEdit"
+          :task="taskToEdit"
+          :tags="tasksStore.tags"
+          :is-loading="tasksStore.isLoading"
+          @submit="handleEditTask"
+          @cancel="closeEditTaskModal"
+        />
+      </BaseModal>
+
       <!-- Modal de reconnaissance des tâches -->
       <TaskAcknowledgmentModal
         :show="tasksStore.showTaskAcknowledgmentModal"
@@ -97,6 +113,7 @@ import TaskList from '@/presentation/components/molecules/TaskList.vue'
 import FloatingActionPanel from '@/presentation/components/molecules/FloatingActionPanel.vue'
 import BaseModal from '@/presentation/components/atoms/BaseModal.vue'
 import CreateTaskForm from '@/presentation/components/molecules/CreateTaskForm.vue'
+import EditTaskForm from '@/presentation/components/molecules/EditTaskForm.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import TaskAcknowledgmentModal from '@/presentation/components/molecules/TaskAcknowledgmentModal.vue'
 
@@ -107,6 +124,8 @@ const tasksStore = useTasksStore()
 
 const isCreateTaskModalOpen = ref(false)
 const isCreateTagModalOpen = ref(false)
+const isEditTaskModalOpen = ref(false)
+const taskToEdit = ref<Task | null>(null)
 
 const groupId = computed(() => Number(route.params.id))
 const isLoading = computed(() => groupStore.isLoading || tasksStore.isLoading)
@@ -126,6 +145,16 @@ const openCreateTagModal = () => {
 
 const closeCreateTagModal = () => {
   isCreateTagModalOpen.value = false
+}
+
+const openEditTaskModal = (task: Task) => {
+  taskToEdit.value = task
+  isEditTaskModalOpen.value = true
+}
+
+const closeEditTaskModal = () => {
+  isEditTaskModalOpen.value = false
+  taskToEdit.value = null
 }
 
 // Gestion des tags et filtres
@@ -150,9 +179,22 @@ const handleCreateTask = async (payload: CreateTaskPayload) => {
   }
 }
 
+const handleEditTask = async (payload: Partial<CreateTaskPayload>) => {
+  if (!taskToEdit.value) return
+  
+  const result = await tasksStore.updateTask(taskToEdit.value.id, payload)
+  
+  if (result.success) {
+    closeEditTaskModal()
+    // Optionnel: notification de succès
+  } else {
+    // Optionnel: notification d'erreur
+    console.error('Erreur lors de la modification de la tâche:', result.error)
+  }
+}
+
 const handleTaskEdit = (task: Task) => {
-  // À implémenter: ouvrir modal d'édition
-  console.log('Éditer la tâche:', task)
+  openEditTaskModal(task)
 }
 
 const handleTaskDelete = async (task: Task) => {

@@ -30,6 +30,7 @@ export interface Task {
   iconUrl?: string
   frequenceEstimee: number
   uniteFrequence: UniteFrequence
+  points: number
   group: Group
   tag?: Tag
   actions: Action[]
