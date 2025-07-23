@@ -62,6 +62,17 @@
         @create-tag="openCreateTagModal"
       />
 
+      <!-- Bouton statistiques -->
+      <div v-if="groupStore.currentGroup" class="stats-button-container">
+        <BaseButton
+          variant="primary"
+          @click="goToStats"
+          class="stats-button"
+        >
+          📊 Voir les statistiques
+        </BaseButton>
+      </div>
+
       <!-- Modal de création de tâche -->
       <BaseModal
         :is-open="isCreateTaskModalOpen"
@@ -229,6 +240,11 @@ const handleTaskClick = async (task: Task) => {
   }
 }
 
+// Navigation vers les statistiques
+const goToStats = () => {
+  router.push({ name: 'GroupStats', params: { id: groupId.value } })
+}
+
 // Initialisation
 onMounted(async () => {
   const id = groupId.value
@@ -343,6 +359,17 @@ onUnmounted(() => {
   }
 }
 
+.stats-button-container {
+  position: fixed;
+  bottom: var(--spacing-4);
+  left: var(--spacing-4);
+  z-index: 100;
+}
+
+.stats-button {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .group-detail-container {
@@ -365,6 +392,11 @@ onUnmounted(() => {
   .stat-item {
     font-size: var(--font-size-xs);
     padding: var(--spacing-1) var(--spacing-2);
+  }
+  
+  .stats-button-container {
+    bottom: var(--spacing-3);
+    left: var(--spacing-3);
   }
 }
 </style>

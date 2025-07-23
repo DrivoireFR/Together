@@ -11,7 +11,8 @@ import type {
   UpdateUserTaskStatePayload,
   CreateTaskResponse,
   CreateActionResponse,
-  GetRecentActionsResponse
+  GetRecentActionsResponse,
+  GetStatisticsResponse
 } from '@/shared/types/api'
 
 export class TaskRepository {
@@ -72,6 +73,10 @@ export class TaskRepository {
 
   async getRecentActionsByGroupId(groupId: number): Promise<ApiResult<GetRecentActionsResponse>> {
     return apiClient.get<GetRecentActionsResponse>(`/actions/group/${groupId}/recent`)
+  }
+
+  async getStatisticsByGroupId(groupId: number): Promise<ApiResult<GetStatisticsResponse>> {
+    return apiClient.get<GetStatisticsResponse>(`/actions/statistics?groupId=${groupId}`)
   }
 
   // UserTaskState

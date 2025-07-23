@@ -44,6 +44,15 @@ const router = createRouter({
         requiresAuth: true,
         layout: 'app'
       }
+    },
+    {
+      path: '/groups/:id/stats',
+      name: 'GroupStats',
+      component: () => import('@/presentation/views/GroupStatsView.vue'),
+      meta: {
+        requiresAuth: true,
+        layout: 'app'
+      }
     }
   ]
 })

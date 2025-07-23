@@ -309,12 +309,46 @@ export class ActionController {
         return acc;
       }, {} as Record<number, number>);
 
+      // Calculer les actions par tag
+      const actionsByTag = actions.reduce((acc, action) => {
+        const tag = action.task && action.task.tag ? action.task.tag : null;
+        if (tag) {
+          const tagId = tag.id;
+          acc[tagId] = (acc[tagId] || 0) + 1;
+        }
+        return acc;
+      }, {} as Record<number, number>);
+
+      function frequencyToMonthly(frequenceEstimee: number, uniteFrequence: string): number {
+        if (!frequenceEstimee || !uniteFrequence) return 0;
+        switch (uniteFrequence) {
+          case 'jour':
+            return frequenceEstimee * 30; // 30 jours dans un mois
+          case 'semaine':
+            return frequenceEstimee * 4; // 4 semaines dans un mois
+          case 'mois':
+            return frequenceEstimee; // déjà mensuel
+          default:
+            return 0;
+        }
+      }
+
+      const totalWeight = actions.reduce((acc, action) => {
+        const points = action.task && typeof action.task.points === 'number' ? action.task.points : 0;
+        const frequenceEstimee = action.task && typeof action.task.frequenceEstimee === 'number' ? action.task.frequenceEstimee : 0;
+        const uniteFrequence = action.task && action.task.uniteFrequence ? action.task.uniteFrequence : 'mois';
+        const freqPerMonth = frequencyToMonthly(frequenceEstimee, uniteFrequence);
+        return acc + (points * freqPerMonth);
+      }, 0);
+
       res.json({
         message: 'Statistiques récupérées avec succès',
         statistics: {
           totalActions,
           actionsByUser,
           actionsByTask,
+          actionsByTag,
+          totalWeight,
           actions
         }
       });

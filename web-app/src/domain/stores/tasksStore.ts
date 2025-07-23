@@ -1,13 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { taskRepository } from '@/data/repositories/taskRepository'
-import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload } from '@/shared/types/api'
+import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload, GroupStatistics } from '@/shared/types/api'
 
 export const useTasksStore = defineStore('tasks', () => {
   // State
   const tasks = ref<Task[]>([])
   const tags = ref<Tag[]>([])
   const actions = ref<Action[]>([])
+  const statistics = ref<GroupStatistics | null>(null)
   const currentTask = ref<Task | null>(null)
   const selectedTagFilter = ref<Tag | null>(null)
   const isLoading = ref(false)
@@ -25,6 +26,7 @@ export const useTasksStore = defineStore('tasks', () => {
   const hasTasks = computed(() => tasks.value.length > 0)
   const hasTags = computed(() => tags.value.length > 0)
   const hasActions = computed(() => actions.value.length > 0)
+  const hasStatistics = computed(() => statistics.value !== null)
 
   const filteredTasks = computed(() => {
     if (!selectedTagFilter.value) {
@@ -304,6 +306,29 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
+  const fetchStatisticsByGroupId = async (groupId: number) => {
+    isLoading.value = true
+    error.value = undefined
+
+    try {
+      const result = await taskRepository.getStatisticsByGroupId(groupId)
+
+      if (result.isSuccess) {
+        statistics.value = result.data.statistics
+        return { success: true, statistics: result.data.statistics }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors du chargement des statistiques'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   const setTagFilter = (tag: Tag | null) => {
     selectedTagFilter.value = tag
   }
@@ -324,6 +349,7 @@ export const useTasksStore = defineStore('tasks', () => {
     tasks.value = []
     tags.value = []
     actions.value = []
+    statistics.value = null
     currentTask.value = null
     selectedTagFilter.value = null
     error.value = undefined
@@ -396,6 +422,7 @@ export const useTasksStore = defineStore('tasks', () => {
     tasks,
     tags,
     actions,
+    statistics,
     currentTask,
     selectedTagFilter,
     isLoading,
@@ -410,6 +437,7 @@ export const useTasksStore = defineStore('tasks', () => {
     hasTasks,
     hasTags,
     hasActions,
+    hasStatistics,
     filteredTasks,
     tasksByTag,
     currentUnacknowledgedTask,
@@ -420,6 +448,7 @@ export const useTasksStore = defineStore('tasks', () => {
     fetchTagsByGroupId,
     fetchGroupData,
     fetchRecentActionsByGroupId,
+    fetchStatisticsByGroupId,
     createTask,
     createTag,
     updateTask,

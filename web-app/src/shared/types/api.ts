@@ -132,6 +132,20 @@ export interface GetRecentActionsResponse {
   total: number
 }
 
+export interface GroupStatistics {
+  totalActions: number
+  actionsByUser: Record<number, number>
+  actionsByTask: Record<number, number>
+  actionsByTag: Record<number, number>
+  totalWeight: number
+  actions: Action[]
+}
+
+export interface GetStatisticsResponse {
+  message: string
+  statistics: GroupStatistics
+}
+
 export interface UpdateUserTaskStatePayload {
   isAcknowledged?: boolean
   isConcerned?: boolean
