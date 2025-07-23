@@ -1,10 +1,11 @@
 import { apiClient } from '../api/apiClient'
 import type { ApiResult } from '@/shared/types/DataResult'
-import type { 
-  LoginPayload, 
-  RegisterPayload, 
+import type {
+  LoginPayload,
+  RegisterPayload,
   AuthResponse,
-  User
+  User,
+  getProfileResponse
 } from '@/shared/types/api'
 
 export class AuthRepository {
@@ -16,8 +17,8 @@ export class AuthRepository {
     return apiClient.post<AuthResponse>('/auth/register', payload)
   }
 
-  async getProfile(): Promise<ApiResult<User>> {
-    return apiClient.get<User>('/users/me')
+  async getProfile(): Promise<ApiResult<getProfileResponse>> {
+    return apiClient.get<getProfileResponse>('/users/me')
   }
 
   async refreshToken(): Promise<ApiResult<AuthResponse>> {

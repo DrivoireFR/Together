@@ -75,11 +75,57 @@ export class GroupController {
     }
   }
 
+  async getUserGroups(req: AuthRequest, res: Response) {
+    try {
+      const { userId } = req.params;
+
+      if (!userId) {
+        return res.status(400).json({
+          message: 'ID utilisateur requis'
+        });
+      }
+
+      const userRepository = AppDataSource.getRepository(User);
+      const groupRepository = AppDataSource.getRepository(Group);
+
+      // Vérifier si l'utilisateur existe
+      const user = await userRepository.findOne({
+        where: { id: parseInt(userId) }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          message: 'Utilisateur non trouvé'
+        });
+      }
+
+      // Récupérer les groupes de l'utilisateur
+      const groups = await groupRepository
+        .createQueryBuilder('group')
+        .leftJoinAndSelect('group.users', 'users')
+        .leftJoinAndSelect('group.tasks', 'tasks')
+        .leftJoinAndSelect('group.actions', 'actions')
+        .leftJoinAndSelect('group.tags', 'tags')
+        .where('users.id = :userId', { userId: parseInt(userId) })
+        .getMany();
+
+      res.json({
+        message: 'Groupes de l\'utilisateur récupérés avec succès',
+        groups
+      });
+    } catch (error) {
+      console.error('Erreur lors de la récupération des groupes de l\'utilisateur:', error);
+      res.status(500).json({
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
   async getById(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
       const groupRepository = AppDataSource.getRepository(Group);
-      
+
       const group = await groupRepository.findOne({
         where: { id: parseInt(id) },
         relations: ['users', 'tasks', 'actions', 'tags']
@@ -114,7 +160,7 @@ export class GroupController {
       }
 
       const groupRepository = AppDataSource.getRepository(Group);
-      
+
       const groups = await groupRepository
         .createQueryBuilder('group')
         .where('group.nom LIKE :nom', { nom: `%${nom}%` })
@@ -146,7 +192,7 @@ export class GroupController {
       }
 
       const groupRepository = AppDataSource.getRepository(Group);
-      
+
       const groups = await groupRepository
         .createQueryBuilder('group')
         .leftJoinAndSelect('group.users', 'users')
@@ -174,7 +220,7 @@ export class GroupController {
 
       const groupRepository = AppDataSource.getRepository(Group);
       const userRepository = AppDataSource.getRepository(User);
-      
+
       const group = await groupRepository.findOne({
         where: { id: parseInt(id) },
         relations: ['users']
@@ -226,7 +272,7 @@ export class GroupController {
       const userId = req.user!.id;
 
       const groupRepository = AppDataSource.getRepository(Group);
-      
+
       const group = await groupRepository.findOne({
         where: { id: parseInt(id) },
         relations: ['users']
@@ -267,7 +313,7 @@ export class GroupController {
       const { nom } = req.body;
 
       const groupRepository = AppDataSource.getRepository(Group);
-      
+
       const group = await groupRepository.findOne({
         where: { id: parseInt(id) }
       });
@@ -321,7 +367,7 @@ export class GroupController {
     try {
       const { id } = req.params;
       const groupRepository = AppDataSource.getRepository(Group);
-      
+
       const group = await groupRepository.findOne({
         where: { id: parseInt(id) },
         relations: ['users', 'tasks', 'actions', 'tags']

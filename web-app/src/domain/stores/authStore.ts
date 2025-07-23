@@ -4,8 +4,12 @@ import { authRepository } from '@/data/repositories/authRepository'
 import { StorageUtil } from '@/shared/utils/storage'
 import { STORAGE_KEYS } from '@/shared/constants'
 import type { User, LoginPayload, RegisterPayload } from '@/shared/types/api'
+import { useGroupStore } from './groupStore'
 
 export const useAuthStore = defineStore('auth', () => {
+  // stores
+  const groupStore = useGroupStore()
+
   // State
   const user = ref<User | null>(null)
   const token = ref<string | null>(null)
@@ -38,8 +42,8 @@ export const useAuthStore = defineStore('auth', () => {
 
         if (verifyResult.isSuccess) {
           // Mettre à jour les données utilisateur
-          user.value = verifyResult.data
-          StorageUtil.setItem(STORAGE_KEYS.USER, verifyResult.data)
+          setUserData(verifyResult.data.user)
+          StorageUtil.setItem(STORAGE_KEYS.USER, verifyResult.data.user)
         } else {
           // Token invalide, déconnecter silencieusement
           logout()
@@ -60,7 +64,8 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (result.isSuccess) {
         token.value = result.data.token
-        user.value = result.data.user
+
+        setUserData(result.data.user)
 
         // Sauvegarder dans le localStorage
         StorageUtil.setItem(STORAGE_KEYS.TOKEN, result.data.token)
@@ -78,6 +83,11 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       isLoading.value = false
     }
+  }
+
+  const setUserData = async (userData: User) => {
+    user.value = userData
+    groupStore.getUserGroups(userData.id)
   }
 
   const register = async (payload: RegisterPayload) => {
@@ -128,8 +138,8 @@ export const useAuthStore = defineStore('auth', () => {
       const result = await authRepository.getProfile()
 
       if (result.isSuccess) {
-        user.value = result.data
-        StorageUtil.setItem(STORAGE_KEYS.USER, result.data)
+        user.value = result.data.user
+        StorageUtil.setItem(STORAGE_KEYS.USER, result.data.user)
       } else {
         // En cas d'erreur, déconnecter l'utilisateur
         logout()

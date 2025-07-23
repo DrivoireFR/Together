@@ -19,32 +19,13 @@ export const useGroupStore = defineStore('group', () => {
   const currentGroupMembers = computed(() => currentGroup.value?.users || [])
 
   // Actions
-  const fetchGroups = async () => {
-    isLoading.value = true
-    error.value = undefined
-
-    try {
-      const result = await groupRepository.getAllGroups()
-      
-      if (result.isSuccess) {
-        groups.value = result.data
-      } else {
-        error.value = result.message
-      }
-    } catch (err) {
-      error.value = 'Erreur lors du chargement des groupes'
-    } finally {
-      isLoading.value = false
-    }
-  }
-
   const fetchGroupById = async (id: number) => {
     isLoading.value = true
     error.value = undefined
 
     try {
       const result = await groupRepository.getGroupById(id)
-      
+
       if (result.isSuccess) {
         currentGroup.value = result.data
         return result.data
@@ -66,7 +47,7 @@ export const useGroupStore = defineStore('group', () => {
 
     try {
       const result = await groupRepository.createGroup(payload)
-      
+
       if (result.isSuccess) {
         groups.value.push(result.data)
         return { success: true, group: result.data }
@@ -94,9 +75,9 @@ export const useGroupStore = defineStore('group', () => {
 
     try {
       const result = await groupRepository.searchGroupsByName(nom)
-      
+
       if (result.isSuccess) {
-        searchResults.value = result.data
+        searchResults.value = result.data.groups
       } else {
         error.value = result.message
         searchResults.value = []
@@ -109,16 +90,39 @@ export const useGroupStore = defineStore('group', () => {
     }
   }
 
+  const getUserGroups = async (userId: number) => {
+    isLoading.value = true
+    error.value = undefined
+
+    try {
+      const result = await groupRepository.getUserGroups(userId)
+
+      if (result.isSuccess) {
+        groups.value = result.data.groups
+        return { success: true, groups: result.data.groups }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors de la récupération des groupes de l\'utilisateur'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+
   const joinGroup = async (groupId: number) => {
     isLoading.value = true
     error.value = undefined
 
     try {
       const result = await groupRepository.joinGroup(groupId)
-      
+
       if (result.isSuccess) {
         // Recharger la liste des groupes pour refléter les changements
-        await fetchGroups()
         return { success: true }
       } else {
         error.value = result.message
@@ -139,16 +143,16 @@ export const useGroupStore = defineStore('group', () => {
 
     try {
       const result = await groupRepository.leaveGroup(groupId)
-      
+
       if (result.isSuccess) {
         // Retirer le groupe de la liste locale
         groups.value = groups.value.filter(g => g.id !== groupId)
-        
+
         // Si c'est le groupe current, le vider
         if (currentGroup.value?.id === groupId) {
           currentGroup.value = null
         }
-        
+
         return { success: true }
       } else {
         error.value = result.message
@@ -169,19 +173,19 @@ export const useGroupStore = defineStore('group', () => {
 
     try {
       const result = await groupRepository.updateGroup(id, payload)
-      
+
       if (result.isSuccess) {
         // Mettre à jour le groupe dans la liste
         const index = groups.value.findIndex(g => g.id === id)
         if (index !== -1) {
           groups.value[index] = result.data
         }
-        
+
         // Mettre à jour le groupe current si c'est lui
         if (currentGroup.value?.id === id) {
           currentGroup.value = result.data
         }
-        
+
         return { success: true, group: result.data }
       } else {
         error.value = result.message
@@ -222,8 +226,8 @@ export const useGroupStore = defineStore('group', () => {
     currentGroupName,
     currentGroupMembers,
     // Actions
-    fetchGroups,
     fetchGroupById,
+    getUserGroups,
     createGroup,
     searchGroupsByName,
     joinGroup,

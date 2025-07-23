@@ -1,9 +1,10 @@
 import { apiClient } from '../api/apiClient'
-import type { ApiResult } from '@/shared/types/DataResult'
-import type { 
+import { DataSuccess, DataError, type ApiResult } from '@/shared/types/DataResult'
+import type {
   Group,
   CreateGroupPayload,
-  GroupSearchResponse
+  GroupSearchResponse,
+  UserGroupResponse
 } from '@/shared/types/api'
 
 export class GroupRepository {
@@ -19,8 +20,12 @@ export class GroupRepository {
     return apiClient.post<Group>('/groups', payload)
   }
 
-  async searchGroupsByName(nom: string): Promise<ApiResult<Group[]>> {
-    return apiClient.get<Group[]>(`/groups/search/name?nom=${encodeURIComponent(nom)}`)
+  async searchGroupsByName(nom: string): Promise<ApiResult<GroupSearchResponse>> {
+    return apiClient.get<GroupSearchResponse>(`/groups/search/name?nom=${encodeURIComponent(nom)}`)
+  }
+
+  async getUserGroups(userId: number): Promise<ApiResult<UserGroupResponse>> {
+    return apiClient.get<UserGroupResponse>(`/groups/user/${userId}`)
   }
 
   async searchGroupsByEmail(email: string): Promise<ApiResult<Group[]>> {

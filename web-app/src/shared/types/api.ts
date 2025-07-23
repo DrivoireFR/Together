@@ -120,6 +120,17 @@ export interface AuthResponse {
 }
 
 export interface GroupSearchResponse {
+  message: string
+  groups: Group[]
+}
+
+export interface getProfileResponse {
+  message: string
+  user: User
+}
+
+export interface UserGroupResponse {
+  message: string
   groups: Group[]
 }
 

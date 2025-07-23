@@ -17,6 +17,9 @@ router.get('/search/name', authMiddleware, groupController.searchByName);
 // GET /api/groups/search/email - Rechercher des groupes par email d'un membre
 router.get('/search/email', authMiddleware, groupController.searchByUserEmail);
 
+// GET /api/groups/user/:userId - Récupérer les groupes d'un utilisateur
+router.get('/user/:userId', authMiddleware, groupController.getUserGroups);
+
 // GET /api/groups/:id - Récupérer un groupe par ID
 router.get('/:id', authMiddleware, groupController.getById);
 

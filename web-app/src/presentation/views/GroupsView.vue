@@ -41,9 +41,9 @@
             </div>
           </div>
           
-          <div v-else-if="searchQuery && !groupStore.isSearching" class="no-results">
+          <!-- <div v-else-if="searchQuery && !groupStore.isSearching" class="no-results">
             Aucun groupe trouvé pour "{{ searchQuery }}"
-          </div>
+          </div> -->
         </div>
       </BaseCard>
       
@@ -177,7 +177,7 @@ const handleGroupMenu = (group: Group) => {
 
 // Lifecycle
 onMounted(() => {
-  groupStore.fetchGroups()
+
 })
 </script>
 
