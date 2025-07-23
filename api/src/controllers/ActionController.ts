@@ -59,7 +59,7 @@ export class ActionController {
 
       // Vérifier si l'utilisateur est concerné par la tâche
       const userTaskState = await userTaskStateRepository.findOne({
-        where: { 
+        where: {
           user: { id: userId },
           task: { id: taskId }
         }
@@ -124,7 +124,7 @@ export class ActionController {
     try {
       const { id } = req.params;
       const actionRepository = AppDataSource.getRepository(Action);
-      
+
       const action = await actionRepository.findOne({
         where: { id: parseInt(id) },
         relations: ['task', 'user', 'group']
@@ -152,7 +152,7 @@ export class ActionController {
     try {
       const { userId } = req.params;
       const actionRepository = AppDataSource.getRepository(Action);
-      
+
       const actions = await actionRepository.find({
         where: { user: { id: parseInt(userId) } },
         relations: ['task', 'user', 'group']
@@ -174,7 +174,7 @@ export class ActionController {
     try {
       const { groupId } = req.params;
       const actionRepository = AppDataSource.getRepository(Action);
-      
+
       const actions = await actionRepository.find({
         where: { group: { id: parseInt(groupId) } },
         relations: ['task', 'user', 'group']
@@ -196,7 +196,7 @@ export class ActionController {
     try {
       const { taskId } = req.params;
       const actionRepository = AppDataSource.getRepository(Action);
-      
+
       const actions = await actionRepository.find({
         where: { task: { id: parseInt(taskId) } },
         relations: ['task', 'user', 'group']
@@ -218,7 +218,7 @@ export class ActionController {
     try {
       const userId = req.user!.id;
       const actionRepository = AppDataSource.getRepository(Action);
-      
+
       const actions = await actionRepository.find({
         where: { user: { id: userId } },
         relations: ['task', 'user', 'group']
@@ -240,7 +240,7 @@ export class ActionController {
     try {
       const { groupId, taskId, userId, startDate, endDate } = req.query;
       const actionRepository = AppDataSource.getRepository(Action);
-      
+
       let query = actionRepository.createQueryBuilder('action')
         .leftJoinAndSelect('action.task', 'task')
         .leftJoinAndSelect('action.user', 'user')
@@ -306,7 +306,7 @@ export class ActionController {
       const userId = req.user!.id;
 
       const actionRepository = AppDataSource.getRepository(Action);
-      
+
       const action = await actionRepository.findOne({
         where: { id: parseInt(id) },
         relations: ['task', 'user', 'group']
@@ -360,7 +360,7 @@ export class ActionController {
       const userId = req.user!.id;
 
       const actionRepository = AppDataSource.getRepository(Action);
-      
+
       const action = await actionRepository.findOne({
         where: { id: parseInt(id) },
         relations: ['task', 'user', 'group']

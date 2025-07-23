@@ -121,6 +121,11 @@ export interface CreateActionPayload {
   date: string
 }
 
+export interface CreateActionResponse {
+  message: string
+  action: Action
+}
+
 export interface UpdateUserTaskStatePayload {
   isAcknowledged?: boolean
   isConcerned?: boolean

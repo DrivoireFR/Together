@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
-import { IsNotEmpty, IsDateString } from 'class-validator';
+import { IsNotEmpty, IsDate } from 'class-validator';
 import { Task } from './Task';
 import { User } from './User';
 import { Group } from './Group';
@@ -10,7 +10,7 @@ export class Action {
   id: number;
 
   @Column()
-  @IsDateString()
+  @IsDate()
   date: Date;
 
   @Column({ type: 'boolean', default: false })

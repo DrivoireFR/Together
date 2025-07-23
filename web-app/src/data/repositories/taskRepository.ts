@@ -9,7 +9,8 @@ import type {
   CreateTagPayload,
   CreateActionPayload,
   UpdateUserTaskStatePayload,
-  CreateTaskResponse
+  CreateTaskResponse,
+  CreateActionResponse
 } from '@/shared/types/api'
 
 export class TaskRepository {
@@ -64,8 +65,8 @@ export class TaskRepository {
   }
 
   // Actions
-  async createAction(payload: CreateActionPayload): Promise<ApiResult<{ action: Action }>> {
-    return apiClient.post<{ action: Action }>('/actions', payload)
+  async createAction(payload: CreateActionPayload): Promise<ApiResult<CreateActionResponse>> {
+    return apiClient.post<CreateActionResponse>('/actions', payload)
   }
 
   // UserTaskState

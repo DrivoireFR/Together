@@ -23,14 +23,14 @@
       <BaseButton 
         variant="ghost" 
         size="sm" 
-        @click="$emit('edit')"
+        @click.stop="$emit('edit')"
       >
         Modifier
       </BaseButton>
       <BaseButton 
         variant="ghost" 
         size="sm" 
-        @click="$emit('delete')"
+        @click.stop="$emit('delete')"
         color="danger"
       >
         Supprimer
