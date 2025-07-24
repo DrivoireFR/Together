@@ -6,6 +6,7 @@ import { Tag } from '../entities/Tag';
 import { AuthRequest } from '../middleware/auth';
 import { MoreThanOrEqual } from 'typeorm';
 import { frequencyToMonthly } from '../helpers/stats';
+import { User } from '../entities/User';
 
 export class StatsController {
   async overview(req: AuthRequest, res: Response) {
@@ -21,6 +22,7 @@ export class StatsController {
       const taskRepository = AppDataSource.getRepository(Task);
       const actionRepository = AppDataSource.getRepository(Action);
       const tagRepository = AppDataSource.getRepository(Tag);
+      const userRepository = AppDataSource.getRepository(User);
 
       // 1. Récupérer les tâches du groupe et calculer le volume mensuel
       const tasks = await taskRepository.find({
@@ -89,6 +91,45 @@ export class StatsController {
 
         return acc;
       }, {} as Record<string, Record<number, { userName: string; actions: any[] }>>);
+
+      // personalGoals constant qui est une liste d'objet avec :
+      // user, actions, doneThisMonth (action volume this month)
+
+      // 1. Récupérer tous les utilisateurs du groupe
+      const groupUsers = await userRepository
+        .createQueryBuilder('user')
+        .innerJoin('user.groups', 'group', 'group.id = :groupId', { groupId: parseInt(groupId) })
+        .getMany();
+
+      // 2. Pour chaque utilisateur, calculer ses actions et le volume réalisé ce mois
+      const personalGoals = groupUsers.map(user => {
+        const userActions = actionsThisMonth.filter(action => action.user.id === user.id);
+
+        const doneThisMonth = userActions.reduce((sum, action) => sum + action.task.points, 0);
+
+        return {
+          user: {
+            id: user.id,
+            nom: user.nom,
+            prenom: user.prenom,
+            pseudo: user.pseudo,
+            icone: user.icone
+          },
+          actions: userActions.map(action => ({
+            id: action.id,
+            date: action.date,
+            taskLabel: action.task.label,
+            points: action.task.points,
+            isHelpingHand: action.isHelpingHand,
+            tag: action.task.tag ? {
+              id: action.task.tag.id,
+              label: action.task.tag.label,
+              color: action.task.tag.color
+            } : null
+          })),
+          doneThisMonth
+        };
+      });
 
       // 3. Lister les actions "coups de main" par personne
       const helpingHandActions = actionsThisMonth.filter(action => action.isHelpingHand);
@@ -182,6 +223,7 @@ export class StatsController {
         overview: {
           monthlyVolume,
           actionsByDayAndUser,
+          personalGoals,
           helpingHandByUser,
           actionsByCategory,
           summary: {

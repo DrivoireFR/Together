@@ -307,29 +307,6 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const fetchStatisticsByGroupId = async (groupId: number) => {
-    isLoading.value = true
-    error.value = undefined
-
-    try {
-      const result = await statsRepository.getGlobalStats(groupId)
-
-      if (result.isSuccess) {
-        statistics.value = result.data.statistics
-        return { success: true, statistics: result.data.statistics }
-      } else {
-        error.value = result.message
-        return { success: false, error: result.message }
-      }
-    } catch (err) {
-      const errorMessage = 'Erreur lors du chargement des statistiques'
-      error.value = errorMessage
-      return { success: false, error: errorMessage }
-    } finally {
-      isLoading.value = false
-    }
-  }
-
   const setTagFilter = (tag: Tag | null) => {
     selectedTagFilter.value = tag
   }
@@ -449,7 +426,6 @@ export const useTasksStore = defineStore('tasks', () => {
     fetchTagsByGroupId,
     fetchGroupData,
     fetchRecentActionsByGroupId,
-    fetchStatisticsByGroupId,
     createTask,
     createTag,
     updateTask,
