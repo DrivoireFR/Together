@@ -88,6 +88,20 @@
         />
       </BaseModal>
 
+      <!-- Modal de création de tag -->
+      <BaseModal
+        :is-open="isCreateTagModalOpen"
+        title="Créer un nouveau tag"
+        @close="closeCreateTagModal"
+      >
+        <CreateTagForm
+          :group-id="groupId"
+          :is-loading="tasksStore.isLoading"
+          @submit="handleCreateTag"
+          @cancel="closeCreateTagModal"
+        />
+      </BaseModal>
+
       <!-- Modal d'édition de tâche -->
       <BaseModal
         :is-open="isEditTaskModalOpen"
@@ -123,13 +137,14 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGroupStore } from '@/domain/stores/groupStore'
 import { useTasksStore } from '@/domain/stores/tasksStore'
-import type { Tag, Task, CreateTaskPayload } from '@/shared/types/api'
+import type { Tag, Task, CreateTaskPayload, CreateTagPayload } from '@/shared/types/api'
 import AppLayout from '@/presentation/layouts/AppLayout.vue'
 import TagFilter from '@/presentation/components/molecules/TagFilter.vue'
 import TaskList from '@/presentation/components/molecules/TaskList.vue'
 import FloatingActionPanel from '@/presentation/components/molecules/FloatingActionPanel.vue'
 import BaseModal from '@/presentation/components/atoms/BaseModal.vue'
 import CreateTaskForm from '@/presentation/components/molecules/CreateTaskForm.vue'
+import CreateTagForm from '@/presentation/components/molecules/CreateTagForm.vue'
 import EditTaskForm from '@/presentation/components/molecules/EditTaskForm.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import TaskAcknowledgmentModal from '@/presentation/components/molecules/TaskAcknowledgmentModal.vue'
@@ -194,6 +209,19 @@ const handleCreateTask = async (payload: CreateTaskPayload) => {
   } else {
     // Optionnel: notification d'erreur
     console.error('Erreur lors de la création de la tâche:', result.error)
+  }
+}
+
+// Gestion des tags
+const handleCreateTag = async (payload: CreateTagPayload) => {
+  const result = await tasksStore.createTag(payload)
+  
+  if (result.success) {
+    closeCreateTagModal()
+    // Optionnel: notification de succès
+  } else {
+    // Optionnel: notification d'erreur
+    console.error('Erreur lors de la création du tag:', result.error)
   }
 }
 

@@ -70,7 +70,8 @@ export const useTasksStore = defineStore('tasks', () => {
 
       if (result.isSuccess) {
         tasks.value = result.data.tasks
-        setTagsFromTasks()
+        await fetchTags()
+        // setTagsFromTasks()
       } else {
         error.value = result.message
       }
@@ -191,6 +192,28 @@ export const useTasksStore = defineStore('tasks', () => {
       }
     } catch (err) {
       const errorMessage = 'Erreur lors de la création du tag'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const fetchTags = async () => {
+    isLoading.value = true
+    error.value = undefined
+
+    try {
+      const result = await taskRepository.getAllTags()
+      if (result.isSuccess) {
+        tags.value = result.data.tags
+        return { success: true, tags: result.data.tags }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors de la récupération des tags'
       error.value = errorMessage
       return { success: false, error: errorMessage }
     } finally {
