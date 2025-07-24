@@ -6,7 +6,7 @@
         <p class="loading-text">Chargement des statistiques...</p>
       </div>
       
-      <div v-else-if="groupStore.currentGroup && tasksStore.hasStatistics" class="stats-content">
+      <div v-else-if="groupStore.currentGroup && statsStore.hasOverview" class="stats-content">
         <!-- Header -->
         <div class="stats-header">
           <div class="header-content">
@@ -21,46 +21,75 @@
           </BaseButton>
         </div>
 
+        <!-- Progression globale -->
+        <div v-if="statsStore.overview" class="global-progress">
+          <div class="progress-card">
+            <div class="progress-header-section">
+              <h2 class="progress-title">Progression mensuelle</h2>
+              <p class="progress-subtitle">Avancement des objectifs du mois</p>
+            </div>
+            
+            <div class="progress-content">
+              <ProgressBar
+                :current="statsStore.overview.summary.totalMontlyActionVolume"
+                :total="statsStore.overview.summary.totalTasksVolume"
+                label="Volume mensuel réalisé"
+                variant="primary"
+                size="lg"
+                :show-details="true"
+                :precision="1"
+              />
+            </div>
+            
+            <div class="progress-stats">
+              <div class="progress-stat">
+                <span class="stat-label">Objectif mensuel</span>
+                <span class="stat-value">{{ statsStore.overview.summary.totalTasksVolume }} pts</span>
+              </div>
+              <div class="progress-stat">
+                <span class="stat-label">Réalisé</span>
+                <span class="stat-value">{{ statsStore.overview.summary.totalMontlyActionVolume }} pts</span>
+              </div>
+              <div class="progress-stat">
+                <span class="stat-label">Restant</span>
+                <span class="stat-value">{{ statsStore.overview.summary.totalTasksVolume - statsStore.overview.summary.totalMontlyActionVolume }} pts</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Statistiques générales -->
         <div class="general-stats">
           <StatCard
+            v-if="statsStore.overview"
             icon="📊"
-            :value="tasksStore.statistics!.totalActions"
-            label="Actions totales"
-            description="Nombre total d'actions réalisées"
+            :value="statsStore.overview.summary.totalActionsThisMonth"
+            label="Actions ce mois"
+            description="Nombre d'actions réalisées ce mois"
           />
           <StatCard
+            v-if="statsStore.overview"
             icon="⭐"
-            :value="tasksStore.statistics!.totalWeight"
-            label="Points cumulés"
-            description="Score total basé sur l'importance et la fréquence"
+            :value="statsStore.overview.summary.totalCompletedThisMonth"
+            label="Points ce mois"
+            description="Points gagnés ce mois-ci"
           />
           <StatCard
-            icon="👥"
-            :value="Object.keys(tasksStore.statistics!.actionsByUser).length"
-            label="Membres actifs"
-            description="Nombre de membres ayant réalisé des actions"
+            v-if="statsStore.overview"
+            icon="🎯"
+            :value="`${statsStore.completionPercentage}%`"
+            label="Objectif atteint"
+            description="Pourcentage du volume mensuel réalisé"
           />
           <StatCard
-            icon="🏷️"
-            :value="Object.keys(tasksStore.statistics!.actionsByTag).length"
-            label="Tags utilisés"
-            description="Nombre de catégories d'actions"
+            v-if="statsStore.overview"
+            icon="🤝"
+            :value="statsStore.helpingHandsCount"
+            label="Coups de main"
+            description="Actions d'entraide ce mois"
           />
         </div>
-
-        <!-- Statistiques détaillées -->
-        <div class="detailed-stats">
-          <UserStatsCard
-            :user-stats="tasksStore.statistics!.actionsByUser"
-            :actions="tasksStore.statistics!.actions"
-          />
-          <TagStatsCard
-            :tag-stats="tasksStore.statistics!.actionsByTag"
-            :actions="tasksStore.statistics!.actions"
-          />
-        </div>
-      </div>
+      </div> 
       
       <div v-else-if="!isLoading" class="error-state">
         <h3 class="error-title">Impossible de charger les statistiques</h3>
@@ -80,9 +109,10 @@
 import { computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGroupStore } from '@/domain/stores/groupStore'
-import { useTasksStore } from '@/domain/stores/tasksStore'
+import { useStatsStore } from '@/domain/stores/statsStore'
 import AppLayout from '@/presentation/layouts/AppLayout.vue'
 import StatCard from '@/presentation/components/atoms/StatCard.vue'
+import ProgressBar from '@/presentation/components/atoms/ProgressBar.vue'
 import UserStatsCard from '@/presentation/components/molecules/UserStatsCard.vue'
 import TagStatsCard from '@/presentation/components/molecules/TagStatsCard.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
@@ -90,10 +120,10 @@ import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 const route = useRoute()
 const router = useRouter()
 const groupStore = useGroupStore()
-const tasksStore = useTasksStore()
+const statsStore = useStatsStore()
 
 const groupId = computed(() => Number(route.params.id))
-const isLoading = computed(() => groupStore.isLoading || tasksStore.isLoading)
+const isLoading = computed(() => groupStore.isLoading || statsStore.isLoading)
 
 const goBackToGroup = () => {
   router.push({ name: 'GroupDetail', params: { id: groupId.value } })
@@ -104,7 +134,7 @@ const loadStatistics = async () => {
   if (id && !isNaN(id)) {
     await Promise.all([
       groupStore.fetchGroupById(id),
-      tasksStore.fetchStatisticsByGroupId(id)
+      statsStore.fetchOverview(id)
     ])
   }
 }
@@ -181,6 +211,70 @@ onUnmounted(() => {
   line-height: 1.5;
 }
 
+/* Progression globale */
+.global-progress {
+  margin: var(--spacing-4) 0;
+}
+
+.progress-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.progress-header-section {
+  margin-bottom: var(--spacing-4);
+}
+
+.progress-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
+  margin: 0 0 var(--spacing-1) 0;
+}
+
+.progress-subtitle {
+  color: var(--color-gray-600);
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+.progress-content {
+  margin: var(--spacing-4) 0;
+}
+
+.progress-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.progress-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--spacing-1);
+}
+
+.stat-value {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
+}
+
 .general-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -231,6 +325,15 @@ onUnmounted(() => {
     text-align: center;
   }
   
+  .progress-card {
+    padding: var(--spacing-4);
+  }
+  
+  .progress-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-3);
+  }
+  
   .general-stats {
     grid-template-columns: 1fr;
   }
@@ -248,6 +351,10 @@ onUnmounted(() => {
   
   .stats-title {
     font-size: var(--font-size-xl);
+  }
+  
+  .progress-stats {
+    grid-template-columns: 1fr;
   }
 }
 </style> 

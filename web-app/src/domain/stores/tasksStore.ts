@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { taskRepository } from '@/data/repositories/taskRepository'
+import { statsRepository } from '@/data/repositories/statsRepository'
 import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload, GroupStatistics } from '@/shared/types/api'
 
 export const useTasksStore = defineStore('tasks', () => {
@@ -311,7 +312,7 @@ export const useTasksStore = defineStore('tasks', () => {
     error.value = undefined
 
     try {
-      const result = await taskRepository.getStatisticsByGroupId(groupId)
+      const result = await statsRepository.getGlobalStats(groupId)
 
       if (result.isSuccess) {
         statistics.value = result.data.statistics

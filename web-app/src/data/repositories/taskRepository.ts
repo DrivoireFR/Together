@@ -75,10 +75,6 @@ export class TaskRepository {
     return apiClient.get<GetRecentActionsResponse>(`/actions/group/${groupId}/recent`)
   }
 
-  async getStatisticsByGroupId(groupId: number): Promise<ApiResult<GetStatisticsResponse>> {
-    return apiClient.get<GetStatisticsResponse>(`/actions/statistics?groupId=${groupId}`)
-  }
-
   // UserTaskState
   async updateUserTaskState(taskId: number, payload: UpdateUserTaskStatePayload): Promise<ApiResult<{ userTaskState: UserTaskState }>> {
     return apiClient.put<{ userTaskState: UserTaskState }>(`/user-task-states/${taskId}`, payload)

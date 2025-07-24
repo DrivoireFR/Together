@@ -146,6 +146,96 @@ export interface GetStatisticsResponse {
   statistics: GroupStatistics
 }
 
+// Types pour la réponse Overview
+export interface MonthlyVolumeItem {
+  taskId: number
+  taskLabel: string
+  monthlyFrequency: number
+  points: number
+  monthlyPoints: number
+  tag: {
+    id: number
+    label: string
+    color: string
+  } | null
+}
+
+export interface ActionItem {
+  id: number
+  taskLabel: string
+  points: number
+  isHelpingHand: boolean
+  tag: {
+    id: number
+    label: string
+    color: string
+  } | null
+}
+
+export interface UserDayActions {
+  userName: string
+  actions: ActionItem[]
+}
+
+export interface ActionsByDayAndUser {
+  [dayKey: string]: {
+    [userId: number]: UserDayActions
+  }
+}
+
+export interface HelpingHandItem {
+  id: number
+  date: string
+  taskLabel: string
+  points: number
+  tag: {
+    id: number
+    label: string
+    color: string
+  } | null
+}
+
+export interface HelpingHandByUser {
+  [userId: number]: {
+    userName: string
+    helpingHands: HelpingHandItem[]
+  }
+}
+
+export interface ActionsByCategory {
+  tagId: number | null
+  tagLabel: string
+  tagColor: string
+  totalMonthlyVolume: number
+  completedThisMonth: number
+  completionPercentage: number
+  actionsCount: number
+  tasksInCategory: number
+}
+
+export interface OverviewSummary {
+  totalTasksVolume: number
+  totalMontlyActionVolume: number
+  totalTasksInGroup: number
+  totalActionsThisMonth: number
+  totalHelpingHands: number
+  totalMonthlyVolumeAllCategories: number
+  totalCompletedThisMonth: number
+}
+
+export interface Overview {
+  monthlyVolume: MonthlyVolumeItem[]
+  actionsByDayAndUser: ActionsByDayAndUser
+  helpingHandByUser: HelpingHandByUser
+  actionsByCategory: ActionsByCategory[]
+  summary: OverviewSummary
+}
+
+export interface GetOverviewResponse {
+  message: string
+  overview: Overview
+}
+
 export interface UpdateUserTaskStatePayload {
   isAcknowledged?: boolean
   isConcerned?: boolean
