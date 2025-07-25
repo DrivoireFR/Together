@@ -7,19 +7,6 @@
       </div>
       
       <div v-else-if="groupStore.currentGroup" class="group-content">
-        <!-- Header du groupe -->
-        <div class="group-header">
-          <h1 class="group-title">{{ groupStore.currentGroup.nom }}</h1>
-          <div class="group-stats">
-            <span class="stat-item">
-              {{ tasksStore.tasksCount }} tâche{{ tasksStore.tasksCount > 1 ? 's' : '' }}
-            </span>
-            <span class="stat-item">
-              {{ tasksStore.tagsCount }} tag{{ tasksStore.tagsCount > 1 ? 's' : '' }}
-            </span>
-          </div>
-        </div>
-
         <!-- Filtres par tags -->
         <TagFilter
           v-if="tasksStore.hasTags || tasksStore.hasTasks"

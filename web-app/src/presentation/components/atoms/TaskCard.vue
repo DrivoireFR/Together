@@ -1,5 +1,5 @@
 <template>
-  <div :class="cardClasses" @click="$emit('click')" class="task-card-clickable">
+  <div :class="cardClasses" class="task-card-clickable">
     <div class="task-header">
       <div class="task-icon" v-if="task.iconUrl">
         <img :src="task.iconUrl" :alt="task.label" />
@@ -34,6 +34,17 @@
         color="danger"
       >
         Supprimer
+      </BaseButton>
+    </div>
+
+    <div class="main-action">
+      <BaseButton 
+        variant="primary" 
+        size="lg" 
+        @click.stop="$emit('click')"
+        color="danger"
+        >
+        C'est fait !
       </BaseButton>
     </div>
   </div>
@@ -153,9 +164,14 @@ const frequencyText = computed(() => {
 
 .task-actions {
   display: flex;
+  justify-content: space-around;
   gap: var(--spacing-2);
   padding-top: var(--spacing-2);
   border-top: 1px solid var(--color-gray-100);
+}
+
+.task-actions .btn {
+  flex: 1;
 }
 
 .task-card--compact .task-header {
@@ -173,5 +189,16 @@ const frequencyText = computed(() => {
 
 .task-card--compact .task-frequency {
   font-size: var(--font-size-xs);
+}
+
+.main-action {
+  padding: 5px 0;
+  width: 100%;
+  justify-content: center;
+  display: flex;
+}
+
+.main-action .btn {
+  width: 100%;
 }
 </style>
