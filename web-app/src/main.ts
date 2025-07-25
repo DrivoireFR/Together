@@ -17,3 +17,20 @@ const authStore = useAuthStore()
 authStore.initializeAuth()
 
 app.mount('#app')
+
+// Enregistrement du Service Worker pour PWA
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+        try {
+            const registration = await navigator.serviceWorker.register('/sw.js')
+            console.log('✅ Service Worker enregistré:', registration.scope)
+
+            // Écouter les mises à jour du SW
+            registration.addEventListener('updatefound', () => {
+                console.log('🔄 Nouvelle version du Service Worker disponible')
+            })
+        } catch (error) {
+            console.error('❌ Échec enregistrement Service Worker:', error)
+        }
+    })
+}
