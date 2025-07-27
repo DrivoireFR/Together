@@ -3,6 +3,9 @@ import { ref, computed } from 'vue'
 import { groupRepository } from '@/data/repositories/groupRepository'
 import type { Group, CreateGroupPayload } from '@/shared/types/api'
 import { useTasksStore } from './tasksStore'
+import { useRouter } from 'vue-router'
+import { StorageUtil } from '@/shared/utils/storage'
+import router from '@/router'
 
 
 export const useGroupStore = defineStore('group', () => {
@@ -218,6 +221,20 @@ export const useGroupStore = defineStore('group', () => {
     error.value = undefined
   }
 
+  const onGroupClick = (id: number) => {
+    StorageUtil.setItem('selectedGroupId', String(id))
+
+    router.push(`/groups/${id}`)
+  }
+
+  const checkGroupAndRedirect = () => {
+
+    const selectedGroupId = StorageUtil.getItem('selectedGroupId')
+    if (selectedGroupId) {
+      router.push(`/groups/${selectedGroupId}`)
+    }
+  }
+
   return {
     // State
     groups,
@@ -239,6 +256,8 @@ export const useGroupStore = defineStore('group', () => {
     joinGroup,
     leaveGroup,
     updateGroup,
+    onGroupClick,
+    checkGroupAndRedirect,
     clearSearchResults,
     clearCurrentGroup,
     clearError

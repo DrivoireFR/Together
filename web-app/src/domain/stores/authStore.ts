@@ -44,6 +44,8 @@ export const useAuthStore = defineStore('auth', () => {
           // Mettre à jour les données utilisateur
           setUserData(verifyResult.data.user)
           StorageUtil.setItem(STORAGE_KEYS.USER, verifyResult.data.user)
+
+          groupStore.checkGroupAndRedirect()
         } else {
           // Token invalide, déconnecter silencieusement
           logout()

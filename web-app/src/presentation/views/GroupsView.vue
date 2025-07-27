@@ -167,7 +167,7 @@ const handleLeaveGroup = async (groupId: number) => {
 }
 
 const handleGroupClick = (group: Group) => {
-  router.push(`/groups/${group.id}`)
+  groupStore.onGroupClick(group.id)
 }
 
 const handleGroupMenu = (group: Group) => {
