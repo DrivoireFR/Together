@@ -22,17 +22,27 @@
       </div>
 
       <div class="form-group">
-        <label for="points" class="form-label">
-          Importance de la tâche
-        </label>
-        <BaseInput
+        <BaseSlider
           id="points"
-          v-model.number="formData.points"
-          type="number"
-          min="0"
-          placeholder="Ex: 10"
+          v-model="formData.points"
+          label="Niveau de difficulté"
+          :min="1"
+          :max="10"
+          start-label="😎 Pas relou"
+          end-label="😵‍💫 Relou"
+          :descriptions="[
+            '😎 Très facile',
+            '🙂 Facile', 
+            '😊 Plutôt facile',
+            '😐 Un peu relou',
+            '😕 Moyen',
+            '😔 Moyen+',
+            '😖 Plutôt relou',
+            '😫 Relou',
+            '😵 Très relou',
+            '😵‍💫 Extrême'
+          ]"
           :error="errors.points"
-          required
         />
       </div>
 
@@ -142,6 +152,7 @@
 import { ref, computed, watch } from 'vue'
 import { type Tag, type CreateTaskPayload, UniteFrequence } from '@/shared/types/api'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
+import BaseSlider from '@/presentation/components/atoms/BaseSlider.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 
 interface Props {
@@ -161,7 +172,7 @@ const formData = ref<CreateTaskPayload>({
   groupId: props.groupId,
   iconUrl: '',
   tagId: undefined,
-  points: 0
+  points: 5 // Valeur par défaut au milieu
 })
 
 const errors = ref<Partial<Record<keyof CreateTaskPayload, string>>>({})
@@ -197,6 +208,10 @@ const validateForm = () => {
   
   if (!formData.value.frequenceEstimee || formData.value.frequenceEstimee < 1) {
     errors.value.frequenceEstimee = 'La fréquence doit être au moins de 1'
+  }
+  
+  if (!formData.value.points || formData.value.points < 1 || formData.value.points > 10) {
+    errors.value.points = 'Le niveau de difficulté doit être entre 1 et 10'
   }
   
   if (!formData.value.uniteFrequence) {
@@ -241,6 +256,12 @@ watch(() => formData.value.label, () => {
 watch(() => formData.value.frequenceEstimee, () => {
   if (errors.value.frequenceEstimee) {
     delete errors.value.frequenceEstimee
+  }
+})
+
+watch(() => formData.value.points, () => {
+  if (errors.value.points) {
+    delete errors.value.points
   }
 })
 

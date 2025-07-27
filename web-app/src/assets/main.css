@@ -1,5 +1,3 @@
-
-
 /* Variables de thème */
 :root {
   /* Couleurs principales */
@@ -7,30 +5,30 @@
   --color-primary-hover: #1d4ed8;
   --color-primary-light: #dbeafe;
   --color-primary-dark: #1e40af;
-  
+
   /* Couleurs secondaires */
   --color-secondary: #4b5563;
   --color-secondary-hover: #374151;
   --color-secondary-light: #f3f4f6;
   --color-secondary-dark: #1f2937;
-  
+
   /* Couleurs d'état */
   --color-success: #10b981;
   --color-success-hover: #059669;
   --color-success-light: #d1fae5;
-  
+
   --color-danger: #ef4444;
   --color-danger-hover: #dc2626;
   --color-danger-light: #fee2e2;
-  
+
   --color-warning: #f59e0b;
   --color-warning-hover: #d97706;
   --color-warning-light: #fef3c7;
-  
+
   /* Couleurs neutres */
   --color-white: #ffffff;
   --color-black: #000000;
-  
+
   --color-gray-50: #f9fafb;
   --color-gray-100: #f3f4f6;
   --color-gray-200: #e5e7eb;
@@ -41,11 +39,28 @@
   --color-gray-700: #374151;
   --color-gray-800: #1f2937;
   --color-gray-900: #111827;
-  
+
+  /* Couleurs supplémentaires pour le slider et indicateurs */
+  --color-green-100: #dcfce7;
+  --color-green-200: #bbf7d0;
+  --color-green-400: #4ade80;
+  --color-green-700: #15803d;
+
+  --color-yellow-100: #fef3c7;
+  --color-yellow-200: #fde68a;
+  --color-yellow-400: #facc15;
+  --color-yellow-700: #a16207;
+
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-700: #b91c1c;
+
   /* Typographie */
   --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-family-mono: 'SFMono-Regular', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-  
+
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -54,16 +69,16 @@
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 1.875rem;
   --font-size-4xl: 2.25rem;
-  
+
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  
+
   --line-height-tight: 1.25;
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.75;
-  
+
   /* Espacement */
   --spacing-1: 0.25rem;
   --spacing-2: 0.5rem;
@@ -77,7 +92,7 @@
   --spacing-16: 4rem;
   --spacing-20: 5rem;
   --spacing-24: 6rem;
-  
+
   /* Bordures */
   --border-radius-sm: 0.125rem;
   --border-radius: 0.25rem;
@@ -86,23 +101,23 @@
   --border-radius-xl: 0.75rem;
   --border-radius-2xl: 1rem;
   --border-radius-full: 9999px;
-  
+
   --border-width: 1px;
   --border-width-2: 2px;
   --border-width-4: 4px;
-  
+
   /* Ombres */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  
+
   /* Transitions */
   --transition-fast: 150ms ease-in-out;
   --transition-normal: 200ms ease-in-out;
   --transition-slow: 300ms ease-in-out;
-  
+
   /* Z-index */
   --z-dropdown: 1000;
   --z-modal: 1050;
@@ -178,39 +193,39 @@ body {
   justify-content: space-between;
 }
 
-.space-x-2 > * + * {
+.space-x-2>*+* {
   margin-left: var(--spacing-2);
 }
 
-.space-x-3 > * + * {
+.space-x-3>*+* {
   margin-left: var(--spacing-3);
 }
 
-.space-x-4 > * + * {
+.space-x-4>*+* {
   margin-left: var(--spacing-4);
 }
 
-.space-x-8 > * + * {
+.space-x-8>*+* {
   margin-left: var(--spacing-8);
 }
 
-.space-y-2 > * + * {
+.space-y-2>*+* {
   margin-top: var(--spacing-2);
 }
 
-.space-y-3 > * + * {
+.space-y-3>*+* {
   margin-top: var(--spacing-3);
 }
 
-.space-y-4 > * + * {
+.space-y-4>*+* {
   margin-top: var(--spacing-4);
 }
 
-.space-y-6 > * + * {
+.space-y-6>*+* {
   margin-top: var(--spacing-6);
 }
 
-.space-y-8 > * + * {
+.space-y-8>*+* {
   margin-top: var(--spacing-8);
 }
 
@@ -252,7 +267,7 @@ body {
   .md\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  
+
   .md\:flex {
     display: flex;
   }
@@ -823,15 +838,15 @@ body {
     margin-left: auto;
     margin-right: auto;
   }
-  
+
   .sm\:w-full {
     width: 100%;
   }
-  
+
   .sm\:max-w-md {
     max-width: 28rem;
   }
-  
+
   .sm\:px-6 {
     padding-left: var(--spacing-6);
     padding-right: var(--spacing-6);

@@ -6,8 +6,15 @@
       </div>
       <div class="task-info">
         <h3 class="task-title">{{ task.label }}</h3>
-        <div class="task-frequency">
-          {{ frequencyText }}
+        <div class="task-meta">
+          <div class="task-frequency">
+            {{ frequencyText }}
+          </div>
+          <div class="difficulty-indicator" :class="difficultyClass">
+            <span class="difficulty-emoji">{{ difficultyEmoji }}</span>
+            <span class="difficulty-text">{{ difficultyText }}</span>
+            <span class="difficulty-points">{{ task.points }}</span>
+          </div>
         </div>
       </div>
       <TagChip 
@@ -53,6 +60,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Task, Tag } from '@/shared/types/api'
+import { difficultyDescriptions } from '@/shared/constants'
 import TagChip from './TagChip.vue'
 import BaseButton from './BaseButton.vue'
 
@@ -89,6 +97,27 @@ const frequencyText = computed(() => {
   }
   
   return `${frequenceEstimee} fois par ${unit}`
+})
+
+const difficultyText = computed(() => {
+  const index = Math.min(Math.max(props.task.points - 1, 0), difficultyDescriptions.length - 1)
+  return difficultyDescriptions[index] || 'Moyen'
+})
+
+const difficultyEmoji = computed(() => {
+  const points = props.task.points
+  if (points <= 2) return '😎'
+  if (points <= 4) return '🙂'
+  if (points <= 6) return '😐'
+  if (points <= 8) return '😖'
+  return '😵‍💫'
+})
+
+const difficultyClass = computed(() => {
+  const points = props.task.points
+  if (points <= 3) return 'difficulty--easy'
+  if (points <= 6) return 'difficulty--medium'
+  return 'difficulty--hard'
 })
 </script>
 
@@ -156,10 +185,63 @@ const frequencyText = computed(() => {
   line-height: 1.25;
 }
 
+.task-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
 .task-frequency {
   font-size: var(--font-size-sm);
   color: var(--color-gray-600);
   line-height: 1.25;
+}
+
+.difficulty-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  width: fit-content;
+  transition: all 0.2s ease;
+}
+
+.difficulty--easy {
+  background: var(--color-green-100);
+  color: var(--color-green-700);
+  border: 1px solid var(--color-green-200);
+}
+
+.difficulty--medium {
+  background: var(--color-yellow-100);
+  color: var(--color-yellow-700);
+  border: 1px solid var(--color-yellow-200);
+}
+
+.difficulty--hard {
+  background: var(--color-red-100);
+  color: var(--color-red-700);
+  border: 1px solid var(--color-red-200);
+}
+
+.difficulty-emoji {
+  font-size: var(--font-size-sm);
+  line-height: 1;
+}
+
+.difficulty-text {
+  font-weight: var(--font-weight-medium);
+}
+
+.difficulty-points {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 0 var(--spacing-1);
+  border-radius: var(--border-radius-sm);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xs);
 }
 
 .task-actions {
@@ -196,6 +278,30 @@ const frequencyText = computed(() => {
   width: 100%;
   justify-content: center;
   display: flex;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .task-meta {
+    gap: var(--spacing-2);
+  }
+  
+  .difficulty-indicator {
+    gap: var(--spacing-1);
+    padding: 2px var(--spacing-1);
+  }
+  
+  .difficulty-text {
+    display: none; /* Cache le texte sur mobile, garde juste emoji + points */
+  }
+  
+  .task-card--compact .difficulty-indicator {
+    padding: 1px var(--spacing-1);
+  }
+  
+  .task-card--compact .difficulty-points {
+    padding: 0 2px;
+  }
 }
 
 .main-action .btn {

@@ -23,3 +23,16 @@ export const HTTP_STATUS = {
   NOT_FOUND: 404,
   INTERNAL_SERVER_ERROR: 500
 } as const
+
+export const difficultyDescriptions = [
+  'Très facile',
+  'Facile',
+  'Plutôt facile',
+  'Moyen-',
+  'Moyen',
+  'Moyen+',
+  'Plutôt difficile',
+  'Difficile',
+  'Très difficile',
+  'Extrême'
+]
