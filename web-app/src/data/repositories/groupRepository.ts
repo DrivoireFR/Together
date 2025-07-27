@@ -5,7 +5,9 @@ import type {
   CreateGroupPayload,
   GroupSearchResponse,
   UserGroupResponse,
-  CreateGroupResponse
+  CreateGroupResponse,
+  FetchGroupResponse,
+  JoinGroupPayload
 } from '@/shared/types/api'
 
 export class GroupRepository {
@@ -13,8 +15,8 @@ export class GroupRepository {
     return apiClient.get<Group[]>('/groups')
   }
 
-  async getGroupById(id: number): Promise<ApiResult<Group>> {
-    return apiClient.get<Group>(`/groups/${id}`)
+  async getGroupById(id: number): Promise<ApiResult<FetchGroupResponse>> {
+    return apiClient.get<FetchGroupResponse>(`/groups/${id}`)
   }
 
   async createGroup(payload: CreateGroupPayload): Promise<ApiResult<CreateGroupResponse>> {
@@ -33,8 +35,8 @@ export class GroupRepository {
     return apiClient.get<Group[]>(`/groups/search/email?email=${encodeURIComponent(email)}`)
   }
 
-  async joinGroup(groupId: number): Promise<ApiResult<void>> {
-    return apiClient.post<void>(`/groups/${groupId}/join`)
+  async joinGroup(payload: JoinGroupPayload): Promise<ApiResult<void>> {
+    return apiClient.post<void>(`/groups/${payload.groupId}/join`, { code: payload.code })
   }
 
   async leaveGroup(groupId: number): Promise<ApiResult<void>> {

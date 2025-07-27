@@ -33,7 +33,7 @@ export const useGroupStore = defineStore('group', () => {
       const result = await groupRepository.getGroupById(id)
 
       if (result.isSuccess) {
-        currentGroup.value = result.data
+        currentGroup.value = result.data.group
         tasksStore.fetchTasksByGroupId(id)
         tasksStore.fetchRecentActionsByGroupId(id)
         return result.data
@@ -123,12 +123,12 @@ export const useGroupStore = defineStore('group', () => {
   }
 
 
-  const joinGroup = async (groupId: number) => {
+  const joinGroup = async (groupId: number, code: string) => {
     isLoading.value = true
     error.value = undefined
 
     try {
-      const result = await groupRepository.joinGroup(groupId)
+      const result = await groupRepository.joinGroup({ groupId, code })
 
       if (result.isSuccess) {
         // Recharger la liste des groupes pour refléter les changements

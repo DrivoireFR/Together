@@ -227,6 +227,15 @@ export class GroupController {
       const { id } = req.params;
       const userId = req.user!.id;
 
+      const { code } = req.body;
+
+      // Vérifier que le code est fourni
+      if (!code) {
+        return res.status(400).json({
+          message: 'Code du groupe requis'
+        });
+      }
+
       const groupRepository = AppDataSource.getRepository(Group);
       const userRepository = AppDataSource.getRepository(User);
 
@@ -238,6 +247,13 @@ export class GroupController {
       if (!group) {
         return res.status(404).json({
           message: 'Groupe non trouvé'
+        });
+      }
+
+      // Vérifier que le code correspond au code du groupe
+      if (group.code !== code) {
+        return res.status(403).json({
+          message: 'Code invalide pour ce groupe'
         });
       }
 
@@ -255,7 +271,7 @@ export class GroupController {
       const isAlreadyMember = group.users.some(u => u.id === userId);
       if (isAlreadyMember) {
         return res.status(400).json({
-          message: 'Utilisateur déjà membre du groupe'
+          message: 'Vous êtes déjà membre de ce groupe'
         });
       }
 
@@ -264,7 +280,7 @@ export class GroupController {
       await groupRepository.save(group);
 
       res.json({
-        message: 'Utilisateur ajouté au groupe avec succès',
+        message: 'Vous avez rejoint le groupe avec succès',
         group
       });
     } catch (error) {

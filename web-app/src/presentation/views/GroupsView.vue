@@ -90,6 +90,53 @@
         </div>
       </div>
     </div>
+
+    <!-- Join Group Modal -->
+    <div v-if="showJoinForm" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h2 class="modal-title">Rejoindre un groupe</h2>
+          <p class="modal-description">
+            Entrez le code de partage du groupe "{{ groupToJoin?.nom }}"
+          </p>
+          
+          <form @submit.prevent="handleJoinGroupWithCode" class="join-form">
+            <div class="form-group">
+              <label for="groupCode" class="form-label">Code du groupe</label>
+              <BaseInput
+                id="groupCode"
+                v-model="joinCode"
+                placeholder="Ex: A1B2C3D4"
+                :error="joinError"
+                maxlength="8"
+                class="join-code-input"
+                required
+              />
+              <span v-if="joinError" class="form-error">{{ joinError }}</span>
+            </div>
+            
+            <div class="modal-actions">
+              <BaseButton
+                type="button"
+                variant="ghost"
+                @click="cancelJoinGroup"
+                :disabled="joiningGroupId !== null"
+              >
+                Annuler
+              </BaseButton>
+              <BaseButton
+                type="submit"
+                variant="primary"
+                :loading="joiningGroupId !== null"
+                :disabled="!joinCode.trim()"
+              >
+                Rejoindre le groupe
+              </BaseButton>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </AppLayout>
 </template>
 
@@ -115,9 +162,13 @@ const groupStore = useGroupStore()
 
 // Local state
 const showCreateForm = ref(false)
+const showJoinForm = ref(false)
 const searchQuery = ref('')
 const joiningGroupId = ref<number | null>(null)
 const leavingGroupId = ref<number | null>(null)
+const groupToJoin = ref<Group | null>(null)
+const joinCode = ref('')
+const joinError = ref('')
 
 // Computed
 const searchResults = computed(() => groupStore.searchResults)
@@ -140,18 +191,44 @@ const handleCreateGroup = async (payload: CreateGroupPayload) => {
 }
 
 const handleJoinGroup = async (groupId: number) => {
-  joiningGroupId.value = groupId
+  // Trouver le groupe dans les résultats de recherche
+  const group = searchResults.value.find(g => g.id === groupId)
+  if (!group) return
+  
+  groupToJoin.value = group
+  joinCode.value = ''
+  joinError.value = ''
+  showJoinForm.value = true
+}
+
+const handleJoinGroupWithCode = async () => {
+  if (!groupToJoin.value || !joinCode.value.trim()) return
+  
+  joinError.value = ''
+  joiningGroupId.value = groupToJoin.value.id
   
   try {
-    const result = await groupStore.joinGroup(groupId)
+    const result = await groupStore.joinGroup(groupToJoin.value.id, joinCode.value.trim())
     if (result.success) {
       // Remove from search results since user joined
       groupStore.clearSearchResults()
       searchQuery.value = ''
+      showJoinForm.value = false
+      groupToJoin.value = null
+      joinCode.value = ''
+    } else {
+      joinError.value = result.error || 'Erreur lors de la jointure'
     }
   } finally {
     joiningGroupId.value = null
   }
+}
+
+const cancelJoinGroup = () => {
+  showJoinForm.value = false
+  groupToJoin.value = null
+  joinCode.value = ''
+  joinError.value = ''
 }
 
 const handleLeaveGroup = async (groupId: number) => {
@@ -327,6 +404,49 @@ onMounted(() => {
   font-weight: var(--font-weight-medium);
   color: var(--color-gray-900);
   margin: 0 0 var(--spacing-4) 0;
+}
+
+.modal-description {
+  color: var(--color-gray-600);
+  margin: 0 0 var(--spacing-4) 0;
+  line-height: 1.5;
+}
+
+.join-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.form-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+}
+
+.join-code-input {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-family: 'Courier New', monospace;
+  font-weight: var(--font-weight-bold);
+}
+
+.form-error {
+  font-size: var(--font-size-sm);
+  color: var(--color-red-500);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-2);
 }
 
 /* Responsive grid */

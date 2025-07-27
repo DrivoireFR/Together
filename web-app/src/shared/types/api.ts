@@ -10,6 +10,7 @@ export interface User {
 export interface Group {
   id: number
   nom: string
+  code: string
   users: User[]
   tasks: Task[]
   actions: Action[]
@@ -116,6 +117,11 @@ export interface RegisterPayload {
   icone?: string
 }
 
+export interface FetchGroupResponse {
+  message: string
+  group: Group
+}
+
 export interface CreateGroupPayload {
   nom: string
 }
@@ -127,6 +133,7 @@ export interface CreateGroupResponse {
 
 export interface JoinGroupPayload {
   groupId: number
+  code: string
 }
 
 export interface CreateTagPayload {

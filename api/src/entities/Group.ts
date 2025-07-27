@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable, OneToMany, BeforeInsert } from 'typeorm';
 import { IsNotEmpty } from 'class-validator';
 import { User } from './User';
 import { Task } from './Task';
@@ -14,6 +14,9 @@ export class Group {
   @Column({ unique: true })
   @IsNotEmpty()
   nom: string;
+
+  @Column({ unique: true, length: 8 })
+  code: string;
 
   @ManyToMany(() => User, user => user.groups)
   @JoinTable()
@@ -36,4 +39,15 @@ export class Group {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @BeforeInsert()
+  generateCode() {
+    // Générer un code aléatoire de 8 caractères (lettres et chiffres)
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    this.code = result;
+  }
 }
