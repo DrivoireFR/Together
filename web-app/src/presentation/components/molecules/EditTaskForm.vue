@@ -140,7 +140,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { type Tag, type Task, type CreateTaskPayload, UniteFrequence } from '@/shared/types/api'
+import { type Tag, type Task, UniteFrequence, type UpdateTaskPayload } from '@/shared/types/api'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 
@@ -154,16 +154,16 @@ const props = withDefaults(defineProps<Props>(), {
   isLoading: false
 })
 
-const formData = ref<Partial<CreateTaskPayload>>({
+const formData = ref<UpdateTaskPayload>({
   label: '',
   frequenceEstimee: 1,
   uniteFrequence: UniteFrequence.SEMAINE,
   iconUrl: '',
   tagId: undefined,
-  points: 0
+  points: props.task.points
 })
 
-const errors = ref<Partial<Record<keyof CreateTaskPayload, string>>>({})
+const errors = ref<Partial<Record<keyof UpdateTaskPayload, string>>>({})
 
 // Initialiser le formulaire avec les données de la tâche
 onMounted(() => {
@@ -246,27 +246,8 @@ const handleSubmit = () => {
   emit('submit', payload)
 }
 
-// Validation en temps réel
-watch(() => formData.value.label, () => {
-  if (errors.value.label) {
-    delete errors.value.label
-  }
-})
-
-watch(() => formData.value.frequenceEstimee, () => {
-  if (errors.value.frequenceEstimee) {
-    delete errors.value.frequenceEstimee
-  }
-})
-
-watch(() => formData.value.iconUrl, () => {
-  if (errors.value.iconUrl) {
-    delete errors.value.iconUrl
-  }
-})
-
 const emit = defineEmits<{
-  submit: [payload: Partial<CreateTaskPayload>]
+  submit: [payload: Partial<UpdateTaskPayload>]
   cancel: []
 }>()
 </script>

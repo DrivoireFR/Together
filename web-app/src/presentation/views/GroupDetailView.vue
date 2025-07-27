@@ -207,7 +207,7 @@ const handleCreateTag = async (payload: CreateTagPayload) => {
   }
 }
 
-const handleEditTask = async (payload: Partial<CreateTaskPayload>) => {
+const handleEditTask = async (payload: CreateTaskPayload) => {
   if (!taskToEdit.value) return
   
   const result = await tasksStore.updateTask(taskToEdit.value.id, payload)
@@ -240,10 +240,8 @@ const handleTaskClick = async (task: Task) => {
   const result = await tasksStore.createActionForTask(task.id)
   
   if (result.success) {
-    console.log('Action créée avec succès:', result.action)
-    // Recharger l'historique des actions
     await tasksStore.fetchRecentActionsByGroupId(groupId.value)
-    // Optionnel: notification de succès
+    // TODO Optionnel: notification de succès
   } else {
     console.error('Erreur lors de la création de l\'action:', result.error)
     // Optionnel: notification d'erreur

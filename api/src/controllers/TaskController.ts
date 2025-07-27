@@ -180,7 +180,7 @@ export class TaskController {
   async update(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
-      const { label, iconUrl, frequenceEstimee, uniteFrequence, tagId } = req.body;
+      const { label, iconUrl, frequenceEstimee, uniteFrequence, tagId, points } = req.body;
 
       const taskRepository = AppDataSource.getRepository(Task);
       const tagRepository = AppDataSource.getRepository(Tag);
@@ -225,6 +225,7 @@ export class TaskController {
       if (frequenceEstimee) task.frequenceEstimee = frequenceEstimee;
       if (uniteFrequence) task.uniteFrequence = uniteFrequence;
       if (tagId !== undefined) task.tag = tag;
+      if (points !== undefined) task.points = points;
 
       // Valider les données
       const errors = await validate(task);

@@ -49,7 +49,21 @@ export interface CreateTaskPayload {
   points: number
 }
 
+export interface UpdateTaskPayload {
+  label: string
+  iconUrl?: string
+  frequenceEstimee: number
+  uniteFrequence: UniteFrequence
+  tagId?: number
+  points: number
+}
+
 export interface CreateTaskResponse {
+  message: string
+  task: Task
+}
+
+export interface UpdateTaskResponse {
   message: string
   task: Task
 }

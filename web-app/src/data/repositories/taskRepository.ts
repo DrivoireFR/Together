@@ -12,7 +12,9 @@ import type {
   CreateTaskResponse,
   CreateActionResponse,
   GetRecentActionsResponse,
-  GetStatisticsResponse
+  GetStatisticsResponse,
+  UpdateTaskResponse,
+  UpdateTaskPayload
 } from '@/shared/types/api'
 
 export class TaskRepository {
@@ -33,8 +35,8 @@ export class TaskRepository {
     return apiClient.post<CreateTaskResponse>('/tasks', payload)
   }
 
-  async updateTask(id: number, payload: Partial<CreateTaskPayload>): Promise<ApiResult<{ task: Task }>> {
-    return apiClient.put<{ task: Task }>(`/tasks/${id}`, payload)
+  async updateTask(id: number, payload: UpdateTaskPayload): Promise<ApiResult<UpdateTaskResponse>> {
+    return apiClient.put<UpdateTaskResponse>(`/tasks/${id}`, payload)
   }
 
   async deleteTask(id: number): Promise<ApiResult<void>> {

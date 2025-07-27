@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { taskRepository } from '@/data/repositories/taskRepository'
 import { statsRepository } from '@/data/repositories/statsRepository'
-import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload, GroupStatistics } from '@/shared/types/api'
+import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload, GroupStatistics, UpdateTaskPayload } from '@/shared/types/api'
 
 export const useTasksStore = defineStore('tasks', () => {
   // State
@@ -221,7 +221,7 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const updateTask = async (id: number, payload: Partial<CreateTaskPayload>) => {
+  const updateTask = async (id: number, payload: UpdateTaskPayload) => {
     isLoading.value = true
     error.value = undefined
 
