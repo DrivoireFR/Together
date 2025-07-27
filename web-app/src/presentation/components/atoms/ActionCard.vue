@@ -11,7 +11,7 @@
          />
       </div>
       <div class="action-meta">
-        <span class="user-name">{{ action.user.nom }}</span>
+        <span class="user-name">{{ userDisplayName }}</span>
         <span class="action-time">{{ formatTime(action.createdAt) }}</span>
       </div>
     </div>
@@ -19,19 +19,44 @@
       <span v-if="action.task.iconUrl">{{ action.task.iconUrl }}</span>
       <span v-else class="default-icon">✅</span>
     </div>
+    <div v-if="isCurrentUser" class="action-actions">
+      <BaseButton
+        variant="ghost"
+        size="sm"
+        @click="onDelete"
+        class="delete-button"
+        title="Supprimer cette action"
+      >
+        🗑️
+      </BaseButton>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Action } from '@/shared/types/api'
+import { useAuthStore } from '@/domain/stores/authStore'
+import { useTasksStore } from '@/domain/stores/tasksStore'
 import TagChip from './TagChip.vue'
+import BaseButton from './BaseButton.vue'
 
 interface Props {
   action: Action
 }
 
 const props = defineProps<Props>()
+
+const authStore = useAuthStore()
+const taskStore = useTasksStore()
+
+const isCurrentUser = computed(() => {
+  return authStore.user?.id === props.action.user.id
+})
+
+const userDisplayName = computed(() => {
+  return isCurrentUser.value ? 'Vous' : props.action.user.nom
+})
 
 const formatTime = (dateString: string): string => {
   const date = new Date(dateString)
@@ -50,6 +75,10 @@ const formatTime = (dateString: string): string => {
     return `${days}j`
   }
 }
+
+function onDelete() {
+  taskStore.deleteAction(props.action.id)
+}
 </script>
 
 <style scoped>
@@ -62,6 +91,7 @@ const formatTime = (dateString: string): string => {
   border: 1px solid var(--color-gray-200);
   border-radius: var(--border-radius-md);
   transition: all 0.15s ease;
+  position: relative;
 }
 
 .action-card:hover {
@@ -121,5 +151,31 @@ const formatTime = (dateString: string): string => {
 
 .default-icon {
   color: var(--color-green-500);
+}
+
+.action-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin-left: var(--spacing-2);
+}
+
+.delete-button {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  padding: var(--spacing-1);
+  width: auto;
+  height: auto;
+  min-width: auto;
+}
+
+.action-card:hover .delete-button {
+  opacity: 1;
+}
+
+.delete-button:hover {
+  background: var(--color-red-50);
+  color: var(--color-red-600);
+  transform: scale(1.1);
 }
 </style> 

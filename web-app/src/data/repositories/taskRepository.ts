@@ -71,6 +71,10 @@ export class TaskRepository {
     return apiClient.post<CreateActionResponse>('/actions', payload)
   }
 
+  async deleteAction(id: number): Promise<ApiResult<void>> {
+    return apiClient.delete<void>(`/actions/${id}`)
+  }
+
   async getRecentActionsByGroupId(groupId: number): Promise<ApiResult<GetRecentActionsResponse>> {
     return apiClient.get<GetRecentActionsResponse>(`/actions/group/${groupId}/recent`)
   }

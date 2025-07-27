@@ -307,6 +307,29 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
+  const deleteAction = async (actionId: number) => {
+    isLoading.value = true
+    error.value = undefined
+
+    try {
+      const result = await taskRepository.deleteAction(actionId)
+
+      if (result.isSuccess) {
+        actions.value = actions.value.filter((action) => action.id !== actionId)
+        return { success: true, action: result.data }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors de la suppression de l\'action'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   const fetchRecentActionsByGroupId = async (groupId: number) => {
     isLoading.value = true
     error.value = undefined
@@ -454,6 +477,7 @@ export const useTasksStore = defineStore('tasks', () => {
     updateTask,
     deleteTask,
     createActionForTask,
+    deleteAction,
     setTagFilter,
     clearTagFilter,
     clearCurrentTask,
