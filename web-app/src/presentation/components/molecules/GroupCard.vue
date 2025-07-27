@@ -2,6 +2,7 @@
   <BaseCard
     :clickable="clickable"
     :hover="true"
+    class="group-card"
     @click="handleClick"
   >
     <div class="group-card-header">
@@ -53,14 +54,14 @@
         </BaseButton>
         
         <!-- Menu button -->
-        <BaseButton
+        <!-- <BaseButton
           v-if="showMenu"
           size="sm"
           variant="ghost"
           @click.stop="$emit('menu', group)"
         >
           <EllipsisVerticalIcon class="menu-icon" />
-        </BaseButton>
+        </BaseButton> -->
       </div>
     </div>
     
@@ -133,6 +134,10 @@ const handleClick = () => {
 </script>
 
 <style scoped>
+.group-card {
+  cursor: pointer;
+}
+
 .group-card-header {
   display: flex;
   align-items: flex-start;
