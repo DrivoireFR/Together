@@ -15,13 +15,10 @@
         <span class="action-time">{{ formatTime(action.createdAt) }}</span>
       </div>
     </div>
-    <div class="action-icon">
-      <span v-if="action.task.iconUrl">{{ action.task.iconUrl }}</span>
-      <span v-else class="default-icon">✅</span>
-    </div>
+
     <div v-if="isCurrentUser" class="action-actions">
       <BaseButton
-        variant="ghost"
+        variant="danger"
         size="sm"
         @click="onDelete"
         class="delete-button"
@@ -161,16 +158,11 @@ function onDelete() {
 }
 
 .delete-button {
-  opacity: 0;
   transition: opacity 0.2s ease;
   padding: var(--spacing-1);
   width: auto;
   height: auto;
   min-width: auto;
-}
-
-.action-card:hover .delete-button {
-  opacity: 1;
 }
 
 .delete-button:hover {
