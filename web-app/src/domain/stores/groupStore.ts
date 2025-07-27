@@ -82,7 +82,8 @@ export const useGroupStore = defineStore('group', () => {
       const result = await groupRepository.searchGroupsByName(nom)
 
       if (result.isSuccess) {
-        searchResults.value = result.data.groups
+        const groupsYouDontJoined = result.data.groups.filter(group => !groups.value.some(g => g.id === group.id))
+        searchResults.value = groupsYouDontJoined
       } else {
         error.value = result.message
         searchResults.value = []
