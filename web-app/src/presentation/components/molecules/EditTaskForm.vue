@@ -22,17 +22,27 @@
       </div>
 
       <div class="form-group">
-        <label for="points" class="form-label">
-          Importance de la tâche
-        </label>
-        <BaseInput
+        <BaseSlider
           id="points"
-          v-model.number="formData.points"
-          type="number"
-          min="0"
-          placeholder="Ex: 10"
+          v-model="formData.points"
+          label="Niveau de difficulté"
+          :min="1"
+          :max="10"
+          start-label="😎 Pas relou"
+          end-label="😵‍💫 Relou"
+          :descriptions="[
+            '😎 Très facile',
+            '🙂 Facile', 
+            '😊 Plutôt facile',
+            '😐 Un peu relou',
+            '😕 Moyen',
+            '😔 Moyen+',
+            '😖 Plutôt relou',
+            '😫 Relou',
+            '😵 Très relou',
+            '😵‍💫 Extrême'
+          ]"
           :error="errors.points"
-          required
         />
       </div>
 
@@ -143,6 +153,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { type Tag, type Task, UniteFrequence, type UpdateTaskPayload } from '@/shared/types/api'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
+import BaseSlider from '../atoms/BaseSlider.vue'
 
 interface Props {
   task: Task
