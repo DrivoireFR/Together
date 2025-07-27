@@ -21,7 +21,6 @@
           :tasks="tasksStore.filteredTasks"
           :selected-tag="tasksStore.selectedTagFilter"
           :show-actions="true"
-          @tag-click="handleTagClick"
           @task-edit="handleTaskEdit"
           @task-delete="handleTaskDelete"
           @task-click="handleTaskClick"
@@ -179,10 +178,6 @@ const closeEditTaskModal = () => {
 
 // Gestion des tags et filtres
 const handleTagFilterChange = (tag: Tag | null) => {
-  tasksStore.setTagFilter(tag)
-}
-
-const handleTagClick = (tag: Tag) => {
   tasksStore.setTagFilter(tag)
 }
 

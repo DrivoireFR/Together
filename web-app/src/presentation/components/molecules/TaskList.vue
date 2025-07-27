@@ -17,7 +17,6 @@
         :task="task"
         :show-actions="showActions"
         :variant="cardVariant"
-        @tag-click="$emit('tag-click', $event)"
         @edit="$emit('task-edit', task)"
         @delete="$emit('task-delete', task)"
         @click="$emit('task-click', task)"
@@ -53,7 +52,6 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 defineEmits<{
-  'tag-click': [tag: Tag]
   'task-edit': [task: Task]
   'task-delete': [task: Task]
   'task-click': [task: Task]

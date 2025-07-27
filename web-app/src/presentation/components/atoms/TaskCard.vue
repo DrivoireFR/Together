@@ -22,7 +22,6 @@
         :tag="task.tag" 
         variant="ghost" 
         size="sm"
-        @click.stop="$emit('tag-click', task.tag)"
       />
     </div>
     
@@ -76,7 +75,6 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 defineEmits<{
-  'tag-click': [tag: Tag]
   edit: []
   delete: []
   click: []
