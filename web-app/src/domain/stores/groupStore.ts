@@ -54,7 +54,7 @@ export const useGroupStore = defineStore('group', () => {
       const result = await groupRepository.createGroup(payload)
 
       if (result.isSuccess) {
-        groups.value.push(result.data)
+        groups.value.push(result.data.group)
         return { success: true, group: result.data }
       } else {
         error.value = result.message

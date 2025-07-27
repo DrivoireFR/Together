@@ -120,6 +120,11 @@ export interface CreateGroupPayload {
   nom: string
 }
 
+export interface CreateGroupResponse {
+  message: string
+  group: Group
+}
+
 export interface JoinGroupPayload {
   groupId: number
 }

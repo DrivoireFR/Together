@@ -4,7 +4,8 @@ import type {
   Group,
   CreateGroupPayload,
   GroupSearchResponse,
-  UserGroupResponse
+  UserGroupResponse,
+  CreateGroupResponse
 } from '@/shared/types/api'
 
 export class GroupRepository {
@@ -16,8 +17,8 @@ export class GroupRepository {
     return apiClient.get<Group>(`/groups/${id}`)
   }
 
-  async createGroup(payload: CreateGroupPayload): Promise<ApiResult<Group>> {
-    return apiClient.post<Group>('/groups', payload)
+  async createGroup(payload: CreateGroupPayload): Promise<ApiResult<CreateGroupResponse>> {
+    return apiClient.post<CreateGroupResponse>('/groups', payload)
   }
 
   async searchGroupsByName(nom: string): Promise<ApiResult<GroupSearchResponse>> {

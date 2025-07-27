@@ -44,6 +44,15 @@ export class GroupController {
 
       await groupRepository.save(group);
 
+      if (req.user && req.user.id) {
+        const userRepository = AppDataSource.getRepository(User);
+        const user = await userRepository.findOne({ where: { id: req.user.id } });
+        if (user) {
+          group.users = [user];
+          await groupRepository.save(group);
+        }
+      }
+
       res.status(201).json({
         message: 'Groupe créé avec succès',
         group
