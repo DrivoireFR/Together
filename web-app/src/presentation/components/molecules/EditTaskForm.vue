@@ -247,7 +247,7 @@ const handleSubmit = () => {
 }
 
 const emit = defineEmits<{
-  submit: [payload: Partial<UpdateTaskPayload>]
+  submit: [payload: UpdateTaskPayload]
   cancel: []
 }>()
 </script>

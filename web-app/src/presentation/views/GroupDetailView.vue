@@ -123,7 +123,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGroupStore } from '@/domain/stores/groupStore'
 import { useTasksStore } from '@/domain/stores/tasksStore'
-import type { Tag, Task, CreateTaskPayload, CreateTagPayload } from '@/shared/types/api'
+import type { Tag, Task, CreateTaskPayload, CreateTagPayload, UpdateTaskPayload } from '@/shared/types/api'
 import AppLayout from '@/presentation/layouts/AppLayout.vue'
 import TagFilter from '@/presentation/components/molecules/TagFilter.vue'
 import TaskList from '@/presentation/components/molecules/TaskList.vue'
@@ -207,7 +207,7 @@ const handleCreateTag = async (payload: CreateTagPayload) => {
   }
 }
 
-const handleEditTask = async (payload: CreateTaskPayload) => {
+const handleEditTask = async (payload: UpdateTaskPayload) => {
   if (!taskToEdit.value) return
   
   const result = await tasksStore.updateTask(taskToEdit.value.id, payload)
