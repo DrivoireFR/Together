@@ -97,7 +97,6 @@ const inputId = computed(() => `input-${Math.random().toString(36).substr(2, 9)}
 const inputClasses = computed(() => {
   return [
     'input-field',
-    `input-field--${props.size}`,
     {
       'input-field--error': props.error,
       'input-field--with-icon-before': props.iconBefore,
@@ -163,6 +162,8 @@ const handleInput = (event: Event) => {
   transition-property: border-color, box-shadow;
   background-color: var(--color-white);
   color: var(--color-gray-900);
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: 1.3rem;
 }
 
 .input-field:focus {
@@ -179,22 +180,6 @@ const handleInput = (event: Event) => {
 
 .input-field::placeholder {
   color: var(--color-gray-400);
-}
-
-/* Sizes */
-.input-field--sm {
-  padding: var(--spacing-1) var(--spacing-3);
-  font-size: var(--font-size-sm);
-}
-
-.input-field--md {
-  padding: var(--spacing-2) var(--spacing-3);
-  font-size: var(--font-size-sm);
-}
-
-.input-field--lg {
-  padding: var(--spacing-3) var(--spacing-4);
-  font-size: var(--font-size-base);
 }
 
 /* Icon spacing adjustments */
