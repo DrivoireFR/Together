@@ -61,6 +61,14 @@ export const useTasksStore = defineStore('tasks', () => {
   })
 
   // Actions
+  const setTasks = (items: Task[]) => {
+    tasks.value = items
+  }
+
+  const setTags = (items: Tag[]) => {
+    tags.value = items
+  }
+
   const fetchTasksByGroupId = async (groupId: number) => {
     isLoading.value = true
     error.value = undefined
@@ -71,7 +79,6 @@ export const useTasksStore = defineStore('tasks', () => {
       if (result.isSuccess) {
         tasks.value = result.data.tasks
         await fetchTags()
-        // setTagsFromTasks()
       } else {
         error.value = result.message
       }
@@ -80,18 +87,6 @@ export const useTasksStore = defineStore('tasks', () => {
     } finally {
       isLoading.value = false
     }
-  }
-
-  const setTagsFromTasks = () => {
-    const uniqueTagsMap = new Map<number, Tag>()
-
-    tasks.value.forEach(task => {
-      if (task.tag && !uniqueTagsMap.has(task.tag.id)) {
-        uniqueTagsMap.set(task.tag.id, task.tag)
-      }
-    })
-
-    tags.value = Array.from(uniqueTagsMap.values())
   }
 
   const fetchTagsByGroupId = async (groupId: number) => {
@@ -468,6 +463,8 @@ export const useTasksStore = defineStore('tasks', () => {
     hasUnacknowledgedTasks,
     isLastUnacknowledgedTask,
     // Actions
+    setTasks,
+    setTags,
     fetchTasksByGroupId,
     fetchTagsByGroupId,
     fetchGroupData,

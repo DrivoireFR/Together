@@ -34,7 +34,8 @@ export const useGroupStore = defineStore('group', () => {
 
       if (result.isSuccess) {
         currentGroup.value = result.data.group
-        tasksStore.fetchTasksByGroupId(id)
+        tasksStore.setTasks(result.data.group.tasks)
+        tasksStore.setTags(result.data.group.tags)
         tasksStore.fetchRecentActionsByGroupId(id)
         return result.data
       } else {
