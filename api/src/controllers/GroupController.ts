@@ -111,8 +111,18 @@ export class GroupController {
       // Récupérer les groupes de l'utilisateur
       const groups = await groupRepository
         .createQueryBuilder('group')
-        .leftJoinAndSelect('group.users', 'users')
         .leftJoinAndSelect('group.tasks', 'tasks')
+        .leftJoin('group.users', 'users')
+        .addSelect([
+          'users.id',
+          'users.nom',
+          'users.prenom',
+          'users.pseudo',
+          'users.email',
+          'users.icone',
+          'users.createdAt',
+          'users.updatedAt'
+        ])
         .leftJoinAndSelect('group.actions', 'actions')
         .leftJoinAndSelect('group.tags', 'tags')
         .where('users.id = :userId', { userId: parseInt(userId) })
