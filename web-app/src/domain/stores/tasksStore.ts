@@ -63,6 +63,7 @@ export const useTasksStore = defineStore('tasks', () => {
   // Actions
   const setTasks = (items: Task[]) => {
     tasks.value = items
+    _handleNewTasks()
   }
 
   const setTags = (items: Tag[]) => {
@@ -108,43 +109,16 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const fetchGroupData = async (groupId: number) => {
-    isLoading.value = true
-    error.value = undefined
+  const _handleNewTasks = () => {
+    // Identifier les tâches non reconnues par l'utilisateur
+    const newUnacknowledgedTasks = tasks.value.filter(task =>
+      !task.userTaskState || !task.userTaskState.isAcknowledged
+    )
 
-    try {
-      // Récupérer les tâches et tags en parallèle
-      const [tasksResult, tagsResult] = await Promise.all([
-        taskRepository.getTasksByGroupId(groupId),
-        taskRepository.getTagsByGroupId(groupId)
-      ])
-
-      if (tasksResult.isSuccess) {
-        tasks.value = tasksResult.data.tasks
-
-        // Identifier les tâches non reconnues par l'utilisateur
-        const newUnacknowledgedTasks = tasks.value.filter(task =>
-          !task.userTaskState || !task.userTaskState.isAcknowledged
-        )
-
-        if (newUnacknowledgedTasks.length > 0) {
-          unacknowledgedTasks.value = newUnacknowledgedTasks
-          currentUnacknowledgedTaskIndex.value = 0
-          showTaskAcknowledgmentModal.value = true
-        }
-      } else {
-        error.value = tasksResult.message
-      }
-
-      if (tagsResult.isSuccess) {
-        tags.value = tagsResult.data.tags
-      } else {
-        error.value = tagsResult.message
-      }
-    } catch (err) {
-      error.value = 'Erreur lors du chargement des données du groupe'
-    } finally {
-      isLoading.value = false
+    if (newUnacknowledgedTasks.length > 0) {
+      unacknowledgedTasks.value = newUnacknowledgedTasks
+      currentUnacknowledgedTaskIndex.value = 0
+      showTaskAcknowledgmentModal.value = true
     }
   }
 
@@ -467,7 +441,6 @@ export const useTasksStore = defineStore('tasks', () => {
     setTags,
     fetchTasksByGroupId,
     fetchTagsByGroupId,
-    fetchGroupData,
     fetchRecentActionsByGroupId,
     createTask,
     createTag,

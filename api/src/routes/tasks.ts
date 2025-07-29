@@ -11,9 +11,6 @@ router.post('/', authMiddleware, taskController.create);
 // GET /api/tasks - Récupérer toutes les tâches
 router.get('/', authMiddleware, taskController.getAll);
 
-// GET /api/tasks/group/:groupId - Récupérer les tâches d'un groupe
-router.get('/group/:groupId', authMiddleware, taskController.getByGroupId);
-
 // GET /api/tasks/:id - Récupérer une tâche par ID
 router.get('/:id', authMiddleware, taskController.getById);
 

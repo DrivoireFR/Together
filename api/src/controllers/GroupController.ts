@@ -133,16 +133,50 @@ export class GroupController {
   async getById(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
+      const userId = req.user!.id;
       const groupRepository = AppDataSource.getRepository(Group);
 
       const group = await groupRepository.findOne({
         where: { id: parseInt(id) },
-        relations: ['users', 'tasks', 'actions', 'tags']
+        relations: ['users', 'tasks', 'tasks.tag', 'tasks.userStates', 'tasks.userStates.user', 'actions', 'tags'],
+        select: {
+          users: {
+            id: true,
+            nom: true,
+            prenom: true,
+            pseudo: true,
+            email: true,
+            icone: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        }
       });
 
       if (!group) {
         return res.status(404).json({
           message: 'Groupe non trouvé'
+        });
+      }
+
+      // Enrichir les tâches avec l'état de l'utilisateur actuel
+      if (group.tasks) {
+        group.tasks = group.tasks.map((task: any) => {
+          const userTaskState = task.userStates?.find((state: any) => state.user.id === userId);
+          return {
+            ...task,
+            userTaskState: userTaskState ? {
+              id: userTaskState.id,
+              isAcknowledged: userTaskState.isAcknowledged,
+              isConcerned: userTaskState.isConcerned,
+              acknowledgedAt: userTaskState.acknowledgedAt,
+              concernedAt: userTaskState.concernedAt,
+              createdAt: userTaskState.createdAt,
+              updatedAt: userTaskState.updatedAt
+            } : null,
+            // Supprimer la relation userStates du JSON de réponse pour éviter la surcharge
+            userStates: undefined
+          };
         });
       }
 

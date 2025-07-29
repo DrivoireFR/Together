@@ -329,9 +329,7 @@ onMounted(async () => {
   if (id && !isNaN(id)) {
     // Charger les données du groupe, tâches/tags et historique en parallèle
     await Promise.all([
-      groupStore.fetchGroupById(id),
-      tasksStore.fetchGroupData(id),
-      tasksStore.fetchRecentActionsByGroupId(id)
+      groupStore.fetchGroupById(id)
     ])
   }
 })
