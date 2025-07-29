@@ -4,7 +4,7 @@
         <div class="heart-icon">
           <Heart class="heart-svg" />
         </div>
-        <h1 class="intro-title">Envie de donnez votre avis ?</h1>
+        <h1 class="intro-title">Envie de donner votre avis ?</h1>
         <p class="intro-subtitle">
             Commencez dès aujourd'hui votre parcours vers un foyer plus harmonieux.
 Donner votre avis, c'est gratuit, c'est simple et ça aide beaucoup !
