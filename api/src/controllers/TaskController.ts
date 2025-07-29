@@ -4,6 +4,7 @@ import { AppDataSource } from '../config/database';
 import { Task, FrequencyUnit } from '../entities/Task';
 import { Group } from '../entities/Group';
 import { Tag } from '../entities/Tag';
+import { UserTaskState } from '../entities/UserTaskState';
 import { AuthRequest } from '../middleware/auth';
 
 export class TaskController {
@@ -218,13 +219,18 @@ export class TaskController {
 
       const task = await taskRepository.findOne({
         where: { id: parseInt(id) },
-        relations: ['actions']
+        relations: ['actions', 'userStates']
       });
 
       if (!task) {
         return res.status(404).json({
           message: 'Tâche non trouvée'
         });
+      }
+
+      if (task.userStates && task.userStates.length > 0) {
+        const userTaskStateRepository = AppDataSource.getRepository(UserTaskState);
+        await userTaskStateRepository.remove(task.userStates);
       }
 
       await taskRepository.remove(task);
