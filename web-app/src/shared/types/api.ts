@@ -174,11 +174,6 @@ export interface GroupStatistics {
   actions: Action[]
 }
 
-export interface GetStatisticsResponse {
-  message: string
-  statistics: GroupStatistics
-}
-
 // Types pour la réponse Overview
 export interface MonthlyVolumeItem {
   taskId: number

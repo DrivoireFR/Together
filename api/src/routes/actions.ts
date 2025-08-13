@@ -14,9 +14,6 @@ router.get('/', authMiddleware, actionController.getAll);
 // GET /api/actions/me - Récupérer mes actions
 router.get('/me', authMiddleware, actionController.getMyActions);
 
-// GET /api/actions/statistics - Récupérer les statistiques
-router.get('/statistics', authMiddleware, actionController.getStatistics);
-
 // GET /api/actions/user/:userId - Récupérer les actions d'un utilisateur
 router.get('/user/:userId', authMiddleware, actionController.getByUserId);
 

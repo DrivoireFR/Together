@@ -12,7 +12,6 @@ import type {
   CreateTaskResponse,
   CreateActionResponse,
   GetRecentActionsResponse,
-  GetStatisticsResponse,
   UpdateTaskResponse,
   UpdateTaskPayload
 } from '@/shared/types/api'

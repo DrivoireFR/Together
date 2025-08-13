@@ -1,7 +1,6 @@
 import { apiClient } from '../api/apiClient'
 import type { ApiResult } from '@/shared/types/DataResult'
 import type {
-    GetStatisticsResponse,
     GetOverviewResponse
 } from '@/shared/types/api'
 
