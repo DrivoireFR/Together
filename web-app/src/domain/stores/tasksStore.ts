@@ -29,6 +29,15 @@ export const useTasksStore = defineStore('tasks', () => {
   const hasActions = computed(() => actions.value.length > 0)
   const hasStatistics = computed(() => statistics.value !== null)
 
+  // Interactions
+  const showfeedback = ref(false)
+  const feedbackTotalDone = ref<number | null>(null)
+
+  const closeFeedback = () => {
+    showfeedback.value = false
+    feedbackTotalDone.value = null
+  }
+
   const filteredTasks = computed(() => {
     if (!selectedTagFilter.value) {
       return tasks.value
@@ -262,7 +271,10 @@ export const useTasksStore = defineStore('tasks', () => {
       const result = await taskRepository.createAction(payload)
 
       if (result.isSuccess) {
-        return { success: true, action: result.data.action }
+        showfeedback.value = true
+        feedbackTotalDone.value = result.data.totalDone
+
+        return { success: true, action: result.data.action, totalDone: result.data.totalDone }
       } else {
         error.value = result.message
         return { success: false, error: result.message }
@@ -456,6 +468,10 @@ export const useTasksStore = defineStore('tasks', () => {
     acknowledgeTask,
     handleTaskDecision,
     closeTaskAcknowledgmentModal,
-    skipTaskAcknowledgment
+    skipTaskAcknowledgment,
+    //Interactions
+    showfeedback,
+    feedbackTotalDone,
+    closeFeedback
   }
 })

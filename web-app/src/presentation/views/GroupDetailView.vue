@@ -147,6 +147,32 @@
         :actions="tasksStore.actions"
       />
     </div>
+
+    <!-- Modal de feedback -->
+    <BaseModal
+      :is-open="tasksStore.showfeedback"
+      title="Bravo !"
+      @close="closeFeedbackModal"
+    >
+      <div class="feedback-content">
+        <div class="feedback-message">
+          <p>Bravo ! Vous avez validé une tâche.</p>
+          <p v-if="tasksStore.feedbackTotalDone !== null" class="feedback-total">
+            Total de points ce mois-ci : <strong>{{ tasksStore.feedbackTotalDone }}</strong>
+          </p>
+        </div>
+      </div>
+      <template #footer>
+        <BaseButton
+          @click="closeFeedbackModal"
+          variant="primary"
+          class="w-full"
+        >
+          Continuer
+        </BaseButton>
+      </template>
+    </BaseModal>
+
   </AppLayout>
 </template>
 
@@ -214,6 +240,10 @@ const closeEditTaskModal = () => {
 // Gestion des tags et filtres
 const handleTagFilterChange = (tag: Tag | null) => {
   tasksStore.setTagFilter(tag)
+}
+
+const closeFeedbackModal = () => {
+  tasksStore.closeFeedback()
 }
 
 // Gestion des tâches

@@ -7,6 +7,8 @@ import { User } from '../entities/User';
 import { Group } from '../entities/Group';
 import { UserTaskState } from '../entities/UserTaskState';
 import { AuthRequest } from '../middleware/auth';
+import { MoreThanOrEqual } from 'typeorm';
+import { frequencyToMonthly } from '../helpers/stats';
 
 export class ActionController {
   async create(req: AuthRequest, res: Response) {
@@ -89,9 +91,25 @@ export class ActionController {
 
       await actionRepository.save(action);
 
+      const now = new Date();
+      const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      const userActions = await actionRepository.find({
+        where: {
+          user: { id: userId },
+          date: MoreThanOrEqual(firstOfMonth)
+        },
+        relations: ['task']
+      });
+
+      const totalDone: number = userActions.reduce((acc, action) => {
+        return acc + action.task.points;
+      }, 0);
+
       res.status(201).json({
         message: 'Action créée avec succès',
-        action
+        action,
+        totalDone
       });
     } catch (error) {
       console.error('Erreur lors de la création de l\'action:', error);

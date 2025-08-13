@@ -157,6 +157,7 @@ export interface CreateActionPayload {
 export interface CreateActionResponse {
   message: string
   action: Action
+  totalDone: number
 }
 
 export interface GetRecentActionsResponse {
