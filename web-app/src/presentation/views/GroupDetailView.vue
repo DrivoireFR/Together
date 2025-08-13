@@ -324,19 +324,11 @@ const copyCodeToClipboard = async () => {
 }
 
 // Initialisation
-onMounted(async () => {
+onMounted(() => {
   const id = groupId.value
   if (id && !isNaN(id)) {
-    // Charger les données du groupe, tâches/tags et historique en parallèle
-    await Promise.all([
       groupStore.fetchGroupById(id)
-    ])
   }
-})
-
-// Nettoyage
-onUnmounted(() => {
-  tasksStore.clearData()
 })
 </script>
 
