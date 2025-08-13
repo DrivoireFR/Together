@@ -4,6 +4,7 @@ import { statsRepository } from '@/data/repositories/statsRepository'
 import type {
     GroupStatistics,
     Overview,
+    PersonalGoal,
 } from '@/shared/types/api'
 
 export const useStatsStore = defineStore('stats', () => {
@@ -47,14 +48,27 @@ export const useStatsStore = defineStore('stats', () => {
     // Getters calculés pour l'overview
     const totalMonthlyPoints = computed(() => {
         if (!overview.value) return 0
-        return overview.value.monthlyVolume.reduce((sum, item) => sum + item.monthlyPoints, 0)
+        return overview.value.totalTasksVolume
     })
 
     const completionPercentage = computed(() => {
-        if (!overview.value || overview.value.summary.totalMonthlyVolumeAllCategories === 0) return 0
-        return Math.round(
-            (overview.value.summary.totalCompletedThisMonth / overview.value.summary.totalMonthlyVolumeAllCategories) * 100
-        )
+        if (!overview.value || overview.value.totalTasksVolume === 0) return 0
+        return Math.round((overview.value.totalDone / overview.value.totalTasksVolume) * 100)
+    })
+
+    const personalGoals = computed(() => {
+        if (!overview.value) return [];
+
+        return overview.value.users.map((user) => {
+            const doneThisMonth = user.actions.reduce((total, action) => {
+                return total + (action.task?.points ?? 0)
+            }, 0)
+
+            return {
+                user,
+                doneThisMonth
+            }
+        })
     })
 
     const topPerformers = computed(() => {
@@ -62,19 +76,21 @@ export const useStatsStore = defineStore('stats', () => {
 
         const userStats: Record<string, { name: string; actions: number; points: number }> = {}
 
-        Object.values(overview.value.actionsByDayAndUser).forEach(dayData => {
-            Object.values(dayData).forEach(userData => {
-                if (!userStats[userData.userName]) {
-                    userStats[userData.userName] = {
-                        name: userData.userName,
-                        actions: 0,
-                        points: 0
-                    }
-                }
-                userStats[userData.userName].actions += userData.actions.length
-                userStats[userData.userName].points += userData.actions.reduce((sum, action) => sum + action.points, 0)
-            })
-        })
+        for (const a of overview.value.actions) {
+            const name =
+                // adapte si tes types User incluent prénom/nom, sinon fallback
+                // @ts-ignore potentiellement selon ton type User
+                (a.user as any)?.prenom && (a.user as any)?.nom
+                    // @ts-ignore
+                    ? `${(a.user as any).prenom} ${(a.user as any).nom}`
+                    : (a.user as any)?.email || String(a.user?.id)
+
+            if (!userStats[name]) {
+                userStats[name] = { name, actions: 0, points: 0 }
+            }
+            userStats[name].actions += 1
+            userStats[name].points += a.task?.points ?? 0
+        }
 
         return Object.values(userStats)
             .sort((a, b) => b.points - a.points)
@@ -83,8 +99,7 @@ export const useStatsStore = defineStore('stats', () => {
 
     const helpingHandsCount = computed(() => {
         if (!overview.value) return 0
-        return Object.values(overview.value.helpingHandByUser)
-            .reduce((total, user) => total + user.helpingHands.length, 0)
+        return overview.value.actions.reduce((total, a) => total + (a.isHelpingHand ? 1 : 0), 0)
     })
 
     return {
@@ -99,6 +114,7 @@ export const useStatsStore = defineStore('stats', () => {
         completionPercentage,
         topPerformers,
         helpingHandsCount,
+        personalGoals,
 
         // Actions
         fetchOverview,

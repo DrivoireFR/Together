@@ -2,9 +2,16 @@
 export interface User {
   id: number
   nom: string
+  prenom: string
+  pseudo: string
+  icone?: string
   email: string
   createdAt: string
   updatedAt: string
+}
+
+export interface UserWithActions extends User {
+  actions: Action[]
 }
 
 export interface Group {
@@ -239,45 +246,16 @@ export interface ActionsByCategory {
   tasksInCategory: number
 }
 
-export interface OverviewSummary {
-  totalTasksVolume: number
-  totalMontlyActionVolume: number
-  totalTasksInGroup: number
-  totalActionsThisMonth: number
-  totalHelpingHands: number
-  totalMonthlyVolumeAllCategories: number
-  totalCompletedThisMonth: number
-}
-
 export interface Overview {
-  monthlyVolume: MonthlyVolumeItem[]
-  actionsByDayAndUser: ActionsByDayAndUser
-  personalGoals: PersonalGoal[]
-  helpingHandByUser: HelpingHandByUser
-  actionsByCategory: ActionsByCategory[]
-  summary: OverviewSummary
+  totalTasksVolume: number,
+  totalDone: number,
+  actions: Action[],
+  users: UserWithActions[],
+  tasks: Task[],
 }
 
 export interface PersonalGoal {
-  user: {
-    id: number
-    nom: string
-    prenom: string
-    pseudo: string
-    icone?: string
-  }
-  actions: {
-    id: number
-    date: string
-    taskLabel: string
-    points: number
-    isHelpingHand: boolean
-    tag: {
-      id: number
-      label: string
-      color: string
-    } | null
-  }[]
+  user: User
   doneThisMonth: number
 }
 

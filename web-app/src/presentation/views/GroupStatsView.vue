@@ -31,8 +31,8 @@
             
             <div class="progress-content">
               <ProgressBar
-                :current="statsStore.overview.summary.totalMontlyActionVolume"
-                :total="statsStore.overview.summary.totalTasksVolume"
+                :current="statsStore.overview.totalDone"
+                :total="statsStore.overview.totalTasksVolume"
                 label="Volume mensuel réalisé"
                 variant="primary"
                 size="lg"
@@ -44,22 +44,22 @@
             <div class="progress-stats">
               <div class="progress-stat">
                 <span class="stat-label">Objectif mensuel</span>
-                <span class="stat-value">{{ statsStore.overview.summary.totalTasksVolume }} pts</span>
+                <span class="stat-value">{{ statsStore.overview.totalTasksVolume }} pts</span>
               </div>
               <div class="progress-stat">
                 <span class="stat-label">Réalisé</span>
-                <span class="stat-value">{{ statsStore.overview.summary.totalMontlyActionVolume }} pts</span>
+                <span class="stat-value">{{ statsStore.overview.totalDone }} pts</span>
               </div>
               <div class="progress-stat">
                 <span class="stat-label">Restant</span>
-                <span class="stat-value">{{ statsStore.overview.summary.totalTasksVolume - statsStore.overview.summary.totalMontlyActionVolume }} pts</span>
+                <span class="stat-value">{{ statsStore.overview.totalTasksVolume - statsStore.overview.totalDone }} pts</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Objectifs individuels -->
-        <div v-if="statsStore.overview && statsStore.overview.personalGoals" class="individual-goals">
+        <div v-if="statsStore.overview && statsStore.personalGoals" class="individual-goals">
           <div class="goals-card">
             <div class="goals-header-section">
               <h2 class="goals-title">Objectifs individuels</h2>
@@ -68,7 +68,7 @@
             
             <div class="goals-list">
               <div 
-                v-for="goal in statsStore.overview.personalGoals" 
+                v-for="goal in statsStore.personalGoals" 
                 :key="goal.user.id" 
                 class="user-goal"
               >
@@ -80,8 +80,8 @@
                       :alt="goal.user.prenom"
                       class="avatar-image"
                     />
-                    <span v-else class="avatar-fallback">
-                      {{ goal.user.prenom.charAt(0) }}{{ goal.user.nom.charAt(0) }}
+                    <span class="avatar-fallback">
+                      {{ goal.user.prenom.charAt(0) + goal.user.nom.charAt(0) }}
                     </span>
                   </div>
                   <div class="user-details">
@@ -93,8 +93,8 @@
                 <div class="user-progress">
                   <ProgressBar
                     :current="goal.doneThisMonth"
-                    :total="individualGoalTarget"
-                    :label="`${goal.actions.length} actions ce mois`"
+                    :total="statsStore.overview.totalTasksVolume / statsStore.personalGoals.length"
+                    :label="`${goal.user.actions.length} actions ce mois`"
                     variant="success"
                     size="md"
                     :show-details="false"
@@ -102,7 +102,7 @@
                   />
                 </div>
               </div>
-            </div>
+            </div> 
           </div>
         </div>
       </div> 
@@ -138,11 +138,6 @@ const statsStore = useStatsStore()
 const groupId = computed(() => Number(route.params.id))
 const isLoading = computed(() => groupStore.isLoading || statsStore.isLoading)
 
-const individualGoalTarget = computed(() => {
-  if (!statsStore.overview || !statsStore.overview.personalGoals.length) return 0
-  return Math.round(statsStore.overview.summary.totalTasksVolume / statsStore.overview.personalGoals.length)
-})
-
 const goBackToGroup = () => {
   router.push({ name: 'GroupDetail', params: { id: groupId.value } })
 }
@@ -150,10 +145,7 @@ const goBackToGroup = () => {
 const loadStatistics = async () => {
   const id = groupId.value
   if (id && !isNaN(id)) {
-    await Promise.all([
-      groupStore.fetchGroupById(id),
-      statsStore.fetchOverview(id)
-    ])
+    await statsStore.fetchOverview(id)
   }
 }
 
