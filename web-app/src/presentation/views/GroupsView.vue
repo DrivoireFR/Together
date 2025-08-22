@@ -34,9 +34,8 @@
                 :key="group.id"
                 :group="group"
                 :show-join-button="true"
-                :joining-loading="joiningGroupId === group.id"
                 :clickable="false"
-                @join="handleJoinGroup"
+                @join-requested="handleJoinGroup"
               />
             </div>
           </div>
@@ -61,9 +60,7 @@
             :group="group"
             :show-leave-button="true"
             :show-menu="true"
-            :leaving-loading="leavingGroupId === group.id"
             @click="handleGroupClick"
-            @leave="handleLeaveGroup"
             @menu="handleGroupMenu"
           />
         </div>
@@ -82,10 +79,8 @@
         <div class="modal-body">
           <h2 class="modal-title">Créer un nouveau groupe</h2>
           <CreateGroupForm
-            :loading="groupStore.isLoading"
-            :global-error="groupStore.error"
-            @submit="handleCreateGroup"
-            @cancel="showCreateForm = false"
+            :on-success="() => { showCreateForm = false }"
+            :on-cancel="() => { showCreateForm = false }"
           />
         </div>
       </div>
@@ -165,7 +160,6 @@ const showCreateForm = ref(false)
 const showJoinForm = ref(false)
 const searchQuery = ref('')
 const joiningGroupId = ref<number | null>(null)
-const leavingGroupId = ref<number | null>(null)
 const groupToJoin = ref<Group | null>(null)
 const joinCode = ref('')
 const joinError = ref('')
@@ -182,13 +176,7 @@ const handleSearch = () => {
   }
 }
 
-const handleCreateGroup = async (payload: CreateGroupPayload) => {
-  const result = await groupStore.createGroup(payload)
-  
-  if (result.success) {
-    showCreateForm.value = false
-  }
-}
+// handleCreateGroup is no longer needed since CreateGroupForm handles creation directly
 
 const handleJoinGroup = async (groupId: number) => {
   // Trouver le groupe dans les résultats de recherche
@@ -231,17 +219,7 @@ const cancelJoinGroup = () => {
   joinError.value = ''
 }
 
-const handleLeaveGroup = async (groupId: number) => {
-  if (confirm('Êtes-vous sûr de vouloir quitter ce groupe ?')) {
-    leavingGroupId.value = groupId
-    
-    try {
-      await groupStore.leaveGroup(groupId)
-    } finally {
-      leavingGroupId.value = null
-    }
-  }
-}
+// handleLeaveGroup is no longer needed since GroupCard handles leaving directly
 
 const handleGroupClick = (group: Group) => {
   groupStore.onGroupClick(group.id)

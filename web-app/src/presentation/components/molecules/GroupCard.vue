@@ -36,8 +36,8 @@
         <BaseButton
           v-if="showJoinButton"
           size="sm"
-          :loading="joiningLoading"
-          @click.stop="$emit('join', group.id)"
+          :loading="groupStore.isLoading"
+          @click.stop="handleJoin"
         >
           Rejoindre
         </BaseButton>
@@ -47,8 +47,8 @@
           v-if="showLeaveButton"
           size="sm"
           variant="danger"
-          :loading="leavingLoading"
-          @click.stop="$emit('leave', group.id)"
+          :loading="groupStore.isLoading"
+          @click.stop="handleLeave"
         >
           Quitter
         </BaseButton>
@@ -94,6 +94,8 @@ import {
   TagIcon,
   EllipsisVerticalIcon 
 } from '@heroicons/vue/24/outline'
+import { useGroupStore } from '@/domain/stores/groupStore'
+import { useAuthStore } from '@/domain/stores/authStore'
 import BaseCard from '@/presentation/components/atoms/BaseCard.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import type { Group } from '@/shared/types/api'
@@ -105,8 +107,7 @@ interface Props {
   showMenu?: boolean
   showMembers?: boolean
   clickable?: boolean
-  joiningLoading?: boolean
-  leavingLoading?: boolean
+  joinCode?: string  // Code needed for joining a group
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -115,21 +116,54 @@ const props = withDefaults(defineProps<Props>(), {
   showMenu: false,
   showMembers: true,
   clickable: true,
-  joiningLoading: false,
-  leavingLoading: false
+  joinCode: ''
 })
 
+const groupStore = useGroupStore()
+const authStore = useAuthStore()
+
+// Keep only the click and menu emits since they handle navigation/UI logic
 const emit = defineEmits<{
   click: [group: Group]
-  join: [groupId: number]
-  leave: [groupId: number]
   menu: [group: Group]
+  joinRequested: [groupId: number]  // New emit for when join needs a code
 }>()
 
 const handleClick = () => {
   if (props.clickable) {
     emit('click', props.group)
   }
+}
+
+const handleJoin = async () => {
+  if (!props.joinCode) {
+    // If no join code provided, emit to parent to handle code input
+    emit('joinRequested', props.group.id)
+    return
+  }
+  
+  // Direct store call for joining
+  const result = await groupStore.joinGroup(props.group.id, props.joinCode)
+  
+  if (result.success) {
+    // Refresh user groups to show the new group
+    if (authStore.user?.id) {
+      await groupStore.getUserGroups(authStore.user.id)
+    }
+  }
+  // Error handling is done by the store and displayed via groupStore.error
+}
+
+const handleLeave = async () => {
+  if (confirm('Êtes-vous sûr de vouloir quitter ce groupe ?')) {
+    // Direct store call for leaving
+    const result = await groupStore.leaveGroup(props.group.id)
+    // The store handles updating the groups list automatically
+  }
+}
+
+const handleMenu = () => {
+  emit('menu', props.group)
 }
 </script>
 

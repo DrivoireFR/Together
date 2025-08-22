@@ -8,14 +8,14 @@
         label="Nom du groupe"
         placeholder="Mon super groupe"
         :error="errors.nom"
-        :disabled="loading"
+        :disabled="groupStore.isLoading"
         required
         :iconBefore="UserGroupIcon"
       />
       
       <!-- Error message -->
-      <div v-if="globalError" class="form-error">
-        {{ globalError }}
+      <div v-if="groupStore.error" class="form-error">
+        {{ groupStore.error }}
       </div>
       
       <!-- Actions -->
@@ -23,15 +23,15 @@
         <BaseButton
           type="button"
           variant="outline"
-          @click="$emit('cancel')"
-          :disabled="loading"
+          @click="handleCancel"
+          :disabled="groupStore.isLoading"
         >
           Annuler
         </BaseButton>
         
         <BaseButton
           type="submit"
-          :loading="loading"
+          :loading="groupStore.isLoading"
           :disabled="!isFormValid"
           class="form-submit-primary"
         >
@@ -45,23 +45,22 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
 import { UserGroupIcon } from '@heroicons/vue/24/outline'
+import { useGroupStore } from '@/domain/stores/groupStore'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import type { CreateGroupPayload } from '@/shared/types/api'
 
 interface Props {
-  loading?: boolean
-  globalError?: string
+  onSuccess?: () => void  // Callback for modal closing
+  onCancel?: () => void   // Callback for cancel action
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false
+  onSuccess: () => {},
+  onCancel: () => {}
 })
 
-const emit = defineEmits<{
-  submit: [payload: CreateGroupPayload]
-  cancel: []
-}>()
+const groupStore = useGroupStore()
 
 // Form state
 const form = reactive({
@@ -91,15 +90,35 @@ const validateNom = () => {
   }
 }
 
-// Form submission
-const handleSubmit = () => {
+// Form submission - now directly uses the store
+const handleSubmit = async () => {
   validateNom()
   
   if (isFormValid.value) {
-    emit('submit', {
+    // Direct store call instead of emit
+    const result = await groupStore.createGroup({
       nom: form.nom.trim()
     })
+    
+    if (result.success) {
+      // Reset form
+      form.nom = ''
+      errors.nom = ''
+      
+      // Call success callback (for modal closing)
+      props.onSuccess()
+    }
+    // Error handling is done by the store and displayed via groupStore.error
   }
+}
+
+const handleCancel = () => {
+  // Reset form
+  form.nom = ''
+  errors.nom = ''
+  
+  // Call cancel callback
+  props.onCancel()
 }
 </script>
 

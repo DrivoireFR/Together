@@ -131,15 +131,15 @@
       <BaseButton
         type="button"
         variant="ghost"
-        @click="$emit('cancel')"
-        :disabled="isLoading"
+        @click="handleCancel"
+        :disabled="tasksStore.isLoading"
       >
         Annuler
       </BaseButton>
       <BaseButton
         type="submit"
         variant="primary"
-        :loading="isLoading"
+        :loading="tasksStore.isLoading"
         :disabled="!isFormValid"
       >
         Créer la tâche
@@ -151,6 +151,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { type Tag, type CreateTaskPayload, UniteFrequence } from '@/shared/types/api'
+import { useTasksStore } from '@/domain/stores/tasksStore'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseSlider from '@/presentation/components/atoms/BaseSlider.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
@@ -158,12 +159,16 @@ import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 interface Props {
   tags: Tag[]
   groupId: number
-  isLoading?: boolean
+  onSuccess?: () => void  // Callback for modal closing
+  onCancel?: () => void   // Callback for cancel action
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  isLoading: false
+  onSuccess: () => {},
+  onCancel: () => {}
 })
+
+const tasksStore = useTasksStore()
 
 const formData = ref<CreateTaskPayload>({
   label: '',
@@ -234,7 +239,7 @@ const isValidUrl = (url: string): boolean => {
   }
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (!validateForm()) return
   
   const payload: CreateTaskPayload = {
@@ -243,7 +248,43 @@ const handleSubmit = () => {
     tagId: formData.value.tagId || undefined
   }
   
-  emit('submit', payload)
+  // Direct store call instead of emit
+  const result = await tasksStore.createTask(payload)
+  
+  if (result.success) {
+    // Reset form
+    formData.value = {
+      label: '',
+      frequenceEstimee: 1,
+      uniteFrequence: UniteFrequence.SEMAINE,
+      groupId: props.groupId,
+      iconUrl: '',
+      tagId: undefined,
+      points: 5
+    }
+    errors.value = {}
+    
+    // Call success callback (for modal closing)
+    props.onSuccess()
+  }
+  // Error handling is done by the store and displayed via tasksStore.error
+}
+
+const handleCancel = () => {
+  // Reset form
+  formData.value = {
+    label: '',
+    frequenceEstimee: 1,
+    uniteFrequence: UniteFrequence.SEMAINE,
+    groupId: props.groupId,
+    iconUrl: '',
+    tagId: undefined,
+    points: 5
+  }
+  errors.value = {}
+  
+  // Call cancel callback
+  props.onCancel()
 }
 
 // Validation en temps réel
@@ -271,10 +312,11 @@ watch(() => formData.value.iconUrl, () => {
   }
 })
 
-const emit = defineEmits<{
-  submit: [payload: CreateTaskPayload]
-  cancel: []
-}>()
+// Remove the old emit definition
+// const emit = defineEmits<{
+//   submit: [payload: CreateTaskPayload]
+//   cancel: []
+// }>()
 </script>
 
 <style scoped>
