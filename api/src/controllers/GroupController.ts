@@ -4,8 +4,11 @@ import { AppDataSource } from '../config/database';
 import { Group } from '../entities/Group';
 import { User } from '../entities/User';
 import { AuthRequest } from '../middleware/auth';
+import { StarterPackService, StarterPackTag, StarterPackTask } from '../services/StarterPackService';
 
 export class GroupController {
+  private starterPackService = new StarterPackService();
+
   async create(req: AuthRequest, res: Response) {
     try {
       const { nom } = req.body;
@@ -53,9 +56,13 @@ export class GroupController {
         }
       }
 
+      // Create starter pack for the new group
+      const starterPack = await this.starterPackService.createStarterPackForGroup(group);
+
       res.status(201).json({
         message: 'Groupe créé avec succès',
-        group
+        group,
+        starterPack
       });
     } catch (error) {
       console.error('Erreur lors de la création du groupe:', error);
@@ -474,6 +481,128 @@ export class GroupController {
       });
     } catch (error) {
       console.error('Erreur lors de la suppression du groupe:', error);
+      res.status(500).json({
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+  /**
+   * Add a list of tags to a group
+   */
+  async addTags(req: AuthRequest, res: Response) {
+    try {
+      const { groupId } = req.params;
+      const { tags } = req.body;
+
+      if (!tags || !Array.isArray(tags)) {
+        return res.status(400).json({
+          message: 'Une liste de tags est requise'
+        });
+      }
+
+      const groupRepository = AppDataSource.getRepository(Group);
+      
+      // Vérifier si le groupe existe
+      const group = await groupRepository.findOne({
+        where: { id: parseInt(groupId) },
+        relations: ['users']
+      });
+
+      if (!group) {
+        return res.status(404).json({
+          message: 'Groupe non trouvé'
+        });
+      }
+
+      // Vérifier si l'utilisateur est membre du groupe
+      const userId = req.user!.id;
+      const isMember = group.users.some(user => user.id === userId);
+      if (!isMember) {
+        return res.status(403).json({
+          message: 'Vous devez être membre du groupe pour ajouter des tags'
+        });
+      }
+
+      // Valider la structure des tags
+      for (const tag of tags) {
+        if (!tag.label || !tag.color) {
+          return res.status(400).json({
+            message: 'Chaque tag doit avoir un label et une couleur'
+          });
+        }
+      }
+
+      // Ajouter les tags via le service
+      const createdTags = await this.starterPackService.addTagsToGroup(group, tags);
+
+      res.status(201).json({
+        message: 'Tags ajoutés avec succès',
+        tags: createdTags
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout des tags:', error);
+      res.status(500).json({
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+  /**
+   * Add a list of tasks to a group with proper tag categorization
+   */
+  async addTasks(req: AuthRequest, res: Response) {
+    try {
+      const { groupId } = req.params;
+      const { tasks } = req.body;
+
+      if (!tasks || !Array.isArray(tasks)) {
+        return res.status(400).json({
+          message: 'Une liste de tâches est requise'
+        });
+      }
+
+      const groupRepository = AppDataSource.getRepository(Group);
+      
+      // Vérifier si le groupe existe
+      const group = await groupRepository.findOne({
+        where: { id: parseInt(groupId) },
+        relations: ['users']
+      });
+
+      if (!group) {
+        return res.status(404).json({
+          message: 'Groupe non trouvé'
+        });
+      }
+
+      // Vérifier si l'utilisateur est membre du groupe
+      const userId = req.user!.id;
+      const isMember = group.users.some(user => user.id === userId);
+      if (!isMember) {
+        return res.status(403).json({
+          message: 'Vous devez être membre du groupe pour ajouter des tâches'
+        });
+      }
+
+      // Valider la structure des tâches
+      for (const task of tasks) {
+        if (!task.label || !task.frequenceEstimee || !task.tagLabel) {
+          return res.status(400).json({
+            message: 'Chaque tâche doit avoir un label, une fréquence estimée et un tag associé'
+          });
+        }
+      }
+
+      // Ajouter les tâches via le service
+      const createdTasks = await this.starterPackService.addTasksToGroup(group, tasks);
+
+      res.status(201).json({
+        message: 'Tâches ajoutées avec succès',
+        tasks: createdTasks
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout des tâches:', error);
       res.status(500).json({
         message: 'Erreur interne du serveur'
       });

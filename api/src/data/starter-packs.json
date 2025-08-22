@@ -1,0 +1,116 @@
+{
+  "defaultStarterPack": {
+    "tags": [
+      {
+        "label": "Ménage",
+        "color": "#FF6B6B"
+      },
+      {
+        "label": "Cuisine",
+        "color": "#4ECDC4"
+      },
+      {
+        "label": "Courses",
+        "color": "#45B7D1"
+      },
+      {
+        "label": "Entretien",
+        "color": "#96CEB4"
+      },
+      {
+        "label": "Personnel",
+        "color": "#FFEAA7"
+      },
+      {
+        "label": "Administratif",
+        "color": "#DDA0DD"
+      }
+    ],
+    "tasks": [
+      {
+        "label": "Passer l'aspirateur",
+        "frequenceEstimee": 2,
+        "uniteFrequence": "semaine",
+        "points": 3,
+        "tagLabel": "Ménage"
+      },
+      {
+        "label": "Faire la vaisselle",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "jour",
+        "points": 2,
+        "tagLabel": "Ménage"
+      },
+      {
+        "label": "Nettoyer la salle de bain",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "semaine",
+        "points": 4,
+        "tagLabel": "Ménage"
+      },
+      {
+        "label": "Préparer le repas",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "jour",
+        "points": 3,
+        "tagLabel": "Cuisine"
+      },
+      {
+        "label": "Faire les courses",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "semaine",
+        "points": 3,
+        "tagLabel": "Courses"
+      },
+      {
+        "label": "Planifier les repas de la semaine",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "semaine",
+        "points": 2,
+        "tagLabel": "Cuisine"
+      },
+      {
+        "label": "Sortir les poubelles",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "semaine",
+        "points": 1,
+        "tagLabel": "Entretien"
+      },
+      {
+        "label": "Arroser les plantes",
+        "frequenceEstimee": 2,
+        "uniteFrequence": "semaine",
+        "points": 1,
+        "tagLabel": "Entretien"
+      },
+      {
+        "label": "Faire du sport",
+        "frequenceEstimee": 3,
+        "uniteFrequence": "semaine",
+        "points": 2,
+        "tagLabel": "Personnel"
+      },
+      {
+        "label": "Payer les factures",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "mois",
+        "points": 2,
+        "tagLabel": "Administratif"
+      },
+      {
+        "label": "Ranger la chambre",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "semaine",
+        "points": 2,
+        "tagLabel": "Ménage"
+      },
+      {
+        "label": "Laver le linge",
+        "frequenceEstimee": 2,
+        "uniteFrequence": "semaine",
+        "points": 2,
+        "tagLabel": "Ménage"
+      }
+    ]
+  }
+}

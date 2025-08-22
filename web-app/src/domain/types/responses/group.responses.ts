@@ -1,4 +1,11 @@
 import type { Group } from '../entities/group.types'
+import type { Tag } from '../entities/tag.types'
+import type { Task } from '../entities/task.types'
+
+export interface StarterPack {
+  tags: Tag[]
+  tasks: Task[]
+}
 
 export interface FetchGroupResponse {
   message: string
@@ -8,6 +15,7 @@ export interface FetchGroupResponse {
 export interface CreateGroupResponse {
   message: string
   group: Group
+  starterPack: StarterPack
 }
 
 export interface GroupSearchResponse {
