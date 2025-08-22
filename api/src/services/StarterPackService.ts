@@ -39,23 +39,14 @@ export class StarterPackService {
     const createdTags: Tag[] = [];
 
     for (const tagInfo of tagData) {
-      // Check if tag already exists in this group
-      const existingTag = await tagRepository.findOne({
-        where: { label: tagInfo.label, group: { id: group.id } }
-      });
+      const tag = new Tag();
+      tag.label = tagInfo.label;
+      tag.color = tagInfo.color;
+      tag.group = group;
+      tag.isDefault = true;
 
-      if (!existingTag) {
-        const tag = new Tag();
-        tag.label = tagInfo.label;
-        tag.color = tagInfo.color;
-        tag.group = group;
-        tag.isDefault = true;
-
-        const savedTag = await tagRepository.save(tag);
-        createdTags.push(savedTag);
-      } else {
-        createdTags.push(existingTag);
-      }
+      const savedTag = await tagRepository.save(tag);
+      createdTags.push(savedTag);
     }
 
     return createdTags;
@@ -73,31 +64,22 @@ export class StarterPackService {
     tags.forEach(tag => tagMap.set(tag.label, tag));
 
     for (const taskInfo of taskData) {
-      // Check if task already exists in this group
-      const existingTask = await taskRepository.findOne({
-        where: { label: taskInfo.label, group: { id: group.id } }
-      });
-
-      if (!existingTask) {
-        const task = new Task();
-        task.label = taskInfo.label;
-        task.iconUrl = taskInfo.iconUrl || undefined;
-        task.frequenceEstimee = taskInfo.frequenceEstimee;
-        task.uniteFrequence = taskInfo.uniteFrequence as FrequencyUnit;
-        task.points = taskInfo.points;
-        task.group = group;
-        
-        // Find and assign the corresponding tag
-        const correspondingTag = tagMap.get(taskInfo.tagLabel);
-        if (correspondingTag) {
-          task.tag = correspondingTag;
-        }
-
-        const savedTask = await taskRepository.save(task);
-        createdTasks.push(savedTask);
-      } else {
-        createdTasks.push(existingTask);
+      const task = new Task();
+      task.label = taskInfo.label;
+      task.iconUrl = taskInfo.iconUrl || undefined;
+      task.frequenceEstimee = taskInfo.frequenceEstimee;
+      task.uniteFrequence = taskInfo.uniteFrequence as FrequencyUnit;
+      task.points = taskInfo.points;
+      task.group = group;
+      
+      // Find and assign the corresponding tag
+      const correspondingTag = tagMap.get(taskInfo.tagLabel);
+      if (correspondingTag) {
+        task.tag = correspondingTag;
       }
+
+      const savedTask = await taskRepository.save(task);
+      createdTasks.push(savedTask);
     }
 
     return createdTasks;
