@@ -11,7 +11,7 @@ export class AchievementController {
   private congratsRepository = AppDataSource.getRepository(Congrats);
   private groupRepository = AppDataSource.getRepository(Group);
 
-  async getAll(req: Request, res: Response) {
+  getAll = async (req: Request, res: Response) => {
     try {
       const achievements = await this.achievementRepository.find({
         relations: ['user', 'group', 'congrats', 'congrats.tag']
@@ -22,7 +22,7 @@ export class AchievementController {
     }
   }
 
-  async getByUser(req: Request, res: Response) {
+  getByUser = async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
       const achievements = await this.achievementRepository.find({
@@ -36,7 +36,7 @@ export class AchievementController {
     }
   }
 
-  async getByGroup(req: Request, res: Response) {
+  getByGroup = async (req: Request, res: Response) => {
     try {
       const { groupId } = req.params;
       const achievements = await this.achievementRepository.find({
@@ -50,7 +50,7 @@ export class AchievementController {
     }
   }
 
-  async getById(req: Request, res: Response) {
+  getById = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const achievement = await this.achievementRepository.findOne({
@@ -68,7 +68,7 @@ export class AchievementController {
     }
   }
 
-  async create(req: Request, res: Response) {
+  create = async (req: Request, res: Response) => {
     try {
       const { userId, groupId, congratsId, achievedAt } = req.body;
 
@@ -113,7 +113,7 @@ export class AchievementController {
       });
 
       const savedAchievement = await this.achievementRepository.save(achievement);
-      
+
       // Récupérer l'achievement complet avec ses relations
       const completeAchievement = await this.achievementRepository.findOne({
         where: { id: savedAchievement.id },
@@ -126,7 +126,7 @@ export class AchievementController {
     }
   }
 
-  async delete(req: Request, res: Response) {
+  delete = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const result = await this.achievementRepository.delete(parseInt(id));
@@ -141,11 +141,11 @@ export class AchievementController {
     }
   }
 
-  async getStats(req: Request, res: Response) {
+  getStats = async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
       const { groupId } = req.query; // Optionnel : filtrer par groupe
-      
+
       const whereCondition: any = { user: { id: parseInt(userId) } };
       if (groupId) {
         whereCondition.group = { id: parseInt(groupId as string) };

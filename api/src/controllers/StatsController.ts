@@ -9,7 +9,7 @@ import { frequencyToMonthly } from '../helpers/stats';
 import { User } from '../entities/User';
 
 export class StatsController {
-  async overview(req: AuthRequest, res: Response) {
+  overview = async (req: AuthRequest, res: Response) => {
     try {
       const { groupId } = req.params;
 
