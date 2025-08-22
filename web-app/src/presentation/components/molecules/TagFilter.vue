@@ -44,7 +44,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Tag, Task } from '@/shared/types/api'
+import type { Tag, Task } from '@/domain/types'
 import TagChip from '@/presentation/components/atoms/TagChip.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 

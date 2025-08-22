@@ -96,7 +96,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import BaseCard from '@/presentation/components/atoms/BaseCard.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
-import type { Group } from '@/shared/types/api'
+import type { Group } from '@/domain/types'
 
 interface Props {
   group: Group

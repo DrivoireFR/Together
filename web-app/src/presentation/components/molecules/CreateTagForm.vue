@@ -82,7 +82,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { CreateTagPayload } from '@/shared/types/api'
+import type { CreateTagPayload } from '@/domain/types'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 

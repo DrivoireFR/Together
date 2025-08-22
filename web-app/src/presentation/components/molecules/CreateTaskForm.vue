@@ -150,7 +150,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { type Tag, type CreateTaskPayload, UniteFrequence } from '@/shared/types/api'
+import { type Tag, type CreateTaskPayload, UniteFrequence } from '@/domain/types'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseSlider from '@/presentation/components/atoms/BaseSlider.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'

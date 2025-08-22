@@ -30,7 +30,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/domain/stores/authStore'
 import AuthLayout from '@/presentation/layouts/AuthLayout.vue'
 import LoginForm from '@/presentation/components/molecules/LoginForm.vue'
-import type { LoginPayload } from '@/shared/types/api'
+import type { LoginPayload } from '@/domain/types'
 
 const router = useRouter()
 const authStore = useAuthStore()

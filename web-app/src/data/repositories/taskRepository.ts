@@ -14,7 +14,7 @@ import type {
   GetRecentActionsResponse,
   UpdateTaskResponse,
   UpdateTaskPayload
-} from '@/shared/types/api'
+} from '@/domain/types'
 
 export class TaskRepository {
   // Tasks

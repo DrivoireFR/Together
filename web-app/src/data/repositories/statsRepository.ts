@@ -2,7 +2,7 @@ import { apiClient } from '../api/apiClient'
 import type { ApiResult } from '@/shared/types/DataResult'
 import type {
     GetOverviewResponse
-} from '@/shared/types/api'
+} from '@/domain/types'
 
 export class StatsRepository {
     async getOverview(groupId: number): Promise<ApiResult<GetOverviewResponse>> {

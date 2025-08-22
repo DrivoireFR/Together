@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { authRepository } from '@/data/repositories/authRepository'
 import { StorageUtil } from '@/shared/utils/storage'
 import { STORAGE_KEYS } from '@/shared/constants'
-import type { User, LoginPayload, RegisterPayload } from '@/shared/types/api'
+import type { User, LoginPayload, RegisterPayload } from '../types'
 import { useGroupStore } from './groupStore'
 
 export const useAuthStore = defineStore('auth', () => {

@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Action } from '@/shared/types/api'
+import type { Action } from '@/domain/types'
 
 interface Props {
   userStats: Record<number, number>

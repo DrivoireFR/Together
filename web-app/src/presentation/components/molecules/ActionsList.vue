@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Action } from '@/shared/types/api'
+import type { Action } from '@/domain/types'
 import ActionCard from '@/presentation/components/atoms/ActionCard.vue'
 
 interface Props {

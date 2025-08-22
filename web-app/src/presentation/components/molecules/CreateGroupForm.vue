@@ -47,7 +47,7 @@ import { computed, reactive } from 'vue'
 import { UserGroupIcon } from '@heroicons/vue/24/outline'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
-import type { CreateGroupPayload } from '@/shared/types/api'
+import type { CreateGroupPayload } from '@/domain/types'
 
 interface Props {
   loading?: boolean

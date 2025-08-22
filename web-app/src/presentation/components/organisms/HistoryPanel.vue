@@ -55,7 +55,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { Action } from '@/shared/types/api'
+import type { Action } from '@/domain/types'
 import ActionsList from '@/presentation/components/molecules/ActionsList.vue'
 
 interface Props {

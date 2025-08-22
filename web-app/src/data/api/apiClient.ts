@@ -2,7 +2,7 @@ import axios, { type AxiosInstance, type AxiosResponse, type AxiosError } from '
 import { DataSuccess, DataError, type ApiResult } from '@/shared/types/DataResult'
 import { API_BASE_URL, STORAGE_KEYS, HTTP_STATUS } from '@/shared/constants'
 import { StorageUtil } from '@/shared/utils/storage'
-import type { ApiError } from '@/shared/types/api'
+import type { ApiError } from '@/domain/types'
 
 class ApiClient {
   private client: AxiosInstance

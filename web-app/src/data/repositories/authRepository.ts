@@ -6,7 +6,7 @@ import type {
   AuthResponse,
   User,
   getProfileResponse
-} from '@/shared/types/api'
+} from '@/domain/types'
 
 export class AuthRepository {
   async login(payload: LoginPayload): Promise<ApiResult<AuthResponse>> {

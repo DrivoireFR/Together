@@ -48,7 +48,7 @@ import { ref, computed, reactive } from 'vue'
 import { EnvelopeIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
-import type { LoginPayload } from '@/shared/types/api'
+import type { LoginPayload } from '@/domain/types'
 
 interface Props {
   loading?: boolean

@@ -155,7 +155,7 @@ import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import GroupCard from '@/presentation/components/molecules/GroupCard.vue'
 import CreateGroupForm from '@/presentation/components/molecules/CreateGroupForm.vue'
-import type { Group, CreateGroupPayload } from '@/shared/types/api'
+import type { Group, CreateGroupPayload } from '@/domain/types'
 
 const router = useRouter()
 const groupStore = useGroupStore()

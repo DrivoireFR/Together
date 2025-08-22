@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { groupRepository } from '@/data/repositories/groupRepository'
-import type { Group, CreateGroupPayload } from '@/shared/types/api'
+import type { Group, CreateGroupPayload } from '../types'
 import { useTasksStore } from './tasksStore'
 import { useRouter } from 'vue-router'
 import { StorageUtil } from '@/shared/utils/storage'
