@@ -35,4 +35,10 @@ router.post('/:id/join', authMiddleware, groupController.joinGroup);
 // POST /api/groups/:id/leave - Quitter un groupe
 router.post('/:id/leave', authMiddleware, groupController.leaveGroup);
 
+// POST /api/groups/:id/tags - Ajouter des tags en bulk à un groupe
+router.post('/:id/tags', authMiddleware, groupController.addTags);
+
+// POST /api/groups/:id/tasks - Ajouter des tâches en bulk à un groupe
+router.post('/:id/tasks', authMiddleware, groupController.addTasks);
+
 export default router;
