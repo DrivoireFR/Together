@@ -8,7 +8,7 @@
         label="Nom"
         placeholder="Dupont"
         :error="errors.nom"
-        :disabled="loading"
+        :disabled="authStore.isLoading"
         required
         :iconBefore="UserIcon"
       />
@@ -20,7 +20,7 @@
         label="Prénom"
         placeholder="Jean"
         :error="errors.prenom"
-        :disabled="loading"
+        :disabled="authStore.isLoading"
         required
         :iconBefore="UserIcon"
       />
@@ -32,7 +32,7 @@
         label="Pseudo"
         placeholder="jean.dupont"
         :error="errors.pseudo"
-        :disabled="loading"
+        :disabled="authStore.isLoading"
         required
         :iconBefore="AtSymbolIcon"
       />
@@ -44,7 +44,7 @@
         label="Adresse email"
         placeholder="exemple@email.com"
         :error="errors.email"
-        :disabled="loading"
+        :disabled="authStore.isLoading"
         required
         :iconBefore="EnvelopeIcon"
       />
@@ -56,7 +56,7 @@
         label="Mot de passe"
         placeholder="••••••••"
         :error="errors.password"
-        :disabled="loading"
+        :disabled="authStore.isLoading"
         required
         :iconBefore="LockClosedIcon"
       />
@@ -68,7 +68,7 @@
         label="Confirmer le mot de passe"
         placeholder="••••••••"
         :error="errors.confirmPassword"
-        :disabled="loading"
+        :disabled="authStore.isLoading"
         required
         :iconBefore="LockClosedIcon"
       />
@@ -80,19 +80,19 @@
         label="Icône (optionnel)"
         placeholder="👨‍💼"
         :error="errors.icone"
-        :disabled="loading"
+        :disabled="authStore.isLoading"
         :iconBefore="FaceSmileIcon"
       />
       
       <!-- Error message -->
-      <div v-if="globalError" class="form-error">
-        {{ globalError }}
+      <div v-if="authStore.error" class="form-error">
+        {{ authStore.error }}
       </div>
       
       <!-- Submit button -->
       <BaseButton
         type="submit"
-        :loading="loading"
+        :loading="authStore.isLoading"
         :disabled="!isFormValid"
         class="form-submit"
       >
@@ -104,6 +104,7 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import { 
   EnvelopeIcon, 
   LockClosedIcon, 
@@ -111,22 +112,15 @@ import {
   AtSymbolIcon, 
   FaceSmileIcon 
 } from '@heroicons/vue/24/outline'
+import { useAuthStore } from '@/domain/stores/authStore'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import type { RegisterPayload } from '@/domain/types'
 
-interface Props {
-  loading?: boolean
-  globalError?: string
-}
+const router = useRouter()
+const authStore = useAuthStore()
 
-const props = withDefaults(defineProps<Props>(), {
-  loading: false
-})
 
-const emit = defineEmits<{
-  submit: [payload: RegisterPayload]
-}>()
 
 // Form state
 const form = reactive({
@@ -232,8 +226,8 @@ const validateConfirmPassword = () => {
   }
 }
 
-// Form submission
-const handleSubmit = () => {
+// Form submission - now directly uses the store
+const handleSubmit = async () => {
   validateNom()
   validatePrenom()
   validatePseudo()
@@ -254,7 +248,11 @@ const handleSubmit = () => {
       payload.icone = form.icone.trim()
     }
     
-    emit('submit', payload)
+    const result = await authStore.register(payload)
+    
+    if (result.success) {
+      router.push('/groups')
+    }
   }
 }
 </script>

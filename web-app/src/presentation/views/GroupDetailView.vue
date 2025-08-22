@@ -100,9 +100,8 @@
         <CreateTaskForm
           :tags="tasksStore.tags"
           :group-id="groupId"
-          :is-loading="tasksStore.isLoading"
-          @submit="handleCreateTask"
-          @cancel="closeCreateTaskModal"
+          :on-success="closeCreateTaskModal"
+          :on-cancel="closeCreateTaskModal"
         />
       </BaseModal>
 
@@ -114,9 +113,8 @@
       >
         <CreateTagForm
           :group-id="groupId"
-          :is-loading="tasksStore.isLoading"
-          @submit="handleCreateTag"
-          @cancel="closeCreateTagModal"
+          :on-success="closeCreateTagModal"
+          :on-cancel="closeCreateTagModal"
         />
       </BaseModal>
 
@@ -130,9 +128,8 @@
           v-if="taskToEdit"
           :task="taskToEdit"
           :tags="tasksStore.tags"
-          :is-loading="tasksStore.isLoading"
-          @submit="handleEditTask"
-          @cancel="closeEditTaskModal"
+          :on-success="closeEditTaskModal"
+          :on-cancel="closeEditTaskModal"
         />
       </BaseModal>
 
@@ -246,45 +243,7 @@ const closeFeedbackModal = () => {
   tasksStore.closeFeedback()
 }
 
-// Gestion des tâches
-const handleCreateTask = async (payload: CreateTaskPayload) => {
-  const result = await tasksStore.createTask(payload)
-  
-  if (result.success) {
-    closeCreateTaskModal()
-    // Optionnel: notification de succès
-  } else {
-    // Optionnel: notification d'erreur
-    console.error('Erreur lors de la création de la tâche:', result.error)
-  }
-}
 
-// Gestion des tags
-const handleCreateTag = async (payload: CreateTagPayload) => {
-  const result = await tasksStore.createTag(payload)
-  
-  if (result.success) {
-    closeCreateTagModal()
-    // Optionnel: notification de succès
-  } else {
-    // Optionnel: notification d'erreur
-    console.error('Erreur lors de la création du tag:', result.error)
-  }
-}
-
-const handleEditTask = async (payload: UpdateTaskPayload) => {
-  if (!taskToEdit.value) return
-  
-  const result = await tasksStore.updateTask(taskToEdit.value.id, payload)
-  
-  if (result.success) {
-    closeEditTaskModal()
-    // Optionnel: notification de succès
-  } else {
-    // Optionnel: notification d'erreur
-    console.error('Erreur lors de la modification de la tâche:', result.error)
-  }
-}
 
 const handleTaskEdit = (task: Task) => {
   openEditTaskModal(task)

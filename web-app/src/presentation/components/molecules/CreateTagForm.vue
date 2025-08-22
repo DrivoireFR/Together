@@ -63,15 +63,15 @@
       <BaseButton
         type="button"
         variant="ghost"
-        @click="$emit('cancel')"
-        :disabled="isLoading"
+        @click="handleCancel"
+        :disabled="tasksStore.isLoading"
       >
         Annuler
       </BaseButton>
       <BaseButton
         type="submit"
         variant="primary"
-        :loading="isLoading"
+        :loading="tasksStore.isLoading"
         :disabled="!isFormValid"
       >
         Créer le tag
@@ -83,17 +83,22 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { CreateTagPayload } from '@/domain/types'
+import { useTasksStore } from '@/domain/stores/tasksStore'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 
 interface Props {
   groupId: number
-  isLoading?: boolean
+  onSuccess?: () => void  // Callback for modal closing
+  onCancel?: () => void   // Callback for cancel action
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  isLoading: false
+  onSuccess: () => {},
+  onCancel: () => {}
 })
+
+const tasksStore = useTasksStore()
 
 const formData = ref<CreateTagPayload>({
   label: '',
@@ -134,7 +139,7 @@ const isValidColor = (color: string): boolean => {
   return hexRegex.test(color)
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (!validateForm()) return
   
   const payload: CreateTagPayload = {
@@ -142,7 +147,31 @@ const handleSubmit = () => {
     label: formData.value.label.trim()
   }
   
-  emit('submit', payload)
+  const result = await tasksStore.createTag(payload)
+  
+  if (result.success) {
+    // Reset form
+    formData.value = {
+      label: '',
+      color: '#3B82F6',
+      groupId: props.groupId
+    }
+    errors.value = {}
+    
+    props.onSuccess()
+  }
+}
+
+const handleCancel = () => {
+  // Reset form
+  formData.value = {
+    label: '',
+    color: '#3B82F6',
+    groupId: props.groupId
+  }
+  errors.value = {}
+  
+  props.onCancel()
 }
 
 // Validation en temps réel
@@ -158,10 +187,7 @@ watch(() => formData.value.color, () => {
   }
 })
 
-const emit = defineEmits<{
-  submit: [payload: CreateTagPayload]
-  cancel: []
-}>()
+
 </script>
 
 <style scoped>

@@ -8,11 +8,7 @@
       Inscrivez-vous pour rejoindre des groupes
     </template>
     
-    <RegisterForm
-      :loading="authStore.isLoading"
-      :global-error="authStore.error"
-      @submit="handleRegister"
-    />
+    <RegisterForm />
     
     <template #footer>
       <router-link
@@ -26,22 +22,11 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/domain/stores/authStore'
 import AuthLayout from '@/presentation/layouts/AuthLayout.vue'
 import RegisterForm from '@/presentation/components/molecules/RegisterForm.vue'
 import type { RegisterPayload } from '@/domain/types'
 
-const router = useRouter()
-const authStore = useAuthStore()
 
-const handleRegister = async (payload: RegisterPayload) => {
-  const result = await authStore.register(payload)
-  
-  if (result.success) {
-    router.push('/groups')
-  }
-}
 </script>
 
 <style scoped>

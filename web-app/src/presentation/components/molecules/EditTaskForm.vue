@@ -131,15 +131,15 @@
       <BaseButton
         type="button"
         variant="ghost"
-        @click="$emit('cancel')"
-        :disabled="isLoading"
+        @click="handleCancel"
+        :disabled="tasksStore.isLoading"
       >
         Annuler
       </BaseButton>
       <BaseButton
         type="submit"
         variant="primary"
-        :loading="isLoading"
+        :loading="tasksStore.isLoading"
         :disabled="!isFormValid"
       >
         Modifier la tâche
@@ -151,6 +151,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { type Tag, type Task, UniteFrequence, type UpdateTaskPayload } from '@/domain/types'
+import { useTasksStore } from '@/domain/stores/tasksStore'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import BaseSlider from '../atoms/BaseSlider.vue'
@@ -158,12 +159,16 @@ import BaseSlider from '../atoms/BaseSlider.vue'
 interface Props {
   task: Task
   tags: Tag[]
-  isLoading?: boolean
+  onSuccess?: () => void  // Callback for modal closing
+  onCancel?: () => void   // Callback for cancel action
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  isLoading: false
+  onSuccess: () => {},
+  onCancel: () => {}
 })
+
+const tasksStore = useTasksStore()
 
 const formData = ref<UpdateTaskPayload>({
   label: '',
@@ -241,7 +246,7 @@ const isValidUrl = (url: string): boolean => {
   }
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (!validateForm()) return
   
   // Ne pas inclure groupId dans les données d'update
@@ -254,13 +259,29 @@ const handleSubmit = () => {
     points: formData.value.points
   }
   
-  emit('submit', payload)
+  const result = await tasksStore.updateTask(props.task.id, payload)
+  
+  if (result.success) {
+    props.onSuccess()
+  }
 }
 
-const emit = defineEmits<{
-  submit: [payload: UpdateTaskPayload]
-  cancel: []
-}>()
+const handleCancel = () => {
+  // Reset form to original task data
+  formData.value = {
+    label: props.task.label,
+    frequenceEstimee: props.task.frequenceEstimee,
+    uniteFrequence: props.task.uniteFrequence,
+    iconUrl: props.task.iconUrl || '',
+    tagId: props.task.tag?.id,
+    points: props.task.points
+  }
+  errors.value = {}
+  
+  props.onCancel()
+}
+
+
 </script>
 
 <style scoped>

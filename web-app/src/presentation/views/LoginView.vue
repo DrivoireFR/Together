@@ -8,11 +8,7 @@
       Connectez-vous pour gérer vos groupes
     </template>
     
-    <LoginForm
-      :loading="authStore.isLoading"
-      :global-error="authStore.error"
-      @submit="handleLogin"
-    />
+    <LoginForm />
     
     <template #footer>
       <router-link
@@ -26,22 +22,11 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/domain/stores/authStore'
 import AuthLayout from '@/presentation/layouts/AuthLayout.vue'
 import LoginForm from '@/presentation/components/molecules/LoginForm.vue'
 import type { LoginPayload } from '@/domain/types'
 
-const router = useRouter()
-const authStore = useAuthStore()
 
-const handleLogin = async (payload: LoginPayload) => {
-  const result = await authStore.login(payload)
-  
-  if (result.success) {
-    router.push('/groups')
-  }
-}
 </script>
 
 <style scoped>

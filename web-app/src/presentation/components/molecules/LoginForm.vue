@@ -8,7 +8,7 @@
         label="Adresse email"
         placeholder="exemple@email.com"
         :error="errors.email"
-        :disabled="loading"
+        :disabled="authStore.isLoading"
         required
         :iconBefore="EnvelopeIcon"
       />
@@ -20,20 +20,20 @@
         label="Mot de passe"
         placeholder="••••••••"
         :error="errors.password"
-        :disabled="loading"
+        :disabled="authStore.isLoading"
         required
         :iconBefore="LockClosedIcon"
       />
       
       <!-- Error message -->
-      <div v-if="globalError" class="form-error">
-        {{ globalError }}
+      <div v-if="authStore.error" class="form-error">
+        {{ authStore.error }}
       </div>
       
       <!-- Submit button -->
       <BaseButton
         type="submit"
-        :loading="loading"
+        :loading="authStore.isLoading"
         :disabled="!isFormValid"
         class="form-submit"
       >
@@ -45,23 +45,15 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import { EnvelopeIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
+import { useAuthStore } from '@/domain/stores/authStore'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import type { LoginPayload } from '@/domain/types'
 
-interface Props {
-  loading?: boolean
-  globalError?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  loading: false
-})
-
-const emit = defineEmits<{
-  submit: [payload: LoginPayload]
-}>()
+const router = useRouter()
+const authStore = useAuthStore()
 
 // Form state
 const form = reactive({
@@ -105,16 +97,20 @@ const validatePassword = () => {
   }
 }
 
-// Form submission
-const handleSubmit = () => {
+// Form submission - now directly uses the store
+const handleSubmit = async () => {
   validateEmail()
   validatePassword()
   
   if (isFormValid.value) {
-    emit('submit', {
+    const result = await authStore.login({
       email: form.email.trim(),
       password: form.password
     })
+    
+    if (result.success) {
+      router.push('/groups')
+    }
   }
 }
 </script>
