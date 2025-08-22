@@ -7,7 +7,11 @@ import type {
   UserGroupResponse,
   CreateGroupResponse,
   FetchGroupResponse,
-  JoinGroupPayload
+  JoinGroupPayload,
+  CreateBulkTagsPayload,
+  CreateBulkTasksPayload,
+  CreateBulkTagsResponse,
+  CreateBulkTasksResponse
 } from '@/domain/types'
 
 export class GroupRepository {
@@ -49,6 +53,14 @@ export class GroupRepository {
 
   async deleteGroup(id: number): Promise<ApiResult<void>> {
     return apiClient.delete<void>(`/groups/${id}`)
+  }
+
+  async createBulkTags(groupId: number, payload: CreateBulkTagsPayload): Promise<ApiResult<CreateBulkTagsResponse>> {
+    return apiClient.post<CreateBulkTagsResponse>(`/groups/${groupId}/tags`, payload)
+  }
+
+  async createBulkTasks(groupId: number, payload: CreateBulkTasksPayload): Promise<ApiResult<CreateBulkTasksResponse>> {
+    return apiClient.post<CreateBulkTasksResponse>(`/groups/${groupId}/tasks`, payload)
   }
 }
 
