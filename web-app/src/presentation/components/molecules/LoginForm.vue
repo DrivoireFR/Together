@@ -103,7 +103,6 @@ const handleSubmit = async () => {
   validatePassword()
   
   if (isFormValid.value) {
-    // Direct store call instead of emit
     const result = await authStore.login({
       email: form.email.trim(),
       password: form.password
@@ -112,7 +111,6 @@ const handleSubmit = async () => {
     if (result.success) {
       router.push('/groups')
     }
-    // Error handling is done by the store and displayed via authStore.error
   }
 }
 </script>

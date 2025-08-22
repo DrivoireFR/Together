@@ -120,10 +120,7 @@ import type { RegisterPayload } from '@/shared/types/api'
 const router = useRouter()
 const authStore = useAuthStore()
 
-// Remove the emit definition since we're not emitting anymore
-// const emit = defineEmits<{
-//   submit: [payload: RegisterPayload]
-// }>()
+
 
 // Form state
 const form = reactive({
@@ -251,13 +248,11 @@ const handleSubmit = async () => {
       payload.icone = form.icone.trim()
     }
     
-    // Direct store call instead of emit
     const result = await authStore.register(payload)
     
     if (result.success) {
       router.push('/groups')
     }
-    // Error handling is done by the store and displayed via authStore.error
   }
 }
 </script>

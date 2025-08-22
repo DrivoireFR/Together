@@ -95,7 +95,6 @@ const handleSubmit = async () => {
   validateNom()
   
   if (isFormValid.value) {
-    // Direct store call instead of emit
     const result = await groupStore.createGroup({
       nom: form.nom.trim()
     })
@@ -105,10 +104,8 @@ const handleSubmit = async () => {
       form.nom = ''
       errors.nom = ''
       
-      // Call success callback (for modal closing)
       props.onSuccess()
     }
-    // Error handling is done by the store and displayed via groupStore.error
   }
 }
 
@@ -117,7 +114,6 @@ const handleCancel = () => {
   form.nom = ''
   errors.nom = ''
   
-  // Call cancel callback
   props.onCancel()
 }
 </script>

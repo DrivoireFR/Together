@@ -176,7 +176,7 @@ const handleSearch = () => {
   }
 }
 
-// handleCreateGroup is no longer needed since CreateGroupForm handles creation directly
+
 
 const handleJoinGroup = async (groupId: number) => {
   // Trouver le groupe dans les résultats de recherche
@@ -219,7 +219,7 @@ const cancelJoinGroup = () => {
   joinError.value = ''
 }
 
-// handleLeaveGroup is no longer needed since GroupCard handles leaving directly
+
 
 const handleGroupClick = (group: Group) => {
   groupStore.onGroupClick(group.id)

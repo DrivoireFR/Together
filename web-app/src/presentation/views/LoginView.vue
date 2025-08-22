@@ -25,8 +25,7 @@
 import AuthLayout from '@/presentation/layouts/AuthLayout.vue'
 import LoginForm from '@/presentation/components/molecules/LoginForm.vue'
 
-// No need for router, authStore, or handleLogin anymore
-// since LoginForm handles everything directly
+
 </script>
 
 <style scoped>

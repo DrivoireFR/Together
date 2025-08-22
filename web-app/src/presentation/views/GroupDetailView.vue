@@ -243,8 +243,7 @@ const closeFeedbackModal = () => {
   tasksStore.closeFeedback()
 }
 
-// Form handlers are no longer needed since forms handle store calls directly
-// The forms now use callback props (onSuccess/onCancel) for modal management
+
 
 const handleTaskEdit = (task: Task) => {
   openEditTaskModal(task)

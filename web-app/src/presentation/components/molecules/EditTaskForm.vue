@@ -259,14 +259,11 @@ const handleSubmit = async () => {
     points: formData.value.points
   }
   
-  // Direct store call instead of emit
   const result = await tasksStore.updateTask(props.task.id, payload)
   
   if (result.success) {
-    // Call success callback (for modal closing)
     props.onSuccess()
   }
-  // Error handling is done by the store and displayed via tasksStore.error
 }
 
 const handleCancel = () => {
@@ -281,15 +278,10 @@ const handleCancel = () => {
   }
   errors.value = {}
   
-  // Call cancel callback
   props.onCancel()
 }
 
-// Remove the old emit definition
-// const emit = defineEmits<{
-//   submit: [payload: UpdateTaskPayload]
-//   cancel: []
-// }>()
+
 </script>
 
 <style scoped>

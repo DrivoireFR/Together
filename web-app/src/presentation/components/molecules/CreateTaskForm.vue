@@ -248,7 +248,6 @@ const handleSubmit = async () => {
     tagId: formData.value.tagId || undefined
   }
   
-  // Direct store call instead of emit
   const result = await tasksStore.createTask(payload)
   
   if (result.success) {
@@ -264,10 +263,8 @@ const handleSubmit = async () => {
     }
     errors.value = {}
     
-    // Call success callback (for modal closing)
     props.onSuccess()
   }
-  // Error handling is done by the store and displayed via tasksStore.error
 }
 
 const handleCancel = () => {
@@ -283,7 +280,6 @@ const handleCancel = () => {
   }
   errors.value = {}
   
-  // Call cancel callback
   props.onCancel()
 }
 
@@ -312,11 +308,7 @@ watch(() => formData.value.iconUrl, () => {
   }
 })
 
-// Remove the old emit definition
-// const emit = defineEmits<{
-//   submit: [payload: CreateTaskPayload]
-//   cancel: []
-// }>()
+
 </script>
 
 <style scoped>

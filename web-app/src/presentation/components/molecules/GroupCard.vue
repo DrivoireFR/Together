@@ -142,7 +142,6 @@ const handleJoin = async () => {
     return
   }
   
-  // Direct store call for joining
   const result = await groupStore.joinGroup(props.group.id, props.joinCode)
   
   if (result.success) {
@@ -151,14 +150,11 @@ const handleJoin = async () => {
       await groupStore.getUserGroups(authStore.user.id)
     }
   }
-  // Error handling is done by the store and displayed via groupStore.error
 }
 
 const handleLeave = async () => {
   if (confirm('Êtes-vous sûr de vouloir quitter ce groupe ?')) {
-    // Direct store call for leaving
-    const result = await groupStore.leaveGroup(props.group.id)
-    // The store handles updating the groups list automatically
+    await groupStore.leaveGroup(props.group.id)
   }
 }
 

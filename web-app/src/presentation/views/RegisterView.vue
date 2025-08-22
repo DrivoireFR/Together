@@ -25,8 +25,7 @@
 import AuthLayout from '@/presentation/layouts/AuthLayout.vue'
 import RegisterForm from '@/presentation/components/molecules/RegisterForm.vue'
 
-// No need for router, authStore, or handleRegister anymore
-// since RegisterForm handles everything directly
+
 </script>
 
 <style scoped>
