@@ -24,6 +24,7 @@
 <script setup lang="ts">
 import AuthLayout from '@/presentation/layouts/AuthLayout.vue'
 import RegisterForm from '@/presentation/components/molecules/RegisterForm.vue'
+import type { RegisterPayload } from '@/domain/types'
 
 
 </script>

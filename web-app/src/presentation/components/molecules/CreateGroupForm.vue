@@ -48,7 +48,7 @@ import { UserGroupIcon } from '@heroicons/vue/24/outline'
 import { useGroupStore } from '@/domain/stores/groupStore'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
-import type { CreateGroupPayload } from '@/shared/types/api'
+import type { CreateGroupPayload } from '@/domain/types'
 
 interface Props {
   onSuccess?: () => void  // Callback for modal closing

@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Task, Tag } from '@/shared/types/api'
+import type { Task, Tag } from '@/domain/types'
 import { difficultyDescriptions } from '@/shared/constants'
 import TagChip from './TagChip.vue'
 import BaseButton from './BaseButton.vue'

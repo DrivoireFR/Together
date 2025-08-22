@@ -50,7 +50,7 @@ import { EnvelopeIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/domain/stores/authStore'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
-import type { LoginPayload } from '@/shared/types/api'
+import type { LoginPayload } from '@/domain/types'
 
 const router = useRouter()
 const authStore = useAuthStore()

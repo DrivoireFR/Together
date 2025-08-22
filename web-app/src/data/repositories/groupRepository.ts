@@ -8,7 +8,7 @@ import type {
   CreateGroupResponse,
   FetchGroupResponse,
   JoinGroupPayload
-} from '@/shared/types/api'
+} from '@/domain/types'
 
 export class GroupRepository {
   async getAllGroups(): Promise<ApiResult<Group[]>> {

@@ -115,7 +115,7 @@ import {
 import { useAuthStore } from '@/domain/stores/authStore'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
-import type { RegisterPayload } from '@/shared/types/api'
+import type { RegisterPayload } from '@/domain/types'
 
 const router = useRouter()
 const authStore = useAuthStore()

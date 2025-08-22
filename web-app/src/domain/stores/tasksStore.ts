@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { taskRepository } from '@/data/repositories/taskRepository'
 import { statsRepository } from '@/data/repositories/statsRepository'
-import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload, GroupStatistics, UpdateTaskPayload } from '@/shared/types/api'
+import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload, GroupStatistics, UpdateTaskPayload } from '../types'
 
 export const useTasksStore = defineStore('tasks', () => {
   // State

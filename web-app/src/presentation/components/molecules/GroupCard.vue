@@ -98,7 +98,7 @@ import { useGroupStore } from '@/domain/stores/groupStore'
 import { useAuthStore } from '@/domain/stores/authStore'
 import BaseCard from '@/presentation/components/atoms/BaseCard.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
-import type { Group } from '@/shared/types/api'
+import type { Group } from '@/domain/types'
 
 interface Props {
   group: Group

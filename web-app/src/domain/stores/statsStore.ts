@@ -5,7 +5,7 @@ import type {
     GroupStatistics,
     Overview,
     PersonalGoal,
-} from '@/shared/types/api'
+} from '../types'
 
 export const useStatsStore = defineStore('stats', () => {
     // États

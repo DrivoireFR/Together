@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Tag } from '@/shared/types/api'
+import type { Tag } from '@/domain/types'
 
 interface Props {
   tag: Tag

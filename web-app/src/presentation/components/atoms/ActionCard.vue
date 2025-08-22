@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Action } from '@/shared/types/api'
+import type { Action } from '@/domain/types'
 import { useAuthStore } from '@/domain/stores/authStore'
 import { useTasksStore } from '@/domain/stores/tasksStore'
 import TagChip from './TagChip.vue'
