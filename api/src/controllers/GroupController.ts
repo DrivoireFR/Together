@@ -5,9 +5,11 @@ import { Group } from '../entities/Group';
 import { User } from '../entities/User';
 import { AuthRequest } from '../middleware/auth';
 import { StarterPackService, StarterPackTag, StarterPackTask } from '../services/StarterPackService';
+import { HotActionsService } from '../services/HotActionsService';
 
 export class GroupController {
   private starterPackService = new StarterPackService();
+  private hotActionsService = new HotActionsService();
 
   async create(req: AuthRequest, res: Response) {
     try {
@@ -176,10 +178,26 @@ export class GroupController {
         });
       }
 
-      // Enrichir les tâches avec l'état de l'utilisateur actuel
+      // Récupérer les Hot Actions pour ce groupe
+      const tasksWithHurryState = await this.hotActionsService.getTasksWithHurryState(parseInt(id));
+      
+      // Créer un mapping des HurryState par tâche pour faciliter l'enrichissement
+      const hurryStateByTask = tasksWithHurryState.reduce((acc, taskWithHurry) => {
+        acc[taskWithHurry.id] = {
+          hurryState: taskWithHurry.hurryState,
+          expectedActionsAtDate: taskWithHurry.expectedActionsAtDate,
+          actualActionsThisMonth: taskWithHurry.actualActionsThisMonth,
+          actionsLate: taskWithHurry.actionsLate
+        };
+        return acc;
+      }, {} as Record<number, any>);
+
+      // Enrichir les tâches avec l'état de l'utilisateur actuel ET le HurryState
       if (group.tasks) {
         group.tasks = group.tasks.map((task: any) => {
           const userTaskState = task.userStates?.find((state: any) => state.user.id === userId);
+          const hurryInfo = hurryStateByTask[task.id];
+          
           return {
             ...task,
             userTaskState: userTaskState ? {
@@ -191,18 +209,75 @@ export class GroupController {
               createdAt: userTaskState.createdAt,
               updatedAt: userTaskState.updatedAt
             } : null,
+            // Ajouter les informations Hot Actions
+            hurryState: hurryInfo?.hurryState || 'nope',
+            expectedActionsAtDate: hurryInfo?.expectedActionsAtDate || 0,
+            actualActionsThisMonth: hurryInfo?.actualActionsThisMonth || 0,
+            actionsLate: hurryInfo?.actionsLate || 0,
             // Supprimer la relation userStates du JSON de réponse pour éviter la surcharge
             userStates: undefined
           };
         });
       }
 
+      // Séparer les Hot Actions pour un accès rapide
+      const hotTasks = tasksWithHurryState.filter(task => 
+        task.hurryState === 'maybe' || task.hurryState === 'yes'
+      );
+
       res.json({
         message: 'Groupe récupéré avec succès',
-        group
+        group,
+        hotActions: {
+          count: hotTasks.length,
+          tasks: hotTasks
+        }
       });
     } catch (error) {
       console.error('Erreur lors de la récupération du groupe:', error);
+      res.status(500).json({
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+  async getHotActions(req: AuthRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+      const groupRepository = AppDataSource.getRepository(Group);
+
+      // Vérifier que l'utilisateur est membre du groupe
+      const group = await groupRepository.findOne({
+        where: { id: parseInt(id) },
+        relations: ['users']
+      });
+
+      if (!group) {
+        return res.status(404).json({
+          message: 'Groupe non trouvé'
+        });
+      }
+
+      const isMember = group.users.some(user => user.id === userId);
+      if (!isMember) {
+        return res.status(403).json({
+          message: 'Vous devez être membre du groupe pour voir les Hot Actions'
+        });
+      }
+
+      // Récupérer uniquement les tâches en retard
+      const hotTasks = await this.hotActionsService.getHotTasks(parseInt(id));
+
+      res.json({
+        message: 'Hot Actions récupérées avec succès',
+        hotActions: {
+          count: hotTasks.length,
+          tasks: hotTasks
+        }
+      });
+    } catch (error) {
+      console.error('Erreur lors de la récupération des Hot Actions:', error);
       res.status(500).json({
         message: 'Erreur interne du serveur'
       });
