@@ -56,34 +56,17 @@ const router = createRouter({
   ]
 })
 
-// // Navigation guards
+// Navigation guards
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // Si l'authStore est en cours de chargement (initialisation), attendre
-  if (authStore.isLoading) {
-    // Attendre que le chargement soit terminé
-    const checkLoading = () => {
-      return new Promise<void>((resolve) => {
-        const interval = setInterval(() => {
-          if (!authStore.isLoading) {
-            clearInterval(interval)
-            resolve()
-          }
-        }, 10)
-      })
-    }
-    await checkLoading()
-  }
-
+  // Plus besoin de vérifier isLoading car l'init est terminée avant le mount
   const requiresAuth = to.meta.requiresAuth !== false
   const isAuthenticated = authStore.isAuthenticated
 
   if (requiresAuth && !isAuthenticated) {
-    // Redirect to login if authentication is required
     next('/login')
   } else if ((to.path === '/login' || to.path === '/register') && isAuthenticated) {
-    // Redirect to dashboard if already authenticated
     next('/groups')
   } else {
     next()

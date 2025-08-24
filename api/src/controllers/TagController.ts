@@ -6,7 +6,7 @@ import { Group } from '../entities/Group';
 import { AuthRequest } from '../middleware/auth';
 
 export class TagController {
-  async create(req: AuthRequest, res: Response) {
+  create = async (req: AuthRequest, res: Response) => {
     try {
       const { label, color, groupId } = req.body;
 
@@ -83,7 +83,7 @@ export class TagController {
     }
   }
 
-  async getAll(req: AuthRequest, res: Response) {
+  getAll = async (req: AuthRequest, res: Response) => {
     try {
       const tagRepository = AppDataSource.getRepository(Tag);
       const tags = await tagRepository.find({
@@ -102,7 +102,7 @@ export class TagController {
     }
   }
 
-  async getByGroupId(req: AuthRequest, res: Response) {
+  getByGroupId = async (req: AuthRequest, res: Response) => {
     try {
       const { groupId } = req.params;
       const tagRepository = AppDataSource.getRepository(Tag);
@@ -146,11 +146,11 @@ export class TagController {
     }
   }
 
-  async getById(req: AuthRequest, res: Response) {
+  getById = async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
       const tagRepository = AppDataSource.getRepository(Tag);
-      
+
       const tag = await tagRepository.findOne({
         where: { id: parseInt(id) },
         relations: ['group', 'tasks']
@@ -195,14 +195,14 @@ export class TagController {
     }
   }
 
-  async update(req: AuthRequest, res: Response) {
+  update = async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
       const { label, color } = req.body;
 
       const tagRepository = AppDataSource.getRepository(Tag);
       const groupRepository = AppDataSource.getRepository(Group);
-      
+
       const tag = await tagRepository.findOne({
         where: { id: parseInt(id) },
         relations: ['group']
@@ -276,12 +276,12 @@ export class TagController {
     }
   }
 
-  async delete(req: AuthRequest, res: Response) {
+  delete = async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
       const tagRepository = AppDataSource.getRepository(Tag);
       const groupRepository = AppDataSource.getRepository(Group);
-      
+
       const tag = await tagRepository.findOne({
         where: { id: parseInt(id) },
         relations: ['group', 'tasks']

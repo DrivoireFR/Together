@@ -6,7 +6,7 @@ import { AuthRequest } from '../middleware/auth';
 
 export class UserController {
   // GET /api/users - Récupérer tous les utilisateurs
-  async getAllUsers(req: Request, res: Response) {
+  getAllUsers = async (req: Request, res: Response) => {
     try {
       const userRepository = AppDataSource.getRepository(User);
       const users = await userRepository.find({
@@ -26,7 +26,7 @@ export class UserController {
   }
 
   // GET /api/users/:id - Récupérer un utilisateur par ID
-  async getUserById(req: Request, res: Response) {
+  getUserById = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const userRepository = AppDataSource.getRepository(User);
@@ -54,7 +54,7 @@ export class UserController {
   }
 
   // GET /api/users/me - Récupérer le profil de l'utilisateur connecté
-  async getProfile(req: AuthRequest, res: Response) {
+  getProfile = async (req: AuthRequest, res: Response) => {
     try {
       if (!req.user) {
         return res.status(401).json({
@@ -77,7 +77,7 @@ export class UserController {
   }
 
   // PUT /api/users/:id - Mettre à jour un utilisateur
-  async updateUser(req: Request, res: Response) {
+  updateUser = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const { nom, prenom, pseudo, email, icone } = req.body;
@@ -146,7 +146,7 @@ export class UserController {
   }
 
   // PUT /api/users/me - Mettre à jour le profil de l'utilisateur connecté
-  async updateProfile(req: AuthRequest, res: Response) {
+  updateProfile = async (req: AuthRequest, res: Response) => {
     try {
       if (!req.user) {
         return res.status(401).json({
@@ -212,7 +212,7 @@ export class UserController {
   }
 
   // DELETE /api/users/:id - Supprimer un utilisateur
-  async deleteUser(req: Request, res: Response) {
+  deleteUser = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const userRepository = AppDataSource.getRepository(User);

@@ -9,7 +9,7 @@ import { StarterPackService, StarterPackTag, StarterPackTask } from '../services
 export class GroupController {
   private starterPackService = new StarterPackService();
 
-  async create(req: AuthRequest, res: Response) {
+  create = async (req: AuthRequest, res: Response) => {
     try {
       const { nom } = req.body;
 
@@ -72,7 +72,7 @@ export class GroupController {
     }
   }
 
-  async getAll(req: AuthRequest, res: Response) {
+  getAll = async (req: AuthRequest, res: Response) => {
     try {
       const groupRepository = AppDataSource.getRepository(Group);
       const groups = await groupRepository.find({
@@ -91,7 +91,7 @@ export class GroupController {
     }
   }
 
-  async getUserGroups(req: AuthRequest, res: Response) {
+  getUserGroups = async (req: AuthRequest, res: Response) => {
     try {
       const { userId } = req.params;
 
@@ -147,7 +147,7 @@ export class GroupController {
     }
   }
 
-  async getById(req: AuthRequest, res: Response) {
+  getById = async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
       const userId = req.user!.id;
@@ -209,7 +209,7 @@ export class GroupController {
     }
   }
 
-  async searchByName(req: AuthRequest, res: Response) {
+  searchByName = async (req: AuthRequest, res: Response) => {
     try {
       const { nom } = req.query;
 
@@ -241,7 +241,7 @@ export class GroupController {
     }
   }
 
-  async searchByUserEmail(req: AuthRequest, res: Response) {
+  searchByUserEmail = async (req: AuthRequest, res: Response) => {
     try {
       const { email } = req.query;
 
@@ -273,7 +273,7 @@ export class GroupController {
     }
   }
 
-  async joinGroup(req: AuthRequest, res: Response) {
+  joinGroup = async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
       const userId = req.user!.id;
@@ -342,7 +342,7 @@ export class GroupController {
     }
   }
 
-  async leaveGroup(req: AuthRequest, res: Response) {
+  leaveGroup = async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
       const userId = req.user!.id;
@@ -383,7 +383,7 @@ export class GroupController {
     }
   }
 
-  async update(req: AuthRequest, res: Response) {
+  update = async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
       const { nom } = req.body;
@@ -439,7 +439,7 @@ export class GroupController {
     }
   }
 
-  async delete(req: AuthRequest, res: Response) {
+  delete = async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
       const groupRepository = AppDataSource.getRepository(Group);
@@ -490,9 +490,9 @@ export class GroupController {
   /**
    * Add a list of tags to a group
    */
-  async addTags(req: AuthRequest, res: Response) {
+  addTags = async (req: AuthRequest, res: Response) => {
     try {
-      const { groupId } = req.params;
+      const { id } = req.params;
       const { tags } = req.body;
 
       if (!tags || !Array.isArray(tags)) {
@@ -502,10 +502,10 @@ export class GroupController {
       }
 
       const groupRepository = AppDataSource.getRepository(Group);
-      
+
       // Vérifier si le groupe existe
       const group = await groupRepository.findOne({
-        where: { id: parseInt(groupId) },
+        where: { id: parseInt(id) },
         relations: ['users']
       });
 
@@ -551,9 +551,9 @@ export class GroupController {
   /**
    * Add a list of tasks to a group with proper tag categorization
    */
-  async addTasks(req: AuthRequest, res: Response) {
+  addTasks = async (req: AuthRequest, res: Response) => {
     try {
-      const { groupId } = req.params;
+      const { id } = req.params;
       const { tasks } = req.body;
 
       if (!tasks || !Array.isArray(tasks)) {
@@ -563,10 +563,10 @@ export class GroupController {
       }
 
       const groupRepository = AppDataSource.getRepository(Group);
-      
+
       // Vérifier si le groupe existe
       const group = await groupRepository.findOne({
-        where: { id: parseInt(groupId) },
+        where: { id: parseInt(id) },
         relations: ['users']
       });
 

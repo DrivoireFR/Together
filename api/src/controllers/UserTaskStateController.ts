@@ -6,7 +6,7 @@ import { User } from '../entities/User';
 import { AuthRequest } from '../middleware/auth';
 
 export class UserTaskStateController {
-  async updateTaskState(req: AuthRequest, res: Response) {
+  updateTaskState = async (req: AuthRequest, res: Response) => {
     try {
       const { taskId } = req.params;
       const { isAcknowledged, isConcerned } = req.body;
@@ -86,15 +86,15 @@ export class UserTaskStateController {
     }
   }
 
-  async getUserTaskStates(req: AuthRequest, res: Response) {
+  getUserTaskStates = async (req: AuthRequest, res: Response) => {
     try {
       const { groupId } = req.params;
       const userId = req.user!.id;
 
       const userTaskStateRepository = AppDataSource.getRepository(UserTaskState);
-      
+
       const userTaskStates = await userTaskStateRepository.find({
-        where: { 
+        where: {
           user: { id: userId },
           task: { group: { id: parseInt(groupId) } }
         },
