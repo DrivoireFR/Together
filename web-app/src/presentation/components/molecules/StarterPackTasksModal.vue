@@ -14,7 +14,7 @@
       <div class="tasks-by-category">
         <div
           v-for="category in categoriesWithTasks"
-          :key="category.tag.id"
+          :key="category.tag.label"
           class="category-section"
         >
           <div class="category-header">
@@ -129,17 +129,17 @@ const isLoading = ref(false)
 const error = ref<string>('')
 
 const categoriesWithTasks = computed(() => {
-  const categories = new Map<number, { tag: Tag; tasks: StarterPackTask[] }>()
+  const categories = new Map<string, { tag: Tag; tasks: StarterPackTask[] }>()
   
   props.availableTasks.forEach(task => {
-    const tagId = task.tag.id
-    if (!categories.has(tagId)) {
-      categories.set(tagId, {
+    const tagKey = (task.tag?.label || '').trim()
+    if (!categories.has(tagKey)) {
+      categories.set(tagKey, {
         tag: task.tag,
         tasks: []
       })
     }
-    categories.get(tagId)!.tasks.push(task)
+    categories.get(tagKey)!.tasks.push(task)
   })
   
   return Array.from(categories.values())
@@ -185,7 +185,7 @@ const handleValidate = async () => {
       frequenceEstimee: task.frequenceEstimee,
       uniteFrequence: task.uniteFrequence,
       points: task.points,
-      tagLabel: task.tag.label
+      tagLabel: (task.tag?.label || '').trim()
     }))
 
     const result = await groupStore.createBulkTasks(props.groupId, tasksToCreate)
