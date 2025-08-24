@@ -132,11 +132,42 @@
         </div>
       </div>
     </div>
+
+    <!-- StarterPack Flow Modals -->
+    <GroupCreatedModal
+      v-if="showGroupCreatedModal"
+      :isOpen="showGroupCreatedModal"
+      :groupName="createdGroupName"
+      :groupCode="createdGroupCode"
+      :availableTags="availableStarterPackTags"
+      :availableTasks="availableStarterPackTasks"
+      @startSetup="startStarterPackSetup"
+      @skip="skipStarterPackSetup"
+      @close="closeGroupCreatedModal"
+    />
+
+    <StarterPackTagsModal
+      v-if="showTagsModal"
+      :isOpen="showTagsModal"
+      :availableTags="availableStarterPackTags"
+      :groupId="createdGroupId || 0"
+      @success="handleTagsCreated"
+      @close="closeTagsModal"
+    />
+
+    <StarterPackTasksModal
+      v-if="showTasksModal"
+      :isOpen="showTasksModal"
+      :availableTasks="availableStarterPackTasksWithTags"
+      :groupId="createdGroupId || 0"
+      @success="handleTasksCreated"
+      @close="closeTasksModal"
+    />
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   PlusIcon, 
@@ -150,7 +181,10 @@ import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import GroupCard from '@/presentation/components/molecules/GroupCard.vue'
 import CreateGroupForm from '@/presentation/components/molecules/CreateGroupForm.vue'
-import type { Group, CreateGroupPayload } from '@/domain/types'
+import GroupCreatedModal from '@/presentation/components/molecules/GroupCreatedModal.vue'
+import StarterPackTagsModal from '@/presentation/components/molecules/StarterPackTagsModal.vue'
+import StarterPackTasksModal from '@/presentation/components/molecules/StarterPackTasksModal.vue'
+import type { Group, Tag } from '@/domain/types'
 
 const router = useRouter()
 const groupStore = useGroupStore()
@@ -164,8 +198,50 @@ const groupToJoin = ref<Group | null>(null)
 const joinCode = ref('')
 const joinError = ref('')
 
+// StarterPack flow state
+const showGroupCreatedModal = ref(false)
+const showTagsModal = ref(false)
+const showTasksModal = ref(false)
+const createdGroupId = ref<number | null>(null)
+
 // Computed
 const searchResults = computed(() => groupStore.searchResults)
+
+const availableStarterPackTags = computed(() => {
+  return groupStore.createdGroupData?.starterPack.tags || []
+})
+
+const availableStarterPackTasks = computed(() => {
+  return groupStore.createdGroupData?.starterPack.tasks || []
+})
+
+const availableStarterPackTasksWithTags = computed(() => {
+  const starterPack = groupStore.createdGroupData?.starterPack
+  if (!starterPack) return []
+
+  return starterPack.tasks.map((task: any, index: number) => {
+    const associatedTag = starterPack.tags.find(tag => tag.label === task.tagLabel)
+    return {
+      id: task.id || index + 1000,
+      label: task.label,
+      frequenceEstimee: task.frequenceEstimee,
+      uniteFrequence: task.uniteFrequence,
+      points: task.points,
+      tag: associatedTag || starterPack.tags[0]
+    }
+  })
+})
+
+const createdGroupName = computed(() => groupStore.createdGroupData?.group.nom || '')
+const createdGroupCode = computed(() => groupStore.createdGroupData?.group.code || '')
+
+// Watch group creation to start StarterPack flow
+watch(() => groupStore.createdGroupData, (val) => {
+  if (val && val.group && val.starterPack) {
+    createdGroupId.value = val.group.id
+    showGroupCreatedModal.value = true
+  }
+})
 
 // Methods
 const handleSearch = () => {
@@ -176,10 +252,7 @@ const handleSearch = () => {
   }
 }
 
-
-
 const handleJoinGroup = async (groupId: number) => {
-  // Trouver le groupe dans les résultats de recherche
   const group = searchResults.value.find(g => g.id === groupId)
   if (!group) return
   
@@ -198,7 +271,6 @@ const handleJoinGroupWithCode = async () => {
   try {
     const result = await groupStore.joinGroup(groupToJoin.value.id, joinCode.value.trim())
     if (result.success) {
-      // Remove from search results since user joined
       groupStore.clearSearchResults()
       searchQuery.value = ''
       showJoinForm.value = false
@@ -219,15 +291,55 @@ const cancelJoinGroup = () => {
   joinError.value = ''
 }
 
-
-
 const handleGroupClick = (group: Group) => {
   groupStore.onGroupClick(group.id)
 }
 
 const handleGroupMenu = (group: Group) => {
-  // TODO: Implement group menu (edit, delete, etc.)
   console.log('Group menu:', group)
+}
+
+// StarterPack flow handlers
+const startStarterPackSetup = () => {
+  closeGroupCreatedModal()
+  showTagsModal.value = true
+}
+
+const skipStarterPackSetup = () => {
+  closeGroupCreatedModal()
+  if (createdGroupId.value) {
+    groupStore.skipGroupSetup(createdGroupId.value)
+  }
+  resetStarterPackFlow()
+}
+
+const handleTagsCreated = () => {
+  closeTagsModal()
+  showTasksModal.value = true
+}
+
+const handleTasksCreated = () => {
+  closeTasksModal()
+  if (createdGroupId.value) {
+    groupStore.finishGroupSetup(createdGroupId.value)
+  }
+  resetStarterPackFlow()
+}
+
+const closeGroupCreatedModal = () => {
+  showGroupCreatedModal.value = false
+}
+
+const closeTagsModal = () => {
+  showTagsModal.value = false
+}
+
+const closeTasksModal = () => {
+  showTasksModal.value = false
+}
+
+const resetStarterPackFlow = () => {
+  createdGroupId.value = null
 }
 
 // Lifecycle

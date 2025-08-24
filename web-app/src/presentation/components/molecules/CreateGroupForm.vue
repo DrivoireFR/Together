@@ -173,8 +173,10 @@ const handleSubmit = async () => {
     })
     
     if (result.success) {
-      // Stocker le groupe créé
-      createdGroup.value = result.group.group
+      // Stocker le groupe créé si présent
+      if ((result as any).group?.group) {
+        createdGroup.value = (result as any).group.group
+      }
       
       // Reset form
       form.nom = ''
