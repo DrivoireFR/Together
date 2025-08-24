@@ -67,7 +67,7 @@
 import { ref, computed } from 'vue'
 import BaseModal from '@/presentation/components/atoms/BaseModal.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
-import { groupRepository } from '@/data/repositories/groupRepository'
+import { useGroupStore } from '@/domain/stores/groupStore'
 import type { Tag } from '@/domain/types'
 
 interface Props {
@@ -78,11 +78,12 @@ interface Props {
 
 interface Emits {
   close: []
-  success: [selectedTags: Tag[]]
+  success: [createdTags: Tag[]]
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+const groupStore = useGroupStore()
 
 const selectedTags = ref<Set<number>>(new Set())
 const isLoading = ref(false)
@@ -113,15 +114,13 @@ const handleValidate = async () => {
       color: tag.color
     }))
 
-    const result = await groupRepository.createBulkTags(props.groupId, {
-      tags: tagsToCreate
-    })
+    const result = await groupStore.createBulkTags(props.groupId, tagsToCreate)
 
-    if (result.isSuccess) {
-      emit('success', result.data.tags)
-      handleClose()
+    if (result.success) {
+      emit('success', result.tags as unknown as Tag[])
+      groupStore.afterTagsCreated()
     } else {
-      error.value = result.message || 'Erreur lors de la création des catégories'
+      error.value = result.error || 'Erreur lors de la création des catégories'
     }
   } catch (err) {
     error.value = 'Erreur lors de la création des catégories'

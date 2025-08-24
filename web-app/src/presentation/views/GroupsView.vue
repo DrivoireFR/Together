@@ -135,33 +135,33 @@
 
     <!-- StarterPack Flow Modals -->
     <GroupCreatedModal
-      v-if="showGroupCreatedModal"
-      :isOpen="showGroupCreatedModal"
+      v-if="groupStore.showGroupCreatedModal"
+      :isOpen="groupStore.showGroupCreatedModal"
       :groupName="createdGroupName"
       :groupCode="createdGroupCode"
       :availableTags="availableStarterPackTags"
       :availableTasks="availableStarterPackTasks"
-      @startSetup="startStarterPackSetup"
-      @skip="skipStarterPackSetup"
-      @close="closeGroupCreatedModal"
+      @startSetup="groupStore.startStarterPackSetup()"
+      @skip="groupStore.skipGroupSetup(groupStore.createdGroupId || 0)"
+      @close="groupStore.closeGroupCreatedModal()"
     />
 
     <StarterPackTagsModal
-      v-if="showTagsModal"
-      :isOpen="showTagsModal"
+      v-if="groupStore.showStarterPackTagsModal"
+      :isOpen="groupStore.showStarterPackTagsModal"
       :availableTags="availableStarterPackTags"
-      :groupId="createdGroupId || 0"
-      @success="handleTagsCreated"
-      @close="closeTagsModal"
+      :groupId="groupStore.createdGroupId || 0"
+      @success="() => {}"
+      @close="groupStore.closeStarterPackTagsModal()"
     />
 
     <StarterPackTasksModal
-      v-if="showTasksModal"
-      :isOpen="showTasksModal"
+      v-if="groupStore.showStarterPackTasksModal"
+      :isOpen="groupStore.showStarterPackTasksModal"
       :availableTasks="availableStarterPackTasksWithTags"
-      :groupId="createdGroupId || 0"
-      @success="handleTasksCreated"
-      @close="closeTasksModal"
+      :groupId="groupStore.createdGroupId || 0"
+      @success="() => groupStore.finishGroupSetup(groupStore.createdGroupId || 0)"
+      @close="groupStore.closeStarterPackTasksModal()"
     />
   </AppLayout>
 </template>

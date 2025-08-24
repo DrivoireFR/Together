@@ -96,8 +96,8 @@
 import { ref, computed } from 'vue'
 import BaseModal from '@/presentation/components/atoms/BaseModal.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
-import { groupRepository } from '@/data/repositories/groupRepository'
-import type { Tag, Task } from '@/domain/types'
+import { useGroupStore } from '@/domain/stores/groupStore'
+import type { Tag } from '@/domain/types'
 
 // Type pour les tâches du StarterPack (plus simple que les Task complètes)
 interface StarterPackTask {
@@ -117,11 +117,12 @@ interface Props {
 
 interface Emits {
   close: []
-  success: [selectedTasks: Task[]]
+  success: []
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+const groupStore = useGroupStore()
 
 const selectedTasks = ref<Set<number>>(new Set())
 const isLoading = ref(false)
@@ -187,15 +188,12 @@ const handleValidate = async () => {
       tagLabel: task.tag.label
     }))
 
-    const result = await groupRepository.createBulkTasks(props.groupId, {
-      tasks: tasksToCreate
-    })
+    const result = await groupStore.createBulkTasks(props.groupId, tasksToCreate)
 
-    if (result.isSuccess) {
-      emit('success', result.data.tasks)
-      handleClose()
+    if (result.success) {
+      emit('success')
     } else {
-      error.value = result.message || 'Erreur lors de la création des tâches'
+      error.value = result.error || 'Erreur lors de la création des tâches'
     }
   } catch (err) {
     error.value = 'Erreur lors de la création des tâches'

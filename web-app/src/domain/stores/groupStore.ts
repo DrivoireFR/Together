@@ -20,6 +20,12 @@ export const useGroupStore = defineStore('group', () => {
   // StarterPacks state
   const currentStarterPack = ref<StarterPack | null>(null)
   const createdGroupData = ref<{ group: Group; starterPack: StarterPack } | null>(null)
+  const createdGroupId = ref<number | null>(null)
+  
+  // StarterPacks modal state
+  const showGroupCreatedModal = ref(false)
+  const showStarterPackTagsModal = ref(false)
+  const showStarterPackTasksModal = ref(false)
 
   // Getters
   const groupsCount = computed(() => groups.value.length)
@@ -72,6 +78,10 @@ export const useGroupStore = defineStore('group', () => {
           group: result.data.group,
           starterPack: result.data.starterPack
         }
+        createdGroupId.value = result.data.group.id
+        
+        // Ouvrir la première modale du flow
+        openGroupCreatedModal()
         
         return { success: true, group: result.data }
       } else {
@@ -85,6 +95,63 @@ export const useGroupStore = defineStore('group', () => {
     } finally {
       isLoading.value = false
     }
+  }
+
+  // Modal flow actions
+  const openGroupCreatedModal = () => {
+    showGroupCreatedModal.value = true
+  }
+  const closeGroupCreatedModal = () => {
+    showGroupCreatedModal.value = false
+  }
+
+  const openStarterPackTagsModal = () => {
+    showStarterPackTagsModal.value = true
+  }
+  const closeStarterPackTagsModal = () => {
+    showStarterPackTagsModal.value = false
+  }
+
+  const openStarterPackTasksModal = () => {
+    showStarterPackTasksModal.value = true
+  }
+  const closeStarterPackTasksModal = () => {
+    showStarterPackTasksModal.value = false
+  }
+
+  const startStarterPackSetup = () => {
+    closeGroupCreatedModal()
+    openStarterPackTagsModal()
+  }
+
+  const afterTagsCreated = () => {
+    closeStarterPackTagsModal()
+    openStarterPackTasksModal()
+  }
+
+  const finishGroupSetup = (groupId: number) => {
+    // Nettoyer les données temporaires et fermer les modales
+    resetStarterPackFlow()
+    
+    // Rediriger vers le groupe
+    navigateToGroup(groupId)
+  }
+
+  const skipGroupSetup = (groupId: number) => {
+    // Nettoyer les données temporaires et fermer les modales
+    resetStarterPackFlow()
+    
+    // Rediriger vers le groupe
+    navigateToGroup(groupId)
+  }
+
+  const resetStarterPackFlow = () => {
+    closeGroupCreatedModal()
+    closeStarterPackTagsModal()
+    closeStarterPackTasksModal()
+    currentStarterPack.value = null
+    createdGroupData.value = null
+    createdGroupId.value = null
   }
 
   const createBulkTags = async (groupId: number, tags: { label: string; color: string }[]) => {
@@ -141,24 +208,6 @@ export const useGroupStore = defineStore('group', () => {
     } finally {
       isLoading.value = false
     }
-  }
-
-  const finishGroupSetup = (groupId: number) => {
-    // Nettoyer les données temporaires
-    currentStarterPack.value = null
-    createdGroupData.value = null
-    
-    // Rediriger vers le groupe
-    navigateToGroup(groupId)
-  }
-
-  const skipGroupSetup = (groupId: number) => {
-    // Nettoyer les données temporaires
-    currentStarterPack.value = null
-    createdGroupData.value = null
-    
-    // Rediriger vers le groupe
-    navigateToGroup(groupId)
   }
 
   const navigateToGroup = (groupId: number) => {
@@ -339,6 +388,10 @@ export const useGroupStore = defineStore('group', () => {
     error,
     currentStarterPack,
     createdGroupData,
+    createdGroupId,
+    showGroupCreatedModal,
+    showStarterPackTagsModal,
+    showStarterPackTasksModal,
     // Getters
     groupsCount,
     hasGroups,
@@ -348,10 +401,22 @@ export const useGroupStore = defineStore('group', () => {
     fetchGroupById,
     getUserGroups,
     createGroup,
-    createBulkTags,
-    createBulkTasks,
+    // modal flow
+    openGroupCreatedModal,
+    closeGroupCreatedModal,
+    openStarterPackTagsModal,
+    closeStarterPackTagsModal,
+    openStarterPackTasksModal,
+    closeStarterPackTasksModal,
+    startStarterPackSetup,
+    afterTagsCreated,
     finishGroupSetup,
     skipGroupSetup,
+    resetStarterPackFlow,
+    // bulk ops
+    createBulkTags,
+    createBulkTasks,
+    // misc
     navigateToGroup,
     searchGroupsByName,
     joinGroup,
