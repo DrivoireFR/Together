@@ -33,3 +33,13 @@ export interface StatisticsResponse {
   actionsByUser: Record<string, number>
   actionsByTask: Record<string, number>
 }
+
+export interface CreateBulkTagsResponse {
+  message: string
+  tags: Tag[]
+}
+
+export interface CreateBulkTasksResponse {
+  message: string
+  tasks: Task[]
+}

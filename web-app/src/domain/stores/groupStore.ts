@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { groupRepository } from '@/data/repositories/groupRepository'
-import type { Group, CreateGroupPayload } from '../types'
+import type { Group, CreateGroupPayload, StarterPack } from '../types'
 import { useTasksStore } from './tasksStore'
 import { useRouter } from 'vue-router'
 import { StorageUtil } from '@/shared/utils/storage'
@@ -16,6 +16,16 @@ export const useGroupStore = defineStore('group', () => {
   const isLoading = ref(false)
   const isSearching = ref(false)
   const error = ref<string | undefined>(undefined)
+  
+  // StarterPacks state
+  const currentStarterPack = ref<StarterPack | null>(null)
+  const createdGroupData = ref<{ group: Group; starterPack: StarterPack } | null>(null)
+  const createdGroupId = ref<number | null>(null)
+  
+  // StarterPacks modal state
+  const showGroupCreatedModal = ref(false)
+  const showStarterPackTagsModal = ref(false)
+  const showStarterPackTasksModal = ref(false)
 
   // Getters
   const groupsCount = computed(() => groups.value.length)
@@ -26,7 +36,7 @@ export const useGroupStore = defineStore('group', () => {
   const tasksStore = useTasksStore()
   // Actions
   const fetchGroupById = async (id: number) => {
-    if (currentGroup.value != null) return
+    if (currentGroup.value != null && currentGroup.value.id === id) return
 
     isLoading.value = true
     error.value = undefined
@@ -61,6 +71,18 @@ export const useGroupStore = defineStore('group', () => {
 
       if (result.isSuccess) {
         groups.value.push(result.data.group)
+        
+        // Stocker les données pour les StarterPacks
+        currentStarterPack.value = result.data.starterPack
+        createdGroupData.value = {
+          group: result.data.group,
+          starterPack: result.data.starterPack
+        }
+        createdGroupId.value = result.data.group.id
+        
+        // Ouvrir la première modale du flow
+        openGroupCreatedModal()
+        
         return { success: true, group: result.data }
       } else {
         error.value = result.message
@@ -73,6 +95,124 @@ export const useGroupStore = defineStore('group', () => {
     } finally {
       isLoading.value = false
     }
+  }
+
+  // Modal flow actions
+  const openGroupCreatedModal = () => {
+    showGroupCreatedModal.value = true
+  }
+  const closeGroupCreatedModal = () => {
+    showGroupCreatedModal.value = false
+  }
+
+  const openStarterPackTagsModal = () => {
+    showStarterPackTagsModal.value = true
+  }
+  const closeStarterPackTagsModal = () => {
+    showStarterPackTagsModal.value = false
+  }
+
+  const openStarterPackTasksModal = () => {
+    showStarterPackTasksModal.value = true
+  }
+  const closeStarterPackTasksModal = () => {
+    showStarterPackTasksModal.value = false
+  }
+
+  const startStarterPackSetup = () => {
+    closeGroupCreatedModal()
+    openStarterPackTagsModal()
+  }
+
+  const afterTagsCreated = () => {
+    closeStarterPackTagsModal()
+    openStarterPackTasksModal()
+  }
+
+  const finishGroupSetup = (groupId: number) => {
+    // Nettoyer les données temporaires et fermer les modales
+    resetStarterPackFlow()
+    
+    // Rediriger vers le groupe
+    navigateToGroup(groupId)
+  }
+
+  const skipGroupSetup = (groupId: number) => {
+    // Nettoyer les données temporaires et fermer les modales
+    resetStarterPackFlow()
+    
+    // Rediriger vers le groupe
+    navigateToGroup(groupId)
+  }
+
+  const resetStarterPackFlow = () => {
+    closeGroupCreatedModal()
+    closeStarterPackTagsModal()
+    closeStarterPackTasksModal()
+    currentStarterPack.value = null
+    createdGroupData.value = null
+    createdGroupId.value = null
+  }
+
+  const createBulkTags = async (groupId: number, tags: { label: string; color: string }[]) => {
+    isLoading.value = true
+    error.value = undefined
+
+    try {
+      const result = await groupRepository.createBulkTags(groupId, { tags })
+
+      if (result.isSuccess) {
+        // Mettre à jour le groupe actuel si c'est celui-ci
+        if (currentGroup.value?.id === groupId) {
+          currentGroup.value.tags = [...currentGroup.value.tags, ...result.data.tags]
+          tasksStore.setTags(currentGroup.value.tags)
+        }
+        
+        return { success: true, tags: result.data.tags }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors de la création des catégories'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const createBulkTasks = async (groupId: number, tasks: any[]) => {
+    isLoading.value = true
+    error.value = undefined
+
+    try {
+      const result = await groupRepository.createBulkTasks(groupId, { tasks })
+
+      if (result.isSuccess) {
+        // Mettre à jour le groupe actuel si c'est celui-ci
+        if (currentGroup.value?.id === groupId) {
+          currentGroup.value.tasks = [...currentGroup.value.tasks, ...result.data.tasks]
+          tasksStore.setTasks(currentGroup.value.tasks)
+        }
+        
+        return { success: true, tasks: result.data.tasks }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors de la création des tâches'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const navigateToGroup = (groupId: number) => {
+    StorageUtil.setItem('selectedGroupId', String(groupId))
+    router.push(`/groups/${groupId}`)
   }
 
   const searchGroupsByName = async (nom: string) => {
@@ -246,6 +386,12 @@ export const useGroupStore = defineStore('group', () => {
     isLoading,
     isSearching,
     error,
+    currentStarterPack,
+    createdGroupData,
+    createdGroupId,
+    showGroupCreatedModal,
+    showStarterPackTagsModal,
+    showStarterPackTasksModal,
     // Getters
     groupsCount,
     hasGroups,
@@ -255,6 +401,23 @@ export const useGroupStore = defineStore('group', () => {
     fetchGroupById,
     getUserGroups,
     createGroup,
+    // modal flow
+    openGroupCreatedModal,
+    closeGroupCreatedModal,
+    openStarterPackTagsModal,
+    closeStarterPackTagsModal,
+    openStarterPackTasksModal,
+    closeStarterPackTasksModal,
+    startStarterPackSetup,
+    afterTagsCreated,
+    finishGroupSetup,
+    skipGroupSetup,
+    resetStarterPackFlow,
+    // bulk ops
+    createBulkTags,
+    createBulkTasks,
+    // misc
+    navigateToGroup,
     searchGroupsByName,
     joinGroup,
     leaveGroup,
