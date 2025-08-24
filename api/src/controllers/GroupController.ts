@@ -56,8 +56,8 @@ export class GroupController {
         }
       }
 
-      // Create starter pack for the new group
-      const starterPack = await this.starterPackService.createStarterPackForGroup(group);
+      // Provide starter pack DATA only (do not persist tags/tasks yet)
+      const starterPack = this.starterPackService.getDefaultStarterPackData();
 
       res.status(201).json({
         message: 'Groupe créé avec succès',

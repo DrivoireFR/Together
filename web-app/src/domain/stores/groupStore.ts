@@ -36,7 +36,7 @@ export const useGroupStore = defineStore('group', () => {
   const tasksStore = useTasksStore()
   // Actions
   const fetchGroupById = async (id: number) => {
-    if (currentGroup.value != null) return
+    if (currentGroup.value != null && currentGroup.value.id === id) return
 
     isLoading.value = true
     error.value = undefined
