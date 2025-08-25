@@ -11,7 +11,7 @@ import { MoreThanOrEqual } from 'typeorm';
 import { frequencyToMonthly } from '../helpers/stats';
 
 export class ActionController {
-  async create(req: AuthRequest, res: Response) {
+  create = async (req: AuthRequest, res: Response) => {
     try {
       const { taskId, date } = req.body;
       const userId = req.user!.id;
@@ -119,7 +119,7 @@ export class ActionController {
     }
   }
 
-  async getAll(req: AuthRequest, res: Response) {
+  getAll = async (req: AuthRequest, res: Response) => {
     try {
       const actionRepository = AppDataSource.getRepository(Action);
       const actions = await actionRepository.find({
@@ -138,7 +138,7 @@ export class ActionController {
     }
   }
 
-  async getById(req: AuthRequest, res: Response) {
+  getById = async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
       const actionRepository = AppDataSource.getRepository(Action);
@@ -166,7 +166,7 @@ export class ActionController {
     }
   }
 
-  async getByUserId(req: AuthRequest, res: Response) {
+  getByUserId = async (req: AuthRequest, res: Response) => {
     try {
       const { userId } = req.params;
       const actionRepository = AppDataSource.getRepository(Action);
@@ -188,7 +188,7 @@ export class ActionController {
     }
   }
 
-  async getByGroupId(req: AuthRequest, res: Response) {
+  getByGroupId = async (req: AuthRequest, res: Response) => {
     try {
       const { groupId } = req.params;
       const actionRepository = AppDataSource.getRepository(Action);
@@ -210,7 +210,7 @@ export class ActionController {
     }
   }
 
-  async getRecentByGroupId(req: AuthRequest, res: Response) {
+  getRecentByGroupId = async (req: AuthRequest, res: Response) => {
     try {
       const { groupId } = req.params;
       const actionRepository = AppDataSource.getRepository(Action);
@@ -237,7 +237,7 @@ export class ActionController {
 
 
 
-  async getByTaskId(req: AuthRequest, res: Response) {
+  getByTaskId = async (req: AuthRequest, res: Response) => {
     try {
       const { taskId } = req.params;
       const actionRepository = AppDataSource.getRepository(Action);
@@ -259,7 +259,7 @@ export class ActionController {
     }
   }
 
-  async getMyActions(req: AuthRequest, res: Response) {
+  getMyActions = async (req: AuthRequest, res: Response) => {
     try {
       const userId = req.user!.id;
       const actionRepository = AppDataSource.getRepository(Action);
@@ -281,7 +281,7 @@ export class ActionController {
     }
   }
 
-  async update(req: AuthRequest, res: Response) {
+  update = async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
       const { date } = req.body;
@@ -336,7 +336,7 @@ export class ActionController {
     }
   }
 
-  async delete(req: AuthRequest, res: Response) {
+  delete = async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
       const userId = req.user!.id;

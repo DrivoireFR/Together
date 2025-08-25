@@ -12,11 +12,14 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 
-// Initialize authentication
-const authStore = useAuthStore()
-authStore.initializeAuth()
+// Initialize authentication BEFORE mounting
+const initApp = async () => {
+    const authStore = useAuthStore()
+    await authStore.initializeAuth()
+    app.mount('#app')
+}
 
-app.mount('#app')
+initApp()
 
 // Enregistrement du Service Worker pour PWA
 if ('serviceWorker' in navigator) {

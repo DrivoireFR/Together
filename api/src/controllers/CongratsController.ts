@@ -7,7 +7,7 @@ export class CongratsController {
   private congratsRepository = AppDataSource.getRepository(Congrats);
   private tagRepository = AppDataSource.getRepository(Tag);
 
-  async getAll(req: Request, res: Response) {
+  getAll = async (req: Request, res: Response) => {
     try {
       const congrats = await this.congratsRepository.find({
         relations: ['tag']
@@ -18,7 +18,7 @@ export class CongratsController {
     }
   }
 
-  async getById(req: Request, res: Response) {
+  getById = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const congrats = await this.congratsRepository.findOne({
@@ -36,7 +36,7 @@ export class CongratsController {
     }
   }
 
-  async getByTag(req: Request, res: Response) {
+  getByTag = async (req: Request, res: Response) => {
     try {
       const { tagId } = req.params;
       const congrats = await this.congratsRepository.find({
@@ -49,7 +49,7 @@ export class CongratsController {
     }
   }
 
-  async create(req: Request, res: Response) {
+  create = async (req: Request, res: Response) => {
     try {
       const { level, message, tagId } = req.body;
 
@@ -74,7 +74,7 @@ export class CongratsController {
     }
   }
 
-  async update(req: Request, res: Response) {
+  update = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const { level, message, tagId } = req.body;
@@ -107,7 +107,7 @@ export class CongratsController {
     }
   }
 
-  async delete(req: Request, res: Response) {
+  delete = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const result = await this.congratsRepository.delete(parseInt(id));

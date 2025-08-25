@@ -90,7 +90,7 @@ const validateNom = () => {
   }
 }
 
-// Form submission - now directly uses the store
+// Form submission
 const handleSubmit = async () => {
   validateNom()
   
@@ -104,6 +104,7 @@ const handleSubmit = async () => {
       form.nom = ''
       errors.nom = ''
       
+      // Notifier le parent pour fermer le conteneur
       props.onSuccess()
     }
   }

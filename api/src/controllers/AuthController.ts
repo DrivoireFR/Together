@@ -5,7 +5,7 @@ import { User } from '../entities/User';
 import { generateToken, AuthRequest } from '../middleware/auth';
 
 export class AuthController {
-  async register(req: Request, res: Response) {
+  register = async (req: Request, res: Response) => {
     try {
       const { nom, prenom, pseudo, email, password, icone } = req.body;
 
@@ -67,7 +67,7 @@ export class AuthController {
     }
   }
 
-  async login(req: Request, res: Response) {
+  login = async (req: Request, res: Response) => {
     try {
       const { email, password, rememberMe = false } = req.body;
 
@@ -115,7 +115,7 @@ export class AuthController {
     }
   }
 
-  async verifyToken(req: AuthRequest, res: Response) {
+  verifyToken = async (req: AuthRequest, res: Response) => {
     try {
       if (!req.user) {
         return res.status(401).json({
@@ -138,7 +138,7 @@ export class AuthController {
     }
   }
 
-  async rememberMeVerify(req: AuthRequest, res: Response) {
+  rememberMeVerify = async (req: AuthRequest, res: Response) => {
     try {
       if (!req.user) {
         return res.status(401).json({

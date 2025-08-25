@@ -8,7 +8,7 @@ import { UserTaskState } from '../entities/UserTaskState';
 import { AuthRequest } from '../middleware/auth';
 
 export class TaskController {
-  async create(req: AuthRequest, res: Response) {
+  create = async (req: AuthRequest, res: Response) => {
     try {
       const { label, iconUrl, frequenceEstimee, uniteFrequence, groupId, tagId, points } = req.body;
 
@@ -89,7 +89,7 @@ export class TaskController {
     }
   }
 
-  async getAll(req: AuthRequest, res: Response) {
+  getAll = async (req: AuthRequest, res: Response) => {
     try {
       const taskRepository = AppDataSource.getRepository(Task);
       const tasks = await taskRepository.find({
@@ -108,7 +108,7 @@ export class TaskController {
     }
   }
 
-  async getById(req: AuthRequest, res: Response) {
+  getById = async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
       const taskRepository = AppDataSource.getRepository(Task);
@@ -136,7 +136,7 @@ export class TaskController {
     }
   }
 
-  async update(req: AuthRequest, res: Response) {
+  update = async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
       const { label, iconUrl, frequenceEstimee, uniteFrequence, tagId, points } = req.body;
@@ -212,7 +212,7 @@ export class TaskController {
     }
   }
 
-  async delete(req: AuthRequest, res: Response) {
+  delete = async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params;
       const taskRepository = AppDataSource.getRepository(Task);
