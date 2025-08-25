@@ -9,6 +9,12 @@ export enum UniteFrequence {
   MOIS = 'mois'
 }
 
+export enum HurryState {
+  NO = 'no',
+  MAYBE = 'maybe',
+  YES = 'yes'
+}
+
 export interface Task {
   id: number
   label: string
@@ -20,6 +26,7 @@ export interface Task {
   tag?: Tag
   actions: Action[]
   userTaskState?: UserTaskState | null
+  hurryState?: HurryState
   createdAt: string
   updatedAt: string
 }

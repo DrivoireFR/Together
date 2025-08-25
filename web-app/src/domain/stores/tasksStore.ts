@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { taskRepository } from '@/data/repositories/taskRepository'
 import { statsRepository } from '@/data/repositories/statsRepository'
-import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload, GroupStatistics, UpdateTaskPayload } from '../types'
+import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload, GroupStatistics, UpdateTaskPayload, HurryState } from '../types'
 
 export const useTasksStore = defineStore('tasks', () => {
   // State
@@ -12,6 +12,7 @@ export const useTasksStore = defineStore('tasks', () => {
   const statistics = ref<GroupStatistics | null>(null)
   const currentTask = ref<Task | null>(null)
   const selectedTagFilter = ref<Tag | null>(null)
+  const sortByUrgency = ref(false)
   const isLoading = ref(false)
   const error = ref<string | undefined>(undefined)
 
@@ -39,10 +40,34 @@ export const useTasksStore = defineStore('tasks', () => {
   }
 
   const filteredTasks = computed(() => {
-    if (!selectedTagFilter.value) {
-      return tasks.value
+    let filteredList = tasks.value
+
+    // Apply tag filter
+    if (selectedTagFilter.value) {
+      filteredList = filteredList.filter(task => task.tag?.id === selectedTagFilter.value!.id)
     }
-    return tasks.value.filter(task => task.tag?.id === selectedTagFilter.value!.id)
+
+    // Apply urgency sorting
+    if (sortByUrgency.value) {
+      filteredList = [...filteredList].sort((a, b) => {
+        const getUrgencyPriority = (hurryState: HurryState | undefined) => {
+          switch (hurryState) {
+            case 'yes': return 3 // Most urgent
+            case 'maybe': return 2 // Moderately urgent
+            case 'no': return 1 // Not urgent
+            default: return 0 // No urgency state (lowest priority)
+          }
+        }
+
+        const priorityA = getUrgencyPriority(a.hurryState)
+        const priorityB = getUrgencyPriority(b.hurryState)
+        
+        // Sort in descending order (most urgent first)
+        return priorityB - priorityA
+      })
+    }
+
+    return filteredList
   })
 
   const tasksByTag = computed(() => {
@@ -342,6 +367,14 @@ export const useTasksStore = defineStore('tasks', () => {
     selectedTagFilter.value = null
   }
 
+  const setSortByUrgency = (enabled: boolean) => {
+    sortByUrgency.value = enabled
+  }
+
+  const toggleSortByUrgency = () => {
+    sortByUrgency.value = !sortByUrgency.value
+  }
+
   const clearCurrentTask = () => {
     currentTask.value = null
   }
@@ -430,6 +463,7 @@ export const useTasksStore = defineStore('tasks', () => {
     statistics,
     currentTask,
     selectedTagFilter,
+    sortByUrgency,
     isLoading,
     error,
     unacknowledgedTasks,
@@ -462,6 +496,8 @@ export const useTasksStore = defineStore('tasks', () => {
     deleteAction,
     setTagFilter,
     clearTagFilter,
+    setSortByUrgency,
+    toggleSortByUrgency,
     clearCurrentTask,
     clearError,
     clearData,
