@@ -2,7 +2,11 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 
 export const STORAGE_KEYS = {
   TOKEN: 'auth_token',
-  USER: 'user_data'
+  USER: 'user_data',
+  LAST_GROUP_ID: 'last_group_id',
+  GROUP_CACHE: 'group_cache_',
+  USER_GROUPS: 'user_groups',
+  CACHE_TIMESTAMP: 'cache_timestamp_'
 } as const
 
 export const ROUTES = {

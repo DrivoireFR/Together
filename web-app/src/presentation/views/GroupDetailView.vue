@@ -177,6 +177,12 @@
       </template>
     </BaseModal>
 
+    <!-- Indicateur de synchronisation en arrière-plan -->
+    <BackgroundSyncIndicator
+      :is-loading="groupStore.isBackgroundLoading"
+      message="Mise à jour des données..."
+    />
+
   </AppLayout>
 </template>
 
@@ -199,6 +205,7 @@ import EditTaskForm from '@/presentation/components/molecules/EditTaskForm.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import TaskAcknowledgmentModal from '@/presentation/components/molecules/TaskAcknowledgmentModal.vue'
 import HistoryPanel from '@/presentation/components/organisms/HistoryPanel.vue'
+import BackgroundSyncIndicator from '@/presentation/components/atoms/BackgroundSyncIndicator.vue'
 
 const route = useRoute()
 const router = useRouter()
