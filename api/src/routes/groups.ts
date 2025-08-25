@@ -23,6 +23,9 @@ router.get('/user/:userId', authMiddleware, groupController.getUserGroups);
 // GET /api/groups/:id - Récupérer un groupe par ID
 router.get('/:id', authMiddleware, groupController.getById);
 
+// GET /api/groups/:id/hot-actions - Récupérer les Hot Actions d'un groupe
+router.get('/:id/hot-actions', authMiddleware, groupController.getHotActions);
+
 // PUT /api/groups/:id - Mettre à jour un groupe
 router.put('/:id', authMiddleware, groupController.update);
 
