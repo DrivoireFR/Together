@@ -5,6 +5,7 @@ import type { Group, CreateGroupPayload, StarterPack } from '../types'
 import { useTasksStore } from './tasksStore'
 import { useRouter } from 'vue-router'
 import { StorageUtil } from '@/shared/utils/storage'
+import { CacheService } from '@/shared/services/cacheService'
 import router from '@/router'
 
 
@@ -14,6 +15,7 @@ export const useGroupStore = defineStore('group', () => {
   const currentGroup = ref<Group | null>(null)
   const searchResults = ref<Group[]>([])
   const isLoading = ref(false)
+  const isBackgroundLoading = ref(false)
   const isSearching = ref(false)
   const error = ref<string | undefined>(undefined)
   
@@ -35,9 +37,29 @@ export const useGroupStore = defineStore('group', () => {
 
   const tasksStore = useTasksStore()
   // Actions
-  const fetchGroupById = async (id: number) => {
+  const fetchGroupById = async (id: number, useCache: boolean = true) => {
     if (currentGroup.value != null && currentGroup.value.id === id) return
 
+    // Enregistrer le groupe visité
+    CacheService.setLastVisitedGroup(id)
+
+    // Essayer de charger depuis le cache d'abord
+    if (useCache) {
+      const cachedData = CacheService.getCachedGroupData(id)
+      if (cachedData) {
+        // Charger immédiatement depuis le cache (pas de loading)
+        currentGroup.value = cachedData.group
+        tasksStore.setTasks(cachedData.group.tasks)
+        tasksStore.setTags(cachedData.group.tags)
+        tasksStore.fetchRecentActionsByGroupId(id)
+        
+        // Démarrer la synchronisation en arrière-plan
+        fetchGroupByIdBackground(id)
+        return { group: cachedData.group, hotActions: cachedData.hotActions }
+      }
+    }
+
+    // Si pas de cache ou cache désactivé, chargement normal avec loading
     isLoading.value = true
     error.value = undefined
 
@@ -49,6 +71,10 @@ export const useGroupStore = defineStore('group', () => {
         tasksStore.setTasks(result.data.group.tasks)
         tasksStore.setTags(result.data.group.tags)
         tasksStore.fetchRecentActionsByGroupId(id)
+        
+        // Mettre en cache les nouvelles données
+        CacheService.cacheGroupData(id, result.data)
+        
         return result.data
       } else {
         error.value = result.message
@@ -59,6 +85,33 @@ export const useGroupStore = defineStore('group', () => {
       return null
     } finally {
       isLoading.value = false
+    }
+  }
+
+  // Méthode pour la synchronisation en arrière-plan
+  const fetchGroupByIdBackground = async (id: number) => {
+    isBackgroundLoading.value = true
+
+    try {
+      const result = await groupRepository.getGroupById(id)
+
+      if (result.isSuccess) {
+        // Mettre à jour les données en cache et l'interface
+        CacheService.cacheGroupData(id, result.data)
+        
+        // Mettre à jour l'interface seulement si on affiche toujours ce groupe
+        if (currentGroup.value?.id === id) {
+          currentGroup.value = result.data.group
+          tasksStore.setTasks(result.data.group.tasks)
+          tasksStore.setTags(result.data.group.tags)
+          tasksStore.fetchRecentActionsByGroupId(id)
+        }
+      }
+    } catch (err) {
+      // Ignorer les erreurs de synchronisation en arrière-plan
+      console.warn('Synchronisation en arrière-plan échouée:', err)
+    } finally {
+      isBackgroundLoading.value = false
     }
   }
 
@@ -242,7 +295,18 @@ export const useGroupStore = defineStore('group', () => {
     }
   }
 
-  const getUserGroups = async (userId: number) => {
+  const getUserGroups = async (userId: number, useCache: boolean = true) => {
+    // Essayer de charger depuis le cache d'abord
+    if (useCache) {
+      const cachedGroups = CacheService.getCachedUserGroups()
+      if (cachedGroups) {
+        groups.value = cachedGroups
+        // Démarrer la synchronisation en arrière-plan
+        getUserGroupsBackground(userId)
+        return { success: true, groups: cachedGroups }
+      }
+    }
+
     isLoading.value = true
     error.value = undefined
 
@@ -251,6 +315,8 @@ export const useGroupStore = defineStore('group', () => {
 
       if (result.isSuccess) {
         groups.value = result.data.groups
+        // Mettre en cache les groupes
+        CacheService.cacheUserGroups(result.data.groups)
         return { success: true, groups: result.data.groups }
       } else {
         error.value = result.message
@@ -262,6 +328,26 @@ export const useGroupStore = defineStore('group', () => {
       return { success: false, error: errorMessage }
     } finally {
       isLoading.value = false
+    }
+  }
+
+  // Méthode pour la synchronisation en arrière-plan des groupes utilisateur
+  const getUserGroupsBackground = async (userId: number) => {
+    isBackgroundLoading.value = true
+
+    try {
+      const result = await groupRepository.getUserGroups(userId)
+
+      if (result.isSuccess) {
+        // Mettre à jour le cache et l'interface
+        CacheService.cacheUserGroups(result.data.groups)
+        groups.value = result.data.groups
+      }
+    } catch (err) {
+      // Ignorer les erreurs de synchronisation en arrière-plan
+      console.warn('Synchronisation des groupes en arrière-plan échouée:', err)
+    } finally {
+      isBackgroundLoading.value = false
     }
   }
 
@@ -365,16 +451,43 @@ export const useGroupStore = defineStore('group', () => {
   }
 
   const onGroupClick = (id: number) => {
-    StorageUtil.setItem('selectedGroupId', String(id))
+    CacheService.setLastVisitedGroup(id)
 
     router.push(`/groups/${id}`)
   }
 
   const checkGroupAndRedirect = () => {
+    // Priorité au nouveau système de cache
+    let groupId = CacheService.getLastVisitedGroup()
+    
+    // Fallback vers l'ancien système si pas de groupe en cache
+    if (!groupId) {
+      const selectedGroupId = StorageUtil.getItem<string>('selectedGroupId')
+      if (selectedGroupId) {
+        groupId = parseInt(selectedGroupId, 10)
+        // Migrer vers le nouveau système
+        CacheService.setLastVisitedGroup(groupId)
+      }
+    }
 
-    const selectedGroupId = StorageUtil.getItem('selectedGroupId')
-    if (selectedGroupId) {
-      router.push(`/groups/${selectedGroupId}`)
+    if (groupId) {
+      router.push(`/groups/${groupId}`)
+    }
+  }
+
+  // Nouvelle méthode pour initialiser les données depuis le cache
+  const initializeFromCache = () => {
+    // Charger la liste des groupes depuis le cache si disponible
+    const cachedGroups = CacheService.getCachedUserGroups()
+    if (cachedGroups) {
+      groups.value = cachedGroups
+      console.log('✓ Groupes chargés depuis le cache')
+    }
+
+    // Vérifier s'il y a un dernier groupe visité avec cache
+    const lastGroupId = CacheService.getLastVisitedGroup()
+    if (lastGroupId && CacheService.hasCachedData(lastGroupId)) {
+      console.log(`✓ Dernier groupe visité (${lastGroupId}) a des données en cache`)
     }
   }
 
@@ -384,6 +497,7 @@ export const useGroupStore = defineStore('group', () => {
     currentGroup,
     searchResults,
     isLoading,
+    isBackgroundLoading,
     isSearching,
     error,
     currentStarterPack,
@@ -399,7 +513,9 @@ export const useGroupStore = defineStore('group', () => {
     currentGroupMembers,
     // Actions
     fetchGroupById,
+    fetchGroupByIdBackground,
     getUserGroups,
+    getUserGroupsBackground,
     createGroup,
     // modal flow
     openGroupCreatedModal,
@@ -424,6 +540,7 @@ export const useGroupStore = defineStore('group', () => {
     updateGroup,
     onGroupClick,
     checkGroupAndRedirect,
+    initializeFromCache,
     clearSearchResults,
     clearCurrentGroup,
     clearError

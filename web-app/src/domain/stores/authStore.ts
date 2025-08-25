@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authRepository } from '@/data/repositories/authRepository'
 import { StorageUtil } from '@/shared/utils/storage'
+import { CacheService } from '@/shared/services/cacheService'
 import { STORAGE_KEYS } from '@/shared/constants'
 import type { User, LoginPayload, RegisterPayload } from '../types'
 import { useGroupStore } from './groupStore'
@@ -30,6 +31,9 @@ export const useAuthStore = defineStore('auth', () => {
     if (savedToken && savedUser) {
       token.value = savedToken
       user.value = savedUser
+      
+      // Initialiser les données des groupes depuis le cache
+      groupStore.initializeFromCache()
     }
 
     // Marquer comme terminé immédiatement pour éviter les boucles
@@ -129,6 +133,11 @@ export const useAuthStore = defineStore('auth', () => {
     // Nettoyer le localStorage
     StorageUtil.removeItem(STORAGE_KEYS.TOKEN)
     StorageUtil.removeItem(STORAGE_KEYS.USER)
+    
+    // Nettoyer tous les caches des groupes
+    CacheService.clearAllGroupCaches()
+    
+    console.log('✓ Utilisateur déconnecté et caches nettoyés')
   }
 
   const fetchProfile = async () => {
