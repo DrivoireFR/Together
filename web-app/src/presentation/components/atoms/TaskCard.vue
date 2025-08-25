@@ -17,12 +17,17 @@
           </div>
         </div>
       </div>
-      <TagChip 
-        v-if="task.tag" 
-        :tag="task.tag" 
-        variant="ghost" 
-        size="sm"
-      />
+      <div class="task-indicators">
+        <div v-if="task.hurryState" class="hurry-indicator" :class="hurryClass">
+          <span class="hurry-icon">{{ hurryIcon }}</span>
+        </div>
+        <TagChip 
+          v-if="task.tag" 
+          :tag="task.tag" 
+          variant="ghost" 
+          size="sm"
+        />
+      </div>
     </div>
     
     <div class="task-actions" v-if="showActions">
@@ -58,7 +63,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Task, Tag } from '@/domain/types'
+import type { Task, Tag, HurryState } from '@/domain/types'
 import { difficultyDescriptions } from '@/shared/constants'
 import TagChip from './TagChip.vue'
 import BaseButton from './BaseButton.vue'
@@ -116,6 +121,34 @@ const difficultyClass = computed(() => {
   if (points <= 3) return 'difficulty--easy'
   if (points <= 6) return 'difficulty--medium'
   return 'difficulty--hard'
+})
+
+const hurryIcon = computed(() => {
+  const hurryState = props.task.hurryState
+  switch (hurryState) {
+    case 'no':
+      return '😌' // Relaxed face - not urgent
+    case 'maybe':
+      return '⚠️' // Warning sign - maybe urgent
+    case 'yes':
+      return '🚨' // Alarm - urgent
+    default:
+      return ''
+  }
+})
+
+const hurryClass = computed(() => {
+  const hurryState = props.task.hurryState
+  switch (hurryState) {
+    case 'no':
+      return 'hurry--no'
+    case 'maybe':
+      return 'hurry--maybe'
+    case 'yes':
+      return 'hurry--yes'
+    default:
+      return ''
+  }
 })
 </script>
 
@@ -278,6 +311,54 @@ const difficultyClass = computed(() => {
   display: flex;
 }
 
+.task-indicators {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.hurry-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: all 0.2s ease;
+}
+
+.hurry--no {
+  background: var(--color-green-100);
+  border: 1px solid var(--color-green-200);
+}
+
+.hurry--maybe {
+  background: var(--color-yellow-100);
+  border: 1px solid var(--color-yellow-200);
+}
+
+.hurry--yes {
+  background: var(--color-red-100);
+  border: 1px solid var(--color-red-200);
+  animation: pulse 1.5s infinite;
+}
+
+.hurry-icon {
+  line-height: 1;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .task-meta {
@@ -299,6 +380,12 @@ const difficultyClass = computed(() => {
   
   .task-card--compact .difficulty-points {
     padding: 0 2px;
+  }
+  
+  .hurry-indicator {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: var(--font-size-xs);
   }
 }
 

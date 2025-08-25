@@ -48,6 +48,13 @@
           @tag-selected="handleTagFilterChange"
         />
 
+        <!-- Filtre par urgence -->
+        <UrgencyFilter
+          v-if="tasksStore.hasTasks"
+          :sort-by-urgency="tasksStore.sortByUrgency"
+          @toggle-urgency-sort="handleUrgencyToggle"
+        />
+
         <!-- Liste des tâches -->
         <TaskList
           :tasks="tasksStore.filteredTasks"
@@ -181,6 +188,7 @@ import { useTasksStore } from '@/domain/stores/tasksStore'
 import type { Tag, Task, CreateTaskPayload, CreateTagPayload, UpdateTaskPayload } from '@/domain/types'
 import AppLayout from '@/presentation/layouts/AppLayout.vue'
 import TagFilter from '@/presentation/components/molecules/TagFilter.vue'
+import UrgencyFilter from '@/presentation/components/molecules/UrgencyFilter.vue'
 import TaskList from '@/presentation/components/molecules/TaskList.vue'
 import FloatingActionPanel from '@/presentation/components/molecules/FloatingActionPanel.vue'
 import BaseModal from '@/presentation/components/atoms/BaseModal.vue'
@@ -237,6 +245,10 @@ const closeEditTaskModal = () => {
 // Gestion des tags et filtres
 const handleTagFilterChange = (tag: Tag | null) => {
   tasksStore.setTagFilter(tag)
+}
+
+const handleUrgencyToggle = () => {
+  tasksStore.toggleSortByUrgency()
 }
 
 const closeFeedbackModal = () => {
