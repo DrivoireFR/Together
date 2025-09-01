@@ -95,7 +95,6 @@ const isVisible = computed(() => props.isLoading)
     top: var(--spacing-2);
     right: var(--spacing-2);
     left: var(--spacing-2);
-    right: var(--spacing-2);
     max-width: none;
   }
   
