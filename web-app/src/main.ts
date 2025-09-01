@@ -6,14 +6,18 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import { useAuthStore } from '@/domain/stores/authStore'
+import { CacheService } from '@/shared/services/cacheService'
 
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
 
-// Initialize authentication BEFORE mounting
+// Initialize cache service and authentication BEFORE mounting
 const initApp = async () => {
+    // Initialiser le service de cache
+    CacheService.initialize()
+    
     const authStore = useAuthStore()
     await authStore.initializeAuth()
     app.mount('#app')
