@@ -10,6 +10,10 @@ export interface StarterPack {
 export interface FetchGroupResponse {
   message: string
   group: Group
+  hotActions?: {
+    count: number
+    tasks: any[]
+  }
 }
 
 export interface CreateGroupResponse {
