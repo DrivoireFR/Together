@@ -110,7 +110,7 @@ export class GroupsService {
       .createQueryBuilder('group')
       .leftJoin('group.users', 'users')
       .where('users.id = :userId', { userId })
-      .select('group.id')
+      .select(['group.id', 'group.createdAt'])
       .skip(skip)
       .take(safeLimit)
       .orderBy('group.createdAt', 'DESC');
