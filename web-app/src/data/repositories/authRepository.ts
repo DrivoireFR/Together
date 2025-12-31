@@ -18,7 +18,7 @@ export class AuthRepository {
   }
 
   async getProfile(): Promise<ApiResult<getProfileResponse>> {
-    return apiClient.get<getProfileResponse>('/users/me')
+    return apiClient.get<getProfileResponse>('/auth/profile')
   }
 
   async refreshToken(): Promise<ApiResult<AuthResponse>> {

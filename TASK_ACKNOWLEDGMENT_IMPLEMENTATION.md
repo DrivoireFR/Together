@@ -9,7 +9,7 @@ Cette fonctionnalité permet aux utilisateurs de prendre connaissance des nouvel
 ### API
 
 #### Entité UserTaskState
-- **Fichier**: `api/src/entities/UserTaskState.ts`
+- **Fichier**: `nest-api/src/entities/UserTaskState.ts`
 - **Propriétés principales**:
   - `isAcknowledged`: boolean - L'utilisateur a-t-il pris connaissance de la tâche
   - `isConcerned`: boolean - L'utilisateur se sent-il concerné par la tâche
@@ -17,18 +17,18 @@ Cette fonctionnalité permet aux utilisateurs de prendre connaissance des nouvel
   - `concernedAt`: Date - Date de décision de se sentir concerné
 
 #### Contrôleur UserTaskStateController
-- **Fichier**: `api/src/controllers/UserTaskStateController.ts`
+- **Fichier**: `nest-api/src/controllers/UserTaskStateController.ts`
 - **Méthodes**:
   - `updateTaskState(taskId)`: Met à jour l'état d'une tâche pour l'utilisateur
   - `getUserTaskStates(groupId)`: Récupère tous les états des tâches d'un groupe pour l'utilisateur
 
 #### Routes
-- **Fichier**: `api/src/routes/userTaskStates.ts`
+- **Fichier**: `nest-api/src/routes/userTaskStates.ts`
 - `PUT /api/user-task-states/:taskId` - Mettre à jour l'état d'une tâche
 - `GET /api/user-task-states/group/:groupId` - Récupérer les états des tâches d'un groupe
 
 #### Modification du TaskController
-- **Fichier**: `api/src/controllers/TaskController.ts`
+- **Fichier**: `nest-api/src/controllers/TaskController.ts`
 - La méthode `getByGroupId` enrichit maintenant les tâches avec l'état utilisateur (`userTaskState`)
 
 ### Frontend

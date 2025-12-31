@@ -30,7 +30,7 @@ Actions attendues = (Fréquence × ConversionMensuelle) × RatioAvancementMois
 ## Structure des fichiers créés
 
 ```
-api/src/
+nest-api/src/
 ├── types/HurryState.ts          # Enum et interfaces TypeScript
 ├── helpers/hurryCalculation.ts  # Logique de calcul pure
 ├── services/HotActionsService.ts # Service de données optimisé

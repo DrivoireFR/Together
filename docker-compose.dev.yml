@@ -1,32 +1,28 @@
 services:
   api:
     build:
-      context: ./api
+      context: ./nest-api
       dockerfile: Dockerfile
       target: development
-    container_name: rencontraire-api
+    container_name: together-api-dev
     restart: unless-stopped
     ports:
       - "3000:3000"
-    env_file:
-      - ./api/.env
     environment:
-      - NODE_ENV=development
       - DATABASE_PATH=/app/data/database.sqlite
+      - JWT_SECRET=${JWT_SECRET:-together-dev-secret-key}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+      - JWT_REMEMBER_EXPIRES_IN=${JWT_REMEMBER_EXPIRES_IN:-30d}
+      - PORT=3000
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:80,http://localhost
+      - NODE_ENV=development
     networks:
-      - rencontraire-network
+      - together-network
     volumes:
-      - api_uploads:/app/public/uploads
+      - ./nest-api:/app
+      - /app/node_modules
       - api_database:/app/data
-      # Volumes pour le hot reload
-      - ./api/src:/app/src:delegated
-      - ./api/views:/app/views:delegated
-      - ./api/package.json:/app/package.json:delegated
-      - ./api/package-lock.json:/app/package-lock.json:delegated
-      - ./api/tsconfig.json:/app/tsconfig.json:delegated
-      - ./api/tsconfig.build.json:/app/tsconfig.build.json:delegated
-      - ./api/nest-cli.json:/app/nest-cli.json:delegated
-      - /app/node_modules # Évite d'écraser node_modules
+    command: npm run start:dev
     healthcheck:
       test:
         [
@@ -35,65 +31,34 @@ services:
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://localhost:3000/health",
+          "http://localhost:3000/api/health",
         ]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Back-office Vue.js
-  back-office:
+  web-app:
     build:
-      context: ./back-office
-      dockerfile: Dockerfile
-      target: development # Utiliser le stage de développement
-    container_name: rencontraire-backoffice
+      context: ./web-app
+      dockerfile: Dockerfile.dev
+    container_name: together-webapp-dev
     restart: unless-stopped
     ports:
-      - "5173:5173" # Port de développement Vite
+      - "5173:5173"
     depends_on:
       - api
     networks:
-      - rencontraire-network
+      - together-network
     volumes:
-      - ./back-office/src:/app/src:delegated
-      - ./back-office/public:/app/public:delegated
-      - ./back-office/index.html:/app/index.html:delegated
-      - ./back-office/vite.config.ts:/app/vite.config.ts:delegated
-      - /app/node_modules # Évite d'écraser node_modules
+      - ./web-app:/app
+      - /app/node_modules
     environment:
-      - NODE_ENV=development
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:5173",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Mailpit for local email testing
-  mailpit:
-    image: axllent/mailpit:latest
-    container_name: rencontraire-mailpit
-    restart: unless-stopped
-    ports:
-      - "1025:1025" # SMTP
-      - "8025:8025" # Web UI
-    networks:
-      - rencontraire-network
+      - VITE_API_URL=http://localhost:3000/api
 
 volumes:
-  api_uploads:
-    driver: local
   api_database:
     driver: local
 
 networks:
-  rencontraire-network:
+  together-network:
     driver: bridge

@@ -25,6 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
   const initializeAuth = async () => {
     const savedToken = StorageUtil.getItem<string>(STORAGE_KEYS.TOKEN)
     const savedUser = StorageUtil.getItem<User>(STORAGE_KEYS.USER)
+    const savedRememberMe = StorageUtil.getItem<boolean>(STORAGE_KEYS.REMEMBER_ME)
 
     // Toujours restaurer l'état local d'abord
     if (savedToken && savedUser) {
@@ -38,17 +39,40 @@ export const useAuthStore = defineStore('auth', () => {
     // Vérification en arrière-plan (non-bloquante)
     if (savedToken) {
       try {
-        const verifyResult = await authRepository.getProfile()
+        let verifyResult
 
-        if (verifyResult.isSuccess) {
-          // Mettre à jour les données utilisateur
-          setUserData(verifyResult.data.user)
-          StorageUtil.setItem(STORAGE_KEYS.USER, verifyResult.data.user)
+        // Si remember me est activé, utiliser le endpoint remember-me
+        if (savedRememberMe) {
+          verifyResult = await authRepository.rememberMe()
 
-          groupStore.checkGroupAndRedirect()
+          if (verifyResult.isSuccess) {
+            // Mettre à jour le token (nouveau token standard 24h)
+            token.value = verifyResult.data.token
+            StorageUtil.setItem(STORAGE_KEYS.TOKEN, verifyResult.data.token)
+
+            // Mettre à jour les données utilisateur
+            setUserData(verifyResult.data.user)
+            StorageUtil.setItem(STORAGE_KEYS.USER, verifyResult.data.user)
+
+            groupStore.checkGroupAndRedirect()
+          } else {
+            // Token remember me invalide ou expiré, déconnecter
+            logout()
+          }
         } else {
-          // Token invalide, déconnecter silencieusement
-          logout()
+          // Token standard, vérifier normalement
+          verifyResult = await authRepository.getProfile()
+
+          if (verifyResult.isSuccess) {
+            // Mettre à jour les données utilisateur
+            setUserData(verifyResult.data.user)
+            StorageUtil.setItem(STORAGE_KEYS.USER, verifyResult.data.user)
+
+            groupStore.checkGroupAndRedirect()
+          } else {
+            // Token invalide, déconnecter silencieusement
+            logout()
+          }
         }
       } catch (err) {
         // Ignorer les erreurs réseau
@@ -72,6 +96,7 @@ export const useAuthStore = defineStore('auth', () => {
         // Sauvegarder dans le localStorage
         StorageUtil.setItem(STORAGE_KEYS.TOKEN, result.data.token)
         StorageUtil.setItem(STORAGE_KEYS.USER, result.data.user)
+        StorageUtil.setItem(STORAGE_KEYS.REMEMBER_ME, payload.rememberMe || false)
 
         return { success: true }
       } else {
@@ -87,7 +112,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const setUserData = async (userData: User) => {
+  const setUserData = async (userData: User | undefined) => {
+    if (!userData || !userData.id) {
+      console.error('Données utilisateur invalides:', userData)
+      return
+    }
     user.value = userData
     groupStore.getUserGroups(userData.id)
   }
@@ -124,6 +153,7 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = () => {
     user.value = null
     token.value = null
+    StorageUtil.removeItem(STORAGE_KEYS.REMEMBER_ME)
     error.value = undefined
 
     // Nettoyer le localStorage

@@ -25,6 +25,19 @@
         :iconBefore="LockClosedIcon"
       />
       
+      <!-- Remember Me -->
+      <div class="remember-me">
+        <label class="checkbox-label">
+          <input
+            v-model="form.rememberMe"
+            type="checkbox"
+            class="checkbox-input"
+            :disabled="authStore.isLoading"
+          />
+          <span class="checkbox-text">Se souvenir de moi (30 jours)</span>
+        </label>
+      </div>
+      
       <!-- Error message -->
       <div v-if="authStore.error" class="form-error">
         {{ authStore.error }}
@@ -58,7 +71,8 @@ const authStore = useAuthStore()
 // Form state
 const form = reactive({
   email: '',
-  password: ''
+  password: '',
+  rememberMe: false
 })
 
 // Validation errors
@@ -105,7 +119,8 @@ const handleSubmit = async () => {
   if (isFormValid.value) {
     const result = await authStore.login({
       email: form.email.trim(),
-      password: form.password
+      password: form.password,
+      rememberMe: form.rememberMe
     })
     
     if (result.success) {
@@ -134,5 +149,36 @@ const handleSubmit = async () => {
 
 .form-submit {
   width: 100%;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  margin: var(--spacing-2) 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-input {
+  width: 18px;
+  height: 18px;
+  margin-right: var(--spacing-2);
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.checkbox-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.checkbox-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 </style>

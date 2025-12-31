@@ -1,18 +1,23 @@
 services:
   api:
     build:
-      context: ./api
+      context: ./nest-api
       dockerfile: Dockerfile
-    container_name: rencontraire-api
+      target: development
+    container_name: together-api
     restart: unless-stopped
     ports:
       - "3000:3000"
-    env_file:
-      - ./api/.env
     environment:
       - DATABASE_PATH=/app/data/database.sqlite
+      - JWT_SECRET=${JWT_SECRET:-together-secret-key-change-in-production}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+      - JWT_REMEMBER_EXPIRES_IN=${JWT_REMEMBER_EXPIRES_IN:-30d}
+      - PORT=3000
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:80,http://localhost
+      - NODE_ENV=development
     networks:
-      - rencontraire-network
+      - together-network
     volumes:
       - api_uploads:/app/public/uploads
       - api_database:/app/data
@@ -24,29 +29,26 @@ services:
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://localhost:3000/health",
+          "http://localhost:3000/api/health",
         ]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Back-office Vue.js
-  back-office:
+  web-app:
     build:
-      context: ./back-office
+      context: ./web-app
       dockerfile: Dockerfile
-    container_name: rencontraire-backoffice
+    container_name: together-webapp
     restart: unless-stopped
     ports:
       - "80:80"
     depends_on:
       - api
     networks:
-      - rencontraire-network
-    volumes:
-      - ./back-office/src:/app/src:delegated
-      - ./back-office/public:/app/public:delegated
-      - /app/node_modules # Évite d'écraser node_modules
+      - together-network
+    environment:
+      - VITE_API_URL=http://localhost:3000/api
     healthcheck:
       test:
         [
@@ -68,5 +70,5 @@ volumes:
     driver: local
 
 networks:
-  rencontraire-network:
+  together-network:
     driver: bridge
