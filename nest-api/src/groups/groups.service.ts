@@ -196,16 +196,10 @@ export class GroupsService {
     const startTime = Date.now();
     this.logger.debug(`Finding group ${id} for user ${userId}`);
 
+    // Optimisation: Ne charge PAS tasks.userStates (chargeait TOUS les états de TOUS les utilisateurs)
     const group = await this.groupRepository.findOne({
       where: { id },
-      relations: [
-        'users',
-        'tasks',
-        'tasks.tag',
-        'tasks.userStates',
-        'tasks.userStates.user',
-        'tags',
-      ],
+      relations: ['users', 'tasks', 'tasks.tag', 'tags'],
       select: {
         users: {
           id: true,
@@ -223,6 +217,20 @@ export class GroupsService {
     if (!group) {
       throw new NotFoundException('Groupe non trouvé');
     }
+
+    // Optimisation: Charger uniquement les userStates de l'utilisateur connecté
+    const userTaskStates = await this.userTaskStateRepository.find({
+      where: {
+        user: { id: userId },
+        task: { group: { id } },
+      },
+      relations: ['task'],
+    });
+
+    // O(1) lookup au lieu de array.find() pour chaque tâche
+    const userStateByTaskId = new Map(
+      userTaskStates.map((state) => [state.task.id, state]),
+    );
 
     const tasksWithHurryState =
       await this.hotActionsService.getTasksWithHurryState(id);
@@ -242,9 +250,8 @@ export class GroupsService {
 
     if (group.tasks) {
       group.tasks = group.tasks.map((task: any) => {
-        const userTaskState = task.userStates?.find(
-          (state: any) => state.user.id === userId,
-        );
+        // Utilise le Map pour O(1) lookup
+        const userTaskState = userStateByTaskId.get(task.id);
         const hurryInfo = hurryStateByTask[task.id];
 
         return {
@@ -264,7 +271,6 @@ export class GroupsService {
           expectedActionsAtDate: hurryInfo?.expectedActionsAtDate || 0,
           actualActionsThisMonth: hurryInfo?.actualActionsThisMonth || 0,
           actionsLate: hurryInfo?.actionsLate || 0,
-          userStates: undefined,
         };
       });
     }
