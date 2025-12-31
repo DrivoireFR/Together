@@ -5,13 +5,21 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Action } from './entities/action.entity';
 import { Task } from '../tasks/entities/task.entity';
 import { User } from '../users/entities/user.entity';
 import { UserTaskState } from '../user-task-states/entities/user-task-state.entity';
 import { CreateActionDto } from './dto/create-action.dto';
 import { UpdateActionDto } from './dto/update-action.dto';
+
+export interface ActionsPaginationOptions {
+  page?: number;
+  limit?: number;
+  startDate?: Date;
+  endDate?: Date;
+  includeFullHistory?: boolean;
+}
 
 @Injectable()
 export class ActionsService {
@@ -27,6 +35,11 @@ export class ActionsService {
     @InjectRepository(UserTaskState)
     private userTaskStateRepository: Repository<UserTaskState>,
   ) {}
+
+  private getFirstOfMonth(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  }
 
   async create(createActionDto: CreateActionDto, userId: number) {
     this.logger.debug(
@@ -78,20 +91,18 @@ export class ActionsService {
 
     await this.actionRepository.save(action);
 
-    const now = new Date();
-    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    // Optimisation: Agrégation SQL au lieu de charger toutes les actions
+    const firstOfMonth = this.getFirstOfMonth();
 
-    const userActions = await this.actionRepository.find({
-      where: {
-        user: { id: userId },
-        date: MoreThanOrEqual(firstOfMonth),
-      },
-      relations: ['task'],
-    });
+    const result = await this.actionRepository
+      .createQueryBuilder('action')
+      .leftJoin('action.task', 'task')
+      .select('SUM(task.points)', 'totalDone')
+      .where('action.userId = :userId', { userId })
+      .andWhere('action.date >= :firstOfMonth', { firstOfMonth })
+      .getRawOne<{ totalDone: string | null }>();
 
-    const totalDone = userActions.reduce((acc, act) => {
-      return acc + act.task.points;
-    }, 0);
+    const totalDone = parseInt(result?.totalDone ?? '0', 10);
 
     this.logger.log(
       `Action created: user ${userId} completed task ${task.id} (${task.label}) - isHelpingHand: ${action.isHelpingHand}`,
@@ -104,14 +115,41 @@ export class ActionsService {
     };
   }
 
-  async findAll() {
-    const actions = await this.actionRepository.find({
-      relations: ['task', 'user', 'group'],
-    });
+  async findAll(page = 1, limit = 50, currentMonthOnly = true) {
+    const startTime = Date.now();
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(Math.max(1, limit), 100);
+
+    const queryBuilder = this.actionRepository
+      .createQueryBuilder('action')
+      .leftJoin('action.task', 'task')
+      .addSelect(['task.id', 'task.label', 'task.points'])
+      .leftJoin('action.user', 'user')
+      .addSelect(['user.id', 'user.pseudo', 'user.icone'])
+      .orderBy('action.date', 'DESC')
+      .skip((safePage - 1) * safeLimit)
+      .take(safeLimit);
+
+    if (currentMonthOnly) {
+      queryBuilder.andWhere('action.date >= :firstOfMonth', {
+        firstOfMonth: this.getFirstOfMonth(),
+      });
+    }
+
+    const [actions, total] = await queryBuilder.getManyAndCount();
+
+    const duration = Date.now() - startTime;
+    this.logger.log(`findAll(): ${actions.length}/${total} actions in ${duration}ms`);
 
     return {
       message: 'Actions récupérées avec succès',
       actions,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
     };
   }
 
@@ -131,27 +169,104 @@ export class ActionsService {
     };
   }
 
-  async findByUserId(userId: number) {
-    const actions = await this.actionRepository.find({
-      where: { user: { id: userId } },
-      relations: ['task', 'user', 'group'],
-    });
+  async findByUserId(userId: number, options: ActionsPaginationOptions = {}) {
+    const startTime = Date.now();
+    const safePage = Math.max(1, options.page || 1);
+    const safeLimit = Math.min(Math.max(1, options.limit || 50), 100);
+
+    const queryBuilder = this.actionRepository
+      .createQueryBuilder('action')
+      .leftJoin('action.task', 'task')
+      .addSelect(['task.id', 'task.label', 'task.points'])
+      .leftJoin('action.group', 'group')
+      .addSelect(['group.id', 'group.nom'])
+      .where('action.userId = :userId', { userId })
+      .orderBy('action.date', 'DESC')
+      .skip((safePage - 1) * safeLimit)
+      .take(safeLimit);
+
+    if (!options.includeFullHistory) {
+      const startDate = options.startDate || this.getFirstOfMonth();
+      const endDate = options.endDate || new Date();
+      queryBuilder
+        .andWhere('action.date >= :startDate', { startDate })
+        .andWhere('action.date <= :endDate', { endDate });
+    } else {
+      this.logger.warn(
+        `Loading FULL HISTORY for user ${userId} - may impact performance`,
+      );
+    }
+
+    const [actions, total] = await queryBuilder.getManyAndCount();
+
+    const duration = Date.now() - startTime;
+    this.logger.log(
+      `findByUserId(${userId}): ${actions.length}/${total} actions in ${duration}ms`,
+    );
 
     return {
       message: "Actions de l'utilisateur récupérées avec succès",
       actions,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
     };
   }
 
-  async findByGroupId(groupId: number) {
-    const actions = await this.actionRepository.find({
-      where: { group: { id: groupId } },
-      relations: ['task', 'user', 'group'],
-    });
+  async findByGroupId(groupId: number, options: ActionsPaginationOptions = {}) {
+    const startTime = Date.now();
+    const safePage = Math.max(1, options.page || 1);
+    const safeLimit = Math.min(Math.max(1, options.limit || 50), 100);
+
+    const queryBuilder = this.actionRepository
+      .createQueryBuilder('action')
+      .leftJoin('action.task', 'task')
+      .addSelect(['task.id', 'task.label', 'task.points'])
+      .leftJoin('action.user', 'user')
+      .addSelect(['user.id', 'user.pseudo', 'user.icone'])
+      .where('action.groupId = :groupId', { groupId })
+      .orderBy('action.date', 'DESC')
+      .skip((safePage - 1) * safeLimit)
+      .take(safeLimit);
+
+    // Filtre mois en cours par défaut
+    if (!options.includeFullHistory) {
+      const startDate = options.startDate || this.getFirstOfMonth();
+      const endDate = options.endDate || new Date();
+      queryBuilder
+        .andWhere('action.date >= :startDate', { startDate })
+        .andWhere('action.date <= :endDate', { endDate });
+    } else {
+      this.logger.warn(
+        `Loading FULL HISTORY for group ${groupId} - may impact performance`,
+      );
+    }
+
+    const [actions, total] = await queryBuilder.getManyAndCount();
+
+    const duration = Date.now() - startTime;
+    this.logger.log(
+      `findByGroupId(${groupId}): ${actions.length}/${total} actions in ${duration}ms`,
+    );
+
+    if (duration > 1000) {
+      this.logger.warn(
+        `Slow query: findByGroupId(${groupId}) took ${duration}ms`,
+      );
+    }
 
     return {
       message: 'Actions du groupe récupérées avec succès',
       actions,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
     };
   }
 
@@ -170,27 +285,97 @@ export class ActionsService {
     };
   }
 
-  async findByTaskId(taskId: number) {
-    const actions = await this.actionRepository.find({
-      where: { task: { id: taskId } },
-      relations: ['task', 'user', 'group'],
-    });
+  async findByTaskId(taskId: number, options: ActionsPaginationOptions = {}) {
+    const startTime = Date.now();
+    const safePage = Math.max(1, options.page || 1);
+    const safeLimit = Math.min(Math.max(1, options.limit || 50), 100);
+
+    const queryBuilder = this.actionRepository
+      .createQueryBuilder('action')
+      .leftJoin('action.user', 'user')
+      .addSelect(['user.id', 'user.pseudo', 'user.icone'])
+      .leftJoin('action.group', 'group')
+      .addSelect(['group.id', 'group.nom'])
+      .where('action.taskId = :taskId', { taskId })
+      .orderBy('action.date', 'DESC')
+      .skip((safePage - 1) * safeLimit)
+      .take(safeLimit);
+
+    if (!options.includeFullHistory) {
+      const startDate = options.startDate || this.getFirstOfMonth();
+      const endDate = options.endDate || new Date();
+      queryBuilder
+        .andWhere('action.date >= :startDate', { startDate })
+        .andWhere('action.date <= :endDate', { endDate });
+    } else {
+      this.logger.warn(
+        `Loading FULL HISTORY for task ${taskId} - may impact performance`,
+      );
+    }
+
+    const [actions, total] = await queryBuilder.getManyAndCount();
+
+    const duration = Date.now() - startTime;
+    this.logger.log(
+      `findByTaskId(${taskId}): ${actions.length}/${total} actions in ${duration}ms`,
+    );
 
     return {
       message: 'Actions de la tâche récupérées avec succès',
       actions,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
     };
   }
 
-  async findMyActions(userId: number) {
-    const actions = await this.actionRepository.find({
-      where: { user: { id: userId } },
-      relations: ['task', 'user', 'group'],
-    });
+  async findMyActions(userId: number, options: ActionsPaginationOptions = {}) {
+    const startTime = Date.now();
+    const safePage = Math.max(1, options.page || 1);
+    const safeLimit = Math.min(Math.max(1, options.limit || 50), 100);
+
+    const queryBuilder = this.actionRepository
+      .createQueryBuilder('action')
+      .leftJoin('action.task', 'task')
+      .addSelect(['task.id', 'task.label', 'task.points', 'task.iconUrl'])
+      .leftJoin('action.group', 'group')
+      .addSelect(['group.id', 'group.nom'])
+      .where('action.userId = :userId', { userId })
+      .orderBy('action.date', 'DESC')
+      .skip((safePage - 1) * safeLimit)
+      .take(safeLimit);
+
+    if (!options.includeFullHistory) {
+      const startDate = options.startDate || this.getFirstOfMonth();
+      const endDate = options.endDate || new Date();
+      queryBuilder
+        .andWhere('action.date >= :startDate', { startDate })
+        .andWhere('action.date <= :endDate', { endDate });
+    } else {
+      this.logger.warn(
+        `Loading FULL HISTORY for user ${userId} (my actions) - may impact performance`,
+      );
+    }
+
+    const [actions, total] = await queryBuilder.getManyAndCount();
+
+    const duration = Date.now() - startTime;
+    this.logger.log(
+      `findMyActions(${userId}): ${actions.length}/${total} actions in ${duration}ms`,
+    );
 
     return {
       message: 'Mes actions récupérées avec succès',
       actions,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
     };
   }
 

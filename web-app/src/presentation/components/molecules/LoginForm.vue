@@ -11,6 +11,7 @@
         :disabled="authStore.isLoading"
         required
         :iconBefore="EnvelopeIcon"
+        @blur="validateEmail"
       />
       
       <!-- Password -->
@@ -23,6 +24,7 @@
         :disabled="authStore.isLoading"
         required
         :iconBefore="LockClosedIcon"
+        @blur="validatePassword"
       />
       
       <!-- Remember Me -->

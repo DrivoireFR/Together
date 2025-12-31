@@ -7,13 +7,14 @@ import { User } from '../users/entities/user.entity';
 import { Tag } from '../tags/entities/tag.entity';
 import { Task } from '../tasks/entities/task.entity';
 import { Action } from '../actions/entities/action.entity';
+import { UserTaskState } from '../user-task-states/entities/user-task-state.entity';
 import { StarterPackService } from './services/starter-pack.service';
 import { HotActionsService } from './services/hot-actions.service';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Group, User, Tag, Task, Action]),
+    TypeOrmModule.forFeature([Group, User, Tag, Task, Action, UserTaskState]),
     JwtModule,
   ],
   controllers: [GroupsController],

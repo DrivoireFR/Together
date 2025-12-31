@@ -83,22 +83,74 @@ export class TasksService {
     };
   }
 
-  async findAll() {
-    const tasks = await this.taskRepository.find({
-      relations: ['group', 'tag', 'actions'],
+  async findAll(page = 1, limit = 50) {
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(Math.max(1, limit), 100);
+
+    const [tasks, total] = await this.taskRepository.findAndCount({
+      relations: ['group', 'tag'], // REMOVE 'actions' to prevent N+1 explosion
+      skip: (safePage - 1) * safeLimit,
+      take: safeLimit,
+      order: { createdAt: 'DESC' },
     });
 
     return {
       message: 'Tâches récupérées avec succès',
       tasks,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
     };
   }
 
-  async findOne(id: number) {
-    const task = await this.taskRepository.findOne({
-      where: { id },
-      relations: ['group', 'tag', 'actions'],
-    });
+  private getFirstOfMonth(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+
+  async findOne(id: number, includeActions = false, currentMonthOnly = true) {
+    // Par défaut : pas d'actions (optimisation)
+    if (!includeActions) {
+      const task = await this.taskRepository.findOne({
+        where: { id },
+        relations: ['group', 'tag'],
+      });
+
+      if (!task) {
+        throw new NotFoundException('Tâche non trouvée');
+      }
+
+      return {
+        message: 'Tâche récupérée avec succès',
+        task,
+      };
+    }
+
+    // Si actions demandées
+    const queryBuilder = this.taskRepository
+      .createQueryBuilder('task')
+      .leftJoinAndSelect('task.group', 'group')
+      .leftJoinAndSelect('task.tag', 'tag')
+      .where('task.id = :id', { id });
+
+    if (currentMonthOnly) {
+      queryBuilder.leftJoinAndSelect(
+        'task.actions',
+        'actions',
+        'actions.date >= :firstOfMonth',
+        { firstOfMonth: this.getFirstOfMonth() },
+      );
+    } else {
+      queryBuilder.leftJoinAndSelect('task.actions', 'actions');
+      this.logger.warn(
+        `Loading FULL HISTORY of actions for task ${id} - may impact performance`,
+      );
+    }
+
+    const task = await queryBuilder.getOne();
 
     if (!task) {
       throw new NotFoundException('Tâche non trouvée');
@@ -159,23 +211,41 @@ export class TasksService {
   }
 
   async remove(id: number) {
-    const task = await this.taskRepository.findOne({
-      where: { id },
-      relations: ['actions', 'userStates'],
-    });
+    const queryRunner =
+      this.taskRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (!task) {
-      throw new NotFoundException('Tâche non trouvée');
+    try {
+      const task = await queryRunner.manager.findOne(Task, {
+        where: { id },
+        relations: ['actions', 'userStates'],
+      });
+
+      if (!task) {
+        throw new NotFoundException('Tâche non trouvée');
+      }
+
+      // Supprimer les userStates associés
+      if (task.userStates && task.userStates.length > 0) {
+        await queryRunner.manager.remove(task.userStates);
+      }
+
+      // Supprimer la tâche (les actions sont supprimées en cascade)
+      await queryRunner.manager.remove(task);
+
+      await queryRunner.commitTransaction();
+
+      this.logger.log(`Task removed: ${id} "${task.label}"`);
+
+      return {
+        message: 'Tâche supprimée avec succès',
+      };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
-
-    if (task.userStates && task.userStates.length > 0) {
-      await this.userTaskStateRepository.remove(task.userStates);
-    }
-
-    await this.taskRepository.remove(task);
-
-    return {
-      message: 'Tâche supprimée avec succès',
-    };
   }
 }

@@ -16,12 +16,12 @@ export const useGroupStore = defineStore('group', () => {
   const isLoading = ref(false)
   const isSearching = ref(false)
   const error = ref<string | undefined>(undefined)
-  
+
   // StarterPacks state
   const currentStarterPack = ref<StarterPack | null>(null)
   const createdGroupData = ref<{ group: Group; starterPack: StarterPack } | null>(null)
   const createdGroupId = ref<number | null>(null)
-  
+
   // StarterPacks modal state
   const showGroupCreatedModal = ref(false)
   const showStarterPackTagsModal = ref(false)
@@ -71,7 +71,7 @@ export const useGroupStore = defineStore('group', () => {
 
       if (result.isSuccess) {
         groups.value.push(result.data.group)
-        
+
         // Stocker les données pour les StarterPacks
         currentStarterPack.value = result.data.starterPack
         createdGroupData.value = {
@@ -79,10 +79,10 @@ export const useGroupStore = defineStore('group', () => {
           starterPack: result.data.starterPack
         }
         createdGroupId.value = result.data.group.id
-        
+
         // Ouvrir la première modale du flow
         openGroupCreatedModal()
-        
+
         return { success: true, group: result.data }
       } else {
         error.value = result.message
@@ -132,7 +132,7 @@ export const useGroupStore = defineStore('group', () => {
   const finishGroupSetup = (groupId: number) => {
     // Nettoyer les données temporaires et fermer les modales
     resetStarterPackFlow()
-    
+
     // Rediriger vers le groupe
     navigateToGroup(groupId)
   }
@@ -140,7 +140,7 @@ export const useGroupStore = defineStore('group', () => {
   const skipGroupSetup = (groupId: number) => {
     // Nettoyer les données temporaires et fermer les modales
     resetStarterPackFlow()
-    
+
     // Rediriger vers le groupe
     navigateToGroup(groupId)
   }
@@ -167,7 +167,7 @@ export const useGroupStore = defineStore('group', () => {
           currentGroup.value.tags = [...currentGroup.value.tags, ...result.data.tags]
           tasksStore.setTags(currentGroup.value.tags)
         }
-        
+
         return { success: true, tags: result.data.tags }
       } else {
         error.value = result.message
@@ -195,7 +195,7 @@ export const useGroupStore = defineStore('group', () => {
           currentGroup.value.tasks = [...currentGroup.value.tasks, ...result.data.tasks]
           tasksStore.setTasks(currentGroup.value.tasks)
         }
-        
+
         return { success: true, tasks: result.data.tasks }
       } else {
         error.value = result.message
@@ -217,6 +217,12 @@ export const useGroupStore = defineStore('group', () => {
 
   const searchGroupsByName = async (nom: string) => {
     if (!nom.trim()) {
+      searchResults.value = []
+      return
+    }
+
+    // Le backend exige au moins 2 caractères
+    if (nom.trim().length < 2) {
       searchResults.value = []
       return
     }
@@ -275,7 +281,7 @@ export const useGroupStore = defineStore('group', () => {
 
       if (result.isSuccess) {
         // Recharger la liste des groupes pour refléter les changements
-        return { success: true }
+        return { success: true, groupId }
       } else {
         error.value = result.message
         return { success: false, error: result.message }
@@ -370,11 +376,31 @@ export const useGroupStore = defineStore('group', () => {
     router.push(`/groups/${id}`)
   }
 
-  const checkGroupAndRedirect = () => {
-
+  const checkGroupAndRedirect = async (userId?: number) => {
     const selectedGroupId = StorageUtil.getItem('selectedGroupId')
-    if (selectedGroupId) {
+    if (!selectedGroupId) {
+      return
+    }
+
+    // Charger les groupes de l'utilisateur si pas encore chargés
+    if (groups.value.length === 0 && userId) {
+      const result = await getUserGroups(userId)
+      if (!result.success) {
+        // Erreur lors du chargement des groupes, supprimer le selectedGroupId
+        StorageUtil.removeItem('selectedGroupId')
+        return
+      }
+    }
+
+    // Vérifier que l'utilisateur a accès au groupe sélectionné
+    const hasAccess = groups.value.some(group => group.id === Number(selectedGroupId))
+
+    if (hasAccess) {
+      // L'utilisateur a accès, rediriger vers le groupe
       router.push(`/groups/${selectedGroupId}`)
+    } else {
+      // L'utilisateur n'a pas accès, supprimer le selectedGroupId
+      StorageUtil.removeItem('selectedGroupId')
     }
   }
 

@@ -28,7 +28,7 @@ export class GroupRepository {
   }
 
   async searchGroupsByName(nom: string): Promise<ApiResult<GroupSearchResponse>> {
-    return apiClient.get<GroupSearchResponse>(`/groups/search/name?nom=${encodeURIComponent(nom)}`)
+    return apiClient.get<GroupSearchResponse>(`/groups/search?nom=${encodeURIComponent(nom)}`)
   }
 
   async getUserGroups(userId: number): Promise<ApiResult<UserGroupResponse>> {

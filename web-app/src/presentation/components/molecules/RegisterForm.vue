@@ -11,6 +11,7 @@
         :disabled="authStore.isLoading"
         required
         :iconBefore="UserIcon"
+        @blur="validateNom"
       />
       
       <!-- Prénom -->
@@ -23,6 +24,7 @@
         :disabled="authStore.isLoading"
         required
         :iconBefore="UserIcon"
+        @blur="validatePrenom"
       />
       
       <!-- Pseudo -->
@@ -35,6 +37,7 @@
         :disabled="authStore.isLoading"
         required
         :iconBefore="AtSymbolIcon"
+        @blur="validatePseudo"
       />
       
       <!-- Email -->
@@ -47,6 +50,7 @@
         :disabled="authStore.isLoading"
         required
         :iconBefore="EnvelopeIcon"
+        @blur="validateEmail"
       />
       
       <!-- Password -->
@@ -59,6 +63,7 @@
         :disabled="authStore.isLoading"
         required
         :iconBefore="LockClosedIcon"
+        @blur="validatePassword"
       />
       
       <!-- Confirm Password -->
@@ -71,6 +76,7 @@
         :disabled="authStore.isLoading"
         required
         :iconBefore="LockClosedIcon"
+        @blur="validateConfirmPassword"
       />
       
       <!-- Icône (optionnel) -->
@@ -103,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   EnvelopeIcon, 
@@ -225,6 +231,20 @@ const validateConfirmPassword = () => {
     errors.confirmPassword = ''
   }
 }
+
+// Watch for password changes to re-validate confirmPassword
+watch(() => form.password, () => {
+  if (errors.confirmPassword) {
+    validateConfirmPassword()
+  }
+})
+
+// Watch for confirmPassword changes to re-validate
+watch(() => form.confirmPassword, () => {
+  if (errors.confirmPassword) {
+    validateConfirmPassword()
+  }
+})
 
 // Form submission - now directly uses the store
 const handleSubmit = async () => {

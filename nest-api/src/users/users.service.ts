@@ -11,8 +11,11 @@ export class UsersService {
     private usersRepository: Repository<User>,
   ) {}
 
-  findAll() {
-    return this.usersRepository.find({
+  async findAll(page = 1, limit = 50) {
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(Math.max(1, limit), 100);
+
+    const [users, total] = await this.usersRepository.findAndCount({
       select: [
         'id',
         'nom',
@@ -23,7 +26,20 @@ export class UsersService {
         'createdAt',
         'updatedAt',
       ],
+      skip: (safePage - 1) * safeLimit,
+      take: safeLimit,
+      order: { createdAt: 'DESC' },
     });
+
+    return {
+      users,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
+    };
   }
 
   async findOne(id: number): Promise<User> {

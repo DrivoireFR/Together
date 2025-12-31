@@ -9,6 +9,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Group } from './entities/group.entity';
 import { User } from '../users/entities/user.entity';
+import { Action } from '../actions/entities/action.entity';
+import { Task } from '../tasks/entities/task.entity';
+import { Tag } from '../tags/entities/tag.entity';
+import { UserTaskState } from '../user-task-states/entities/user-task-state.entity';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { StarterPackService } from './services/starter-pack.service';
@@ -23,36 +27,65 @@ export class GroupsService {
     private groupRepository: Repository<Group>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Action)
+    private actionRepository: Repository<Action>,
+    @InjectRepository(Task)
+    private taskRepository: Repository<Task>,
+    @InjectRepository(Tag)
+    private tagRepository: Repository<Tag>,
+    @InjectRepository(UserTaskState)
+    private userTaskStateRepository: Repository<UserTaskState>,
     private starterPackService: StarterPackService,
     private hotActionsService: HotActionsService,
-  ) {}
+  ) { }
 
   async create(createGroupDto: CreateGroupDto, userId: number) {
-    const existingGroup = await this.groupRepository.findOne({
-      where: { nom: createGroupDto.nom },
-    });
+    const queryRunner =
+      this.groupRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (existingGroup) {
-      throw new BadRequestException('Un groupe avec ce nom existe déjà');
+    try {
+      const existingGroup = await queryRunner.manager.findOne(Group, {
+        where: { nom: createGroupDto.nom },
+      });
+
+      if (existingGroup) {
+        throw new BadRequestException('Un groupe avec ce nom existe déjà');
+      }
+
+      const group = new Group();
+      group.nom = createGroupDto.nom;
+      await queryRunner.manager.save(group);
+
+      const user = await queryRunner.manager.findOne(User, {
+        where: { id: userId },
+      });
+
+      if (user) {
+        group.users = [user];
+        await queryRunner.manager.save(group);
+      }
+
+      await queryRunner.commitTransaction();
+
+      const starterPack = this.starterPackService.getDefaultStarterPackData();
+
+      this.logger.log(
+        `Group created: ${group.id} "${group.nom}" by user ${userId}`,
+      );
+
+      return {
+        message: 'Groupe créé avec succès',
+        group,
+        starterPack,
+      };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
-
-    const group = new Group();
-    group.nom = createGroupDto.nom;
-    await this.groupRepository.save(group);
-
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (user) {
-      group.users = [user];
-      await this.groupRepository.save(group);
-    }
-
-    const starterPack = this.starterPackService.getDefaultStarterPackData();
-
-    return {
-      message: 'Groupe créé avec succès',
-      group,
-      starterPack,
-    };
   }
 
   async findAll(page = 1, limit = 20) {
@@ -184,16 +217,10 @@ export class GroupsService {
     const startTime = Date.now();
     this.logger.debug(`Finding group ${id} for user ${userId}`);
 
+    // Optimisation: Ne charge PAS tasks.userStates (chargeait TOUS les états de TOUS les utilisateurs)
     const group = await this.groupRepository.findOne({
       where: { id },
-      relations: [
-        'users',
-        'tasks',
-        'tasks.tag',
-        'tasks.userStates',
-        'tasks.userStates.user',
-        'tags',
-      ],
+      relations: ['users', 'tasks', 'tasks.tag', 'tags'],
       select: {
         users: {
           id: true,
@@ -211,6 +238,27 @@ export class GroupsService {
     if (!group) {
       throw new NotFoundException('Groupe non trouvé');
     }
+
+    // Vérifier que l'utilisateur fait partie du groupe
+    const isMember = group.users.some(user => user.id === userId);
+    if (!isMember) {
+      this.logger.warn(`User ${userId} attempted to access group ${id} without permission`);
+      throw new NotFoundException('Groupe non trouvé');
+    }
+
+    // Optimisation: Charger uniquement les userStates de l'utilisateur connecté
+    const userTaskStates = await this.userTaskStateRepository.find({
+      where: {
+        user: { id: userId },
+        task: { group: { id } },
+      },
+      relations: ['task'],
+    });
+
+    // O(1) lookup au lieu de array.find() pour chaque tâche
+    const userStateByTaskId = new Map(
+      userTaskStates.map((state) => [state.task.id, state]),
+    );
 
     const tasksWithHurryState =
       await this.hotActionsService.getTasksWithHurryState(id);
@@ -230,29 +278,27 @@ export class GroupsService {
 
     if (group.tasks) {
       group.tasks = group.tasks.map((task: any) => {
-        const userTaskState = task.userStates?.find(
-          (state: any) => state.user.id === userId,
-        );
+        // Utilise le Map pour O(1) lookup
+        const userTaskState = userStateByTaskId.get(task.id);
         const hurryInfo = hurryStateByTask[task.id];
 
         return {
           ...task,
           userTaskState: userTaskState
             ? {
-                id: userTaskState.id,
-                isAcknowledged: userTaskState.isAcknowledged,
-                isConcerned: userTaskState.isConcerned,
-                acknowledgedAt: userTaskState.acknowledgedAt,
-                concernedAt: userTaskState.concernedAt,
-                createdAt: userTaskState.createdAt,
-                updatedAt: userTaskState.updatedAt,
-              }
+              id: userTaskState.id,
+              isAcknowledged: userTaskState.isAcknowledged,
+              isConcerned: userTaskState.isConcerned,
+              acknowledgedAt: userTaskState.acknowledgedAt,
+              concernedAt: userTaskState.concernedAt,
+              createdAt: userTaskState.createdAt,
+              updatedAt: userTaskState.updatedAt,
+            }
             : null,
           hurryState: hurryInfo?.hurryState || 'nope',
           expectedActionsAtDate: hurryInfo?.expectedActionsAtDate || 0,
           actualActionsThisMonth: hurryInfo?.actualActionsThisMonth || 0,
           actionsLate: hurryInfo?.actionsLate || 0,
-          userStates: undefined,
         };
       });
     }
@@ -310,17 +356,27 @@ export class GroupsService {
     };
   }
 
-  async searchByName(nom: string) {
+  async searchByName(nom: string, limit = 20) {
+    if (!nom || nom.length < 2) {
+      throw new BadRequestException(
+        'La recherche doit contenir au moins 2 caractères',
+      );
+    }
+
+    const safeLimit = Math.min(limit, 50);
+
     const groups = await this.groupRepository
       .createQueryBuilder('group')
       .where('group.nom LIKE :nom', { nom: `%${nom}%` })
-      .leftJoinAndSelect('group.users', 'users')
-      .leftJoinAndSelect('group.tasks', 'tasks')
-      .leftJoinAndSelect('group.tags', 'tags')
+      .leftJoin('group.users', 'users')
+      .addSelect(['users.id', 'users.pseudo', 'users.icone'])
+      // NE PAS charger 'tasks' et 'tags' (trop lourd)
+      .take(safeLimit)
+      .orderBy('group.createdAt', 'DESC')
       .getMany();
 
     return {
-      message: 'Groupes trouvés',
+      message: `${groups.length} groupe(s) trouvé(s)`,
       groups,
     };
   }
@@ -384,13 +440,23 @@ export class GroupsService {
     };
   }
 
-  async update(id: number, updateGroupDto: UpdateGroupDto) {
+  async update(id: number, updateGroupDto: UpdateGroupDto, userId?: number) {
     const group = await this.groupRepository.findOne({
       where: { id },
+      relations: ['users'],
     });
 
     if (!group) {
       throw new NotFoundException('Groupe non trouvé');
+    }
+
+    // Vérifier que l'utilisateur fait partie du groupe
+    if (userId) {
+      const isMember = group.users.some(user => user.id === userId);
+      if (!isMember) {
+        this.logger.warn(`User ${userId} attempted to update group ${id} without permission`);
+        throw new ForbiddenException('Vous devez être membre du groupe pour le modifier');
+      }
     }
 
     if (updateGroupDto.nom && updateGroupDto.nom !== group.nom) {
@@ -412,35 +478,57 @@ export class GroupsService {
     };
   }
 
-  async remove(id: number) {
+  async remove(id: number, userId?: number) {
+    const startTime = Date.now();
+
+    // Charger le groupe avec les users pour vérifier l'accès
     const group = await this.groupRepository.findOne({
       where: { id },
-      relations: ['users', 'tasks', 'actions', 'tags'],
+      relations: ['users'],
     });
 
     if (!group) {
       throw new NotFoundException('Groupe non trouvé');
     }
 
-    if (group.tasks && group.tasks.length > 0) {
+    // Vérifier que l'utilisateur fait partie du groupe
+    if (userId) {
+      const isMember = group.users.some(user => user.id === userId);
+      if (!isMember) {
+        this.logger.warn(`User ${userId} attempted to delete group ${id} without permission`);
+        throw new ForbiddenException('Vous devez être membre du groupe pour le supprimer');
+      }
+    }
+
+    // Utiliser count() au lieu de charger toutes les entités
+    const [tasksCount, actionsCount, tagsCount] = await Promise.all([
+      this.taskRepository.count({ where: { group: { id } } }),
+      this.actionRepository.count({ where: { group: { id } } }),
+      this.tagRepository.count({ where: { group: { id } } }),
+    ]);
+
+    if (tasksCount > 0) {
       throw new BadRequestException(
-        'Impossible de supprimer le groupe car il contient des tâches',
+        `Impossible de supprimer: ${tasksCount} tâche(s) présente(s)`,
       );
     }
 
-    if (group.actions && group.actions.length > 0) {
+    if (actionsCount > 0) {
       throw new BadRequestException(
-        'Impossible de supprimer le groupe car il contient des actions',
+        `Impossible de supprimer: ${actionsCount} action(s) présente(s)`,
       );
     }
 
-    if (group.tags && group.tags.length > 0) {
+    if (tagsCount > 0) {
       throw new BadRequestException(
-        'Impossible de supprimer le groupe car il contient des tags',
+        `Impossible de supprimer: ${tagsCount} tag(s) présent(s)`,
       );
     }
 
     await this.groupRepository.remove(group);
+
+    const duration = Date.now() - startTime;
+    this.logger.log(`Removed group ${id} in ${duration}ms`);
 
     return {
       message: 'Groupe supprimé avec succès',

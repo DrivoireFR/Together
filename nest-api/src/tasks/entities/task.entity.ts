@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { IsNotEmpty, IsPositive, IsUrl, IsOptional } from 'class-validator';
 import { Group } from '../../groups/entities/group.entity';
@@ -20,6 +21,7 @@ export enum FrequencyUnit {
 }
 
 @Entity()
+@Index(['group']) // Index pour les requêtes par groupe
 export class Task {
   @PrimaryGeneratedColumn()
   id: number;

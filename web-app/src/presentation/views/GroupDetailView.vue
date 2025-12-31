@@ -276,7 +276,8 @@ const handleTaskClick = async (task: Task) => {
   const result = await tasksStore.createActionForTask(task.id)
   
   if (result.success) {
-    await tasksStore.fetchRecentActionsByGroupId(groupId.value)
+    // L'action a déjà été ajoutée à la liste locale dans le store
+    // Pas besoin de recharger toute la liste, évite le "flash"
     // TODO Optionnel: notification de succès
   } else {
     console.error('Erreur lors de la création de l\'action:', result.error)

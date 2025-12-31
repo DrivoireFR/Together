@@ -928,4 +928,3 @@ Après les 15 commits :
 
 - GET /groups/:id : < 500ms
 - GET /actions/group/:id : < 300ms
-- GET /stats/overview/:id : < 500ms

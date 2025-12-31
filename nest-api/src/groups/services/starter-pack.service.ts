@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tag } from '../../tags/entities/tag.entity';
@@ -27,6 +27,8 @@ export interface StarterPack {
 
 @Injectable()
 export class StarterPackService {
+  private readonly logger = new Logger(StarterPackService.name);
+
   constructor(
     @InjectRepository(Tag)
     private tagRepository: Repository<Tag>,
@@ -42,18 +44,24 @@ export class StarterPackService {
     group: Group,
     tagData: StarterPackTag[],
   ): Promise<Tag[]> {
-    const createdTags: Tag[] = [];
+    const startTime = Date.now();
 
-    for (const tagInfo of tagData) {
+    // Bulk insert au lieu de boucle séquentielle
+    const tags = tagData.map((tagInfo) => {
       const tag = new Tag();
       tag.label = tagInfo.label;
       tag.color = tagInfo.color;
       tag.group = group;
       tag.isDefault = true;
+      return tag;
+    });
 
-      const savedTag = await this.tagRepository.save(tag);
-      createdTags.push(savedTag);
-    }
+    const createdTags = await this.tagRepository.save(tags);
+
+    const duration = Date.now() - startTime;
+    this.logger.log(
+      `Created ${createdTags.length} tags for group ${group.id} in ${duration}ms`,
+    );
 
     return createdTags;
   }
@@ -63,11 +71,12 @@ export class StarterPackService {
     taskData: StarterPackTask[],
     tags: Tag[],
   ): Promise<Task[]> {
-    const createdTasks: Task[] = [];
+    const startTime = Date.now();
     const tagMap = new Map<string, Tag>();
     tags.forEach((tag) => tagMap.set(tag.label, tag));
 
-    for (const taskInfo of taskData) {
+    // Bulk insert au lieu de boucle séquentielle
+    const tasks = taskData.map((taskInfo) => {
       const task = new Task();
       task.label = taskInfo.label;
       task.iconUrl = taskInfo.iconUrl || undefined;
@@ -81,9 +90,15 @@ export class StarterPackService {
         task.tag = correspondingTag;
       }
 
-      const savedTask = await this.taskRepository.save(task);
-      createdTasks.push(savedTask);
-    }
+      return task;
+    });
+
+    const createdTasks = await this.taskRepository.save(tasks);
+
+    const duration = Date.now() - startTime;
+    this.logger.log(
+      `Created ${createdTasks.length} tasks for group ${group.id} in ${duration}ms`,
+    );
 
     return createdTasks;
   }

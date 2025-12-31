@@ -162,7 +162,7 @@ const handleInput = (event: Event) => {
   transition-property: border-color, box-shadow;
   background-color: var(--color-white);
   color: var(--color-gray-900);
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4) var(--spacing-3) 2.5rem;
   font-size: 1.3rem;
 }
 
