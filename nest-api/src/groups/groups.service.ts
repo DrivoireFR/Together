@@ -328,17 +328,27 @@ export class GroupsService {
     };
   }
 
-  async searchByName(nom: string) {
+  async searchByName(nom: string, limit = 20) {
+    if (!nom || nom.length < 2) {
+      throw new BadRequestException(
+        'La recherche doit contenir au moins 2 caractères',
+      );
+    }
+
+    const safeLimit = Math.min(limit, 50);
+
     const groups = await this.groupRepository
       .createQueryBuilder('group')
       .where('group.nom LIKE :nom', { nom: `%${nom}%` })
-      .leftJoinAndSelect('group.users', 'users')
-      .leftJoinAndSelect('group.tasks', 'tasks')
-      .leftJoinAndSelect('group.tags', 'tags')
+      .leftJoin('group.users', 'users')
+      .addSelect(['users.id', 'users.pseudo', 'users.icone'])
+      // NE PAS charger 'tasks' et 'tags' (trop lourd)
+      .take(safeLimit)
+      .orderBy('group.createdAt', 'DESC')
       .getMany();
 
     return {
-      message: 'Groupes trouvés',
+      message: `${groups.length} groupe(s) trouvé(s)`,
       groups,
     };
   }

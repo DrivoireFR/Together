@@ -48,8 +48,8 @@ export class GroupsController {
 
   @UseGuards(AuthGuard)
   @Get('search')
-  searchByName(@Query('nom') nom: string) {
-    return this.groupsService.searchByName(nom);
+  searchByName(@Query('nom') nom: string, @Query('limit') limit?: string) {
+    return this.groupsService.searchByName(nom, limit ? +limit : 20);
   }
 
   @UseGuards(AuthGuard)
