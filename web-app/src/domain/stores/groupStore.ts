@@ -275,7 +275,7 @@ export const useGroupStore = defineStore('group', () => {
 
       if (result.isSuccess) {
         // Recharger la liste des groupes pour refléter les changements
-        return { success: true }
+        return { success: true, groupId }
       } else {
         error.value = result.message
         return { success: false, error: result.message }

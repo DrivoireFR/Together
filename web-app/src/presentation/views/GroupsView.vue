@@ -266,16 +266,20 @@ const handleJoinGroupWithCode = async () => {
   if (!groupToJoin.value || !joinCode.value.trim()) return
   
   joinError.value = ''
-  joiningGroupId.value = groupToJoin.value.id
+  const groupIdToJoin = groupToJoin.value.id
+  joiningGroupId.value = groupIdToJoin
   
   try {
-    const result = await groupStore.joinGroup(groupToJoin.value.id, joinCode.value.trim())
+    const result = await groupStore.joinGroup(groupIdToJoin, joinCode.value.trim())
     if (result.success) {
       groupStore.clearSearchResults()
       searchQuery.value = ''
       showJoinForm.value = false
       groupToJoin.value = null
       joinCode.value = ''
+      
+      // Rediriger vers le groupe qui vient d'être rejoint
+      groupStore.navigateToGroup(groupIdToJoin)
     } else {
       joinError.value = result.error || 'Erreur lors de la jointure'
     }
