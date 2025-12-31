@@ -23,6 +23,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Actions
   const initializeAuth = async () => {
+    // Nettoyage des anciennes clés sans préfixe (migration)
+    const oldKeys = ['auth_token', 'user_data', 'remember_me', 'selectedGroupId']
+    oldKeys.forEach(key => {
+      if (localStorage.getItem(key) !== null) {
+        localStorage.removeItem(key)
+      }
+    })
+
     const savedToken = StorageUtil.getItem<string>(STORAGE_KEYS.TOKEN)
     const savedUser = StorageUtil.getItem<User>(STORAGE_KEYS.USER)
     const savedRememberMe = StorageUtil.getItem<boolean>(STORAGE_KEYS.REMEMBER_ME)
@@ -53,6 +61,9 @@ export const useAuthStore = defineStore('auth', () => {
             // Mettre à jour les données utilisateur
             setUserData(verifyResult.data.user)
             StorageUtil.setItem(STORAGE_KEYS.USER, verifyResult.data.user)
+
+            // IMPORTANT: Resauvegarder le flag remember_me pour le prochain rechargement
+            StorageUtil.setItem(STORAGE_KEYS.REMEMBER_ME, true)
 
             groupStore.checkGroupAndRedirect(verifyResult.data.user.id)
           } else {

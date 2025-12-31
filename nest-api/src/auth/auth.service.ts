@@ -27,7 +27,7 @@ export class AuthService {
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async register(
     createUserDto: RegisterUserDto,
@@ -148,7 +148,8 @@ export class AuthService {
       throw new UnauthorizedException('Utilisateur non trouvé');
     }
 
-    const token = await this.generateToken(user, false);
+    // IMPORTANT: Générer un nouveau token remember-me (30 jours) pour prolonger la session
+    const token = await this.generateToken(user, true);
     const { password: _pass, ...userWithoutPassword } = user;
 
     return {
@@ -171,9 +172,9 @@ export class AuthService {
 
     const expiresIn = rememberMe
       ? this.configService.get<string>('JWT_REMEMBER_EXPIRES_IN') ||
-        jwtConstants.rememberExpiresIn
+      jwtConstants.rememberExpiresIn
       : this.configService.get<string>('JWT_EXPIRES_IN') ||
-        jwtConstants.expiresIn;
+      jwtConstants.expiresIn;
 
     return this.jwtService.signAsync(payload, { expiresIn });
   }
