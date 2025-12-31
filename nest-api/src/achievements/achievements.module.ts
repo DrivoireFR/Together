@@ -17,4 +17,4 @@ import { JwtModule } from '@nestjs/jwt';
   providers: [AchievementsService],
   exports: [AchievementsService],
 })
-export class AchievementsModule { }
+export class AchievementsModule {}

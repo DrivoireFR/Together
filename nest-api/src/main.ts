@@ -4,9 +4,12 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { CustomValidationPipe } from './common/validation.pipe';
+import { winstonLoggerService } from './common/logger/winston.logger';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    logger: winstonLoggerService,
+  });
 
   // Configure global prefix for all routes
   app.setGlobalPrefix('api');
@@ -31,6 +34,6 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
-  console.log(`Together API running on port ${port}`);
+  winstonLoggerService.log(`Together API running on port ${port}`, 'Bootstrap');
 }
 bootstrap();

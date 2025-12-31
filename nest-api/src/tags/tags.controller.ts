@@ -33,7 +33,10 @@ export class TagsController {
 
   @UseGuards(AuthGuard)
   @Get('group/:groupId')
-  findByGroupId(@Param('groupId') groupId: string, @Request() req: RequestWithUser) {
+  findByGroupId(
+    @Param('groupId') groupId: string,
+    @Request() req: RequestWithUser,
+  ) {
     return this.tagsService.findByGroupId(+groupId, req.user.userId);
   }
 

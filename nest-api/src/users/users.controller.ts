@@ -30,7 +30,10 @@ export class UsersController {
 
   @UseGuards(AuthGuard)
   @Put('profile')
-  updateProfile(@Request() req: RequestWithUser, @Body() updateUserDto: UpdateUserDto) {
+  updateProfile(
+    @Request() req: RequestWithUser,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
     return this.usersService.updateProfile(req.user.userId, updateUserDto);
   }
 

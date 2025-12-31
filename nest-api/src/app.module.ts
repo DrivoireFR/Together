@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 // Entities
 import { User } from './users/entities/user.entity';
@@ -26,12 +28,35 @@ import { UserTaskStatesModule } from './user-task-states/user-task-states.module
 import { StatsModule } from './stats/stats.module';
 import { CongratsModule } from './congrats/congrats.module';
 import { AchievementsModule } from './achievements/achievements.module';
+import { LoggerModule } from './common/logger/logger.module';
+
+// Common
+import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
+import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    // Rate limiting: 100 requests per minute per IP
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 1000, // 1 second
+        limit: 10, // 10 requests per second
+      },
+      {
+        name: 'medium',
+        ttl: 60000, // 1 minute
+        limit: 100, // 100 requests per minute
+      },
+      {
+        name: 'long',
+        ttl: 3600000, // 1 hour
+        limit: 1000, // 1000 requests per hour
+      },
+    ]),
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: process.env.DATABASE_PATH || './database.sqlite',
@@ -47,7 +72,12 @@ import { AchievementsModule } from './achievements/achievements.module';
         Achievement,
       ],
       synchronize: true,
+      // SQLite specific timeout configuration
+      extra: {
+        busyTimeout: 10000, // 10 seconds timeout for SQLite
+      },
     }),
+    LoggerModule,
     AuthModule,
     UsersModule,
     GroupsModule,
@@ -60,6 +90,23 @@ import { AchievementsModule } from './achievements/achievements.module';
     AchievementsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // Global rate limiting guard
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    // Global timeout interceptor
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TimeoutInterceptor,
+    },
+    // Global exception filter
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}
