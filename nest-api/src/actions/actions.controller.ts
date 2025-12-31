@@ -9,6 +9,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ActionsService } from './actions.service';
 import { CreateActionDto } from './dto/create-action.dto';
 import { UpdateActionDto } from './dto/update-action.dto';
@@ -19,9 +20,14 @@ import type { RequestWithUser } from '../auth/types';
 export class ActionsController {
   constructor(private readonly actionsService: ActionsService) {}
 
+  // Rate limit: 30 actions per minute
   @UseGuards(AuthGuard)
   @Post()
-  create(@Body() createActionDto: CreateActionDto, @Request() req: RequestWithUser) {
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  create(
+    @Body() createActionDto: CreateActionDto,
+    @Request() req: RequestWithUser,
+  ) {
     return this.actionsService.create(createActionDto, req.user.userId);
   }
 

@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
   ForbiddenException,
@@ -15,6 +16,8 @@ import { HotActionsService } from './services/hot-actions.service';
 
 @Injectable()
 export class GroupsService {
+  private readonly logger = new Logger(GroupsService.name);
+
   constructor(
     @InjectRepository(Group)
     private groupRepository: Repository<Group>,
@@ -52,18 +55,43 @@ export class GroupsService {
     };
   }
 
-  async findAll() {
-    const groups = await this.groupRepository.find({
-      relations: ['users', 'tasks', 'actions', 'tags'],
+  async findAll(page = 1, limit = 20) {
+    const startTime = Date.now();
+    this.logger.debug(`Finding all groups - page: ${page}, limit: ${limit}`);
+
+    // Validate and cap pagination
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(Math.max(1, limit), 50); // Max 50 items per page
+    const skip = (safePage - 1) * safeLimit;
+
+    const [groups, total] = await this.groupRepository.findAndCount({
+      relations: ['users', 'tags'],
+      skip,
+      take: safeLimit,
+      order: { createdAt: 'DESC' },
     });
+
+    const duration = Date.now() - startTime;
+    this.logger.log(
+      `Found ${groups.length}/${total} groups in ${duration}ms (page ${safePage})`,
+    );
 
     return {
       message: 'Groupes récupérés avec succès',
       groups,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
     };
   }
 
-  async findUserGroups(userId: number) {
+  async findUserGroups(userId: number, page = 1, limit = 20) {
+    const startTime = Date.now();
+    this.logger.debug(`Finding groups for user ${userId} - page: ${page}`);
+
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -72,6 +100,37 @@ export class GroupsService {
       throw new NotFoundException('Utilisateur non trouvé');
     }
 
+    // Validate and cap pagination
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(Math.max(1, limit), 50);
+    const skip = (safePage - 1) * safeLimit;
+
+    // Optimized query: use subquery for pagination, then load relations
+    const groupIdsQuery = this.groupRepository
+      .createQueryBuilder('group')
+      .leftJoin('group.users', 'users')
+      .where('users.id = :userId', { userId })
+      .select('group.id')
+      .skip(skip)
+      .take(safeLimit)
+      .orderBy('group.createdAt', 'DESC');
+
+    const groupIds = await groupIdsQuery.getMany();
+
+    if (groupIds.length === 0) {
+      return {
+        message: "Groupes de l'utilisateur récupérés avec succès",
+        groups: [],
+        pagination: {
+          page: safePage,
+          limit: safeLimit,
+          total: 0,
+          totalPages: 0,
+        },
+      };
+    }
+
+    // Load groups with relations
     const groups = await this.groupRepository
       .createQueryBuilder('group')
       .leftJoinAndSelect('group.tasks', 'tasks')
@@ -86,18 +145,45 @@ export class GroupsService {
         'users.createdAt',
         'users.updatedAt',
       ])
-      .leftJoinAndSelect('group.actions', 'actions')
       .leftJoinAndSelect('group.tags', 'tags')
-      .where('users.id = :userId', { userId })
+      .whereInIds(groupIds.map((g) => g.id))
+      .orderBy('group.createdAt', 'DESC')
       .getMany();
+
+    // Get total count
+    const total = await this.groupRepository
+      .createQueryBuilder('group')
+      .leftJoin('group.users', 'users')
+      .where('users.id = :userId', { userId })
+      .getCount();
+
+    const duration = Date.now() - startTime;
+    this.logger.log(
+      `Found ${groups.length}/${total} groups for user ${userId} in ${duration}ms`,
+    );
+
+    if (duration > 2000) {
+      this.logger.warn(
+        `Slow query detected: findUserGroups took ${duration}ms for user ${userId}`,
+      );
+    }
 
     return {
       message: "Groupes de l'utilisateur récupérés avec succès",
       groups,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
     };
   }
 
   async findOne(id: number, userId: number) {
+    const startTime = Date.now();
+    this.logger.debug(`Finding group ${id} for user ${userId}`);
+
     const group = await this.groupRepository.findOne({
       where: { id },
       relations: [
@@ -106,7 +192,6 @@ export class GroupsService {
         'tasks.tag',
         'tasks.userStates',
         'tasks.userStates.user',
-        'actions',
         'tags',
       ],
       select: {
@@ -175,6 +260,17 @@ export class GroupsService {
     const hotTasks = tasksWithHurryState.filter(
       (task) => task.hurryState === 'maybe' || task.hurryState === 'yes',
     );
+
+    const duration = Date.now() - startTime;
+    this.logger.log(
+      `Loaded group ${id} with ${group.tasks?.length || 0} tasks in ${duration}ms`,
+    );
+
+    if (duration > 2000) {
+      this.logger.warn(
+        `Slow query detected: findOne(group ${id}) took ${duration}ms`,
+      );
+    }
 
     return {
       message: 'Groupe récupéré avec succès',

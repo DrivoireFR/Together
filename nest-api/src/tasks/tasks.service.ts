@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
@@ -14,6 +15,8 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Injectable()
 export class TasksService {
+  private readonly logger = new Logger(TasksService.name);
+
   constructor(
     @InjectRepository(Task)
     private taskRepository: Repository<Task>,
@@ -26,6 +29,10 @@ export class TasksService {
   ) {}
 
   async create(createTaskDto: CreateTaskDto) {
+    this.logger.debug(
+      `Creating task "${createTaskDto.label}" in group ${createTaskDto.groupId}`,
+    );
+
     const group = await this.groupRepository.findOne({
       where: { id: createTaskDto.groupId },
     });
@@ -65,6 +72,10 @@ export class TasksService {
     task.points = createTaskDto.points || 1;
 
     await this.taskRepository.save(task);
+
+    this.logger.log(
+      `Task created: ${task.id} "${task.label}" in group ${group.id}`,
+    );
 
     return {
       message: 'Tâche créée avec succès',

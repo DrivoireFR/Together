@@ -20,4 +20,4 @@ import { JwtModule } from '@nestjs/jwt';
   providers: [GroupsService, StarterPackService, HotActionsService],
   exports: [GroupsService, StarterPackService, HotActionsService],
 })
-export class GroupsModule { }
+export class GroupsModule {}

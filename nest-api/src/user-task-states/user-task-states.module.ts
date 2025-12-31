@@ -8,12 +8,9 @@ import { User } from '../users/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([UserTaskState, Task, User]),
-    JwtModule,
-  ],
+  imports: [TypeOrmModule.forFeature([UserTaskState, Task, User]), JwtModule],
   controllers: [UserTaskStatesController],
   providers: [UserTaskStatesService],
   exports: [UserTaskStatesService],
 })
-export class UserTaskStatesModule { }
+export class UserTaskStatesModule {}

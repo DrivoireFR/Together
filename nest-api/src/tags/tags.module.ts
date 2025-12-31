@@ -7,12 +7,9 @@ import { Group } from '../groups/entities/group.entity';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Tag, Group]),
-    JwtModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Tag, Group]), JwtModule],
   controllers: [TagsController],
   providers: [TagsService],
   exports: [TagsService],
 })
-export class TagsModule { }
+export class TagsModule {}

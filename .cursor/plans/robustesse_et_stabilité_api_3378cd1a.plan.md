@@ -4,29 +4,29 @@ overview: Audit complet des relations, ajout de timeouts, rate limiting et loggi
 todos:
   - id: optimize-relations
     content: Optimiser les requêtes N+1 dans groups.service et stats.service
-    status: pending
+    status: completed
   - id: add-pagination
     content: Ajouter pagination sur findAll et findUserGroups
-    status: pending
+    status: completed
     dependencies:
       - optimize-relations
   - id: setup-timeout
     content: Créer l'interceptor de timeout et configurer TypeORM
-    status: pending
+    status: completed
   - id: setup-ratelimit
     content: Installer et configurer @nestjs/throttler avec règles spécifiques
-    status: pending
+    status: completed
   - id: add-logging
     content: Ajouter logger NestJS dans tous les services critiques
-    status: pending
+    status: completed
   - id: exception-filter
     content: Créer le filtre d'exceptions global avec logging
-    status: pending
+    status: completed
     dependencies:
       - add-logging
   - id: log-rotation
     content: Configurer la rotation des logs avec limite de capacité
-    status: pending
+    status: completed
     dependencies:
       - add-logging
 ---

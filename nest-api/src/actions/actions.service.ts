@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
@@ -14,6 +15,8 @@ import { UpdateActionDto } from './dto/update-action.dto';
 
 @Injectable()
 export class ActionsService {
+  private readonly logger = new Logger(ActionsService.name);
+
   constructor(
     @InjectRepository(Action)
     private actionRepository: Repository<Action>,
@@ -26,6 +29,10 @@ export class ActionsService {
   ) {}
 
   async create(createActionDto: CreateActionDto, userId: number) {
+    this.logger.debug(
+      `Creating action for task ${createActionDto.taskId} by user ${userId}`,
+    );
+
     const task = await this.taskRepository.findOne({
       where: { id: createActionDto.taskId },
       relations: ['group'],
@@ -85,6 +92,10 @@ export class ActionsService {
     const totalDone = userActions.reduce((acc, act) => {
       return acc + act.task.points;
     }, 0);
+
+    this.logger.log(
+      `Action created: user ${userId} completed task ${task.id} (${task.label}) - isHelpingHand: ${action.isHelpingHand}`,
+    );
 
     return {
       message: 'Action créée avec succès',

@@ -18,7 +18,9 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request & { user?: JwtPayload }>();
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { user?: JwtPayload }>();
     const token = this.extractTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException("Token d'accès manquant");

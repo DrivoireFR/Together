@@ -17,4 +17,4 @@ import { JwtModule } from '@nestjs/jwt';
   providers: [ActionsService],
   exports: [ActionsService],
 })
-export class ActionsModule { }
+export class ActionsModule {}

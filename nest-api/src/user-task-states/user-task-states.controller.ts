@@ -14,9 +14,7 @@ import type { RequestWithUser } from '../auth/types';
 
 @Controller('user-task-states')
 export class UserTaskStatesController {
-  constructor(
-    private readonly userTaskStatesService: UserTaskStatesService,
-  ) { }
+  constructor(private readonly userTaskStatesService: UserTaskStatesService) {}
 
   @UseGuards(AuthGuard)
   @Put(':taskId')
@@ -34,7 +32,10 @@ export class UserTaskStatesController {
 
   @UseGuards(AuthGuard)
   @Get('group/:groupId')
-  getUserTaskStates(@Param('groupId') groupId: string, @Request() req: RequestWithUser) {
+  getUserTaskStates(
+    @Param('groupId') groupId: string,
+    @Request() req: RequestWithUser,
+  ) {
     return this.userTaskStatesService.getUserTaskStates(
       +groupId,
       req.user.userId,
