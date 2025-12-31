@@ -16,10 +16,10 @@ import type { RequestWithUser } from '../auth/types';
 export class UserTaskStatesController {
   constructor(
     private readonly userTaskStatesService: UserTaskStatesService,
-  ) {}
+  ) { }
 
   @UseGuards(AuthGuard)
-  @Put('task/:taskId')
+  @Put(':taskId')
   updateTaskState(
     @Param('taskId') taskId: string,
     @Body() updateDto: UpdateUserTaskStateDto,
