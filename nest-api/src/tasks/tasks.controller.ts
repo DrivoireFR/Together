@@ -7,6 +7,7 @@ import {
   Delete,
   Put,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -25,8 +26,8 @@ export class TasksController {
 
   @UseGuards(AuthGuard)
   @Get()
-  findAll() {
-    return this.tasksService.findAll();
+  findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.tasksService.findAll(page ? +page : 1, limit ? +limit : 50);
   }
 
   @UseGuards(AuthGuard)

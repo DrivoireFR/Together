@@ -83,14 +83,26 @@ export class TasksService {
     };
   }
 
-  async findAll() {
-    const tasks = await this.taskRepository.find({
-      relations: ['group', 'tag', 'actions'],
+  async findAll(page = 1, limit = 50) {
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(Math.max(1, limit), 100);
+
+    const [tasks, total] = await this.taskRepository.findAndCount({
+      relations: ['group', 'tag'], // REMOVE 'actions' to prevent N+1 explosion
+      skip: (safePage - 1) * safeLimit,
+      take: safeLimit,
+      order: { createdAt: 'DESC' },
     });
 
     return {
       message: 'Tâches récupérées avec succès',
       tasks,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
     };
   }
 
