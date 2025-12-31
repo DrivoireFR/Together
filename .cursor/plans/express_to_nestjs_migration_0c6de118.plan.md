@@ -4,61 +4,61 @@ overview: Migration complete de l'API Express.js avec TypeORM vers NestJS en reu
 todos:
   - id: cleanup-nest
     content: Supprimer les modules inutiles du projet NestJS (cats, establishments, etc.)
-    status: pending
+    status: completed
   - id: create-entities
     content: Creer les 9 entites TypeORM (User adapte, Group, Task, Action, Tag, etc.)
-    status: pending
+    status: completed
     dependencies:
       - cleanup-nest
   - id: auth-module
     content: Adapter le module Auth avec register complet et rememberMe
-    status: pending
+    status: completed
     dependencies:
       - create-entities
   - id: users-module
     content: Adapter le module Users avec getProfile/updateProfile
-    status: pending
+    status: completed
     dependencies:
       - create-entities
   - id: groups-module
     content: Creer le module Groups avec CRUD + join/leave/hot-actions
-    status: pending
+    status: completed
     dependencies:
       - create-entities
   - id: tasks-module
     content: Creer le module Tasks avec CRUD
-    status: pending
+    status: completed
     dependencies:
       - groups-module
   - id: actions-module
     content: Creer le module Actions avec CRUD + filtres
-    status: pending
+    status: completed
     dependencies:
       - tasks-module
   - id: tags-module
     content: Creer le module Tags avec CRUD
-    status: pending
+    status: completed
     dependencies:
       - groups-module
   - id: other-modules
     content: Creer UserTaskStates, Stats, Congrats, Achievements modules
-    status: pending
+    status: completed
     dependencies:
       - tags-module
   - id: services
     content: Creer HotActionsService et StarterPackService
-    status: pending
+    status: completed
     dependencies:
       - groups-module
   - id: config-routes
     content: Configurer le prefix /api et verifier toutes les routes
-    status: pending
+    status: completed
     dependencies:
       - other-modules
       - services
   - id: docker-config
     content: Mettre a jour Docker (compose + Dockerfile web-app)
-    status: pending
+    status: completed
     dependencies:
       - config-routes
 ---

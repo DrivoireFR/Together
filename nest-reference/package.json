@@ -1,8 +1,8 @@
 {
-  "name": "website",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "name": "together-api",
+  "version": "1.0.0",
+  "description": "Together - API NestJS",
+  "author": "Together Team",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

@@ -1,40 +1,68 @@
-import { Body, Controller, Get, HttpException, Post, UseGuards, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  Post,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { RegisterUserDto } from './dto/registerDto';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/loginDto';
 import { AuthGuard } from './auth.guard';
+import { RememberMeGuard } from './remember-me.guard';
+import type { RequestWithUser } from './types';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
-    @Post('register')
-    async create(@Body() createUserDto: RegisterUserDto) {
-        try {
-            const user = await this.authService.register(createUserDto);
-            return user;
-        } catch (err) {
-            if (err instanceof HttpException) {
-                return err
-            } else {
-                return new HttpException('Un problème est survenue, merci de contacter le développeur : ' + err, 500);
-            }
-        }
+  @Post('register')
+  async register(@Body() createUserDto: RegisterUserDto) {
+    try {
+      return await this.authService.register(createUserDto);
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+      throw new HttpException(
+        'Un problème est survenu: ' + (err as Error).message,
+        500,
+      );
     }
+  }
 
-    @Post('login')
-    async login(@Body() loginDto: LoginDto) {
-        try {
-            const user = await this.authService.login(loginDto);
-            return user;
-        } catch (err) {
-            return new HttpException('Un problème est survenue, merci de contacter le développeur.', 500);
-        }
+  @Post('login')
+  async login(@Body() loginDto: LoginDto) {
+    try {
+      return await this.authService.login(loginDto);
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+      throw new HttpException(
+        'Un problème est survenu: ' + (err as Error).message,
+        500,
+      );
     }
+  }
 
-    @UseGuards(AuthGuard)
-    @Get('profile')
-    getProfile(@Request() req) {
-        return req.user;
-    }
+  @UseGuards(AuthGuard)
+  @Get('verify')
+  verifyToken(@Request() req: RequestWithUser) {
+    return this.authService.verifyToken(req.user);
+  }
+
+  @UseGuards(RememberMeGuard)
+  @Get('remember-me')
+  async rememberMe(@Request() req: RequestWithUser) {
+    return this.authService.rememberMeVerify(req.user.userId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('profile')
+  getProfile(@Request() req: RequestWithUser) {
+    return req.user;
+  }
 }

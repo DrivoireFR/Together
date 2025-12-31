@@ -1,84 +1,141 @@
-import { HttpException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, UserType } from 'src/users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { RegisterUserDto } from './dto/registerDto';
 import { validate } from 'class-validator';
-import { UserAlreadyExistsException, UserDoesntExistsException } from 'src/auth/auth.exceptions';
+import {
+  UserAlreadyExistsException,
+  UserDoesntExistsException,
+} from './auth.exceptions';
 import { LoginDto, LoginResponseDto } from './dto/loginDto';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { jwtConstants } from './constants';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        @InjectRepository(User)
-        private usersRepository: Repository<User>,
-        private jwtService: JwtService
-    ) { }
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+    private jwtService: JwtService,
+    private configService: ConfigService,
+  ) {}
 
-    async register(createUserDto: RegisterUserDto): Promise<User | HttpException> {
-        // Interdire la création de comptes OWNER/ADMIN par l'endpoint public
-        if (createUserDto.role !== UserType.USER) {
-            throw new UnauthorizedException('Only USER accounts can be self-registered');
-        }
-        const existingUser = await this.usersRepository.findOne({
-            where: [
-                { email: createUserDto.email },
-            ]
-        });
+  async register(
+    createUserDto: RegisterUserDto,
+  ): Promise<{ message: string; user: any; token: string }> {
+    const existingUser = await this.usersRepository.findOne({
+      where: [{ email: createUserDto.email }, { pseudo: createUserDto.pseudo }],
+    });
 
-        if (existingUser) {
-            throw new UserAlreadyExistsException()
-        }
-
-        const user = new User();
-        user.email = createUserDto.email;
-        user.password = createUserDto.password;
-        user.role = UserType.USER;
-
-        const errors = await validate(user);
-        if (errors.length > 0) {
-            // console.log(errors)
-            throw new Error('Bad request');
-        };
-
-        try {
-            await this.usersRepository.save(user);
-        }
-        catch (err) {
-            throw new Error(err)
-        }
-
-        return user;
+    if (existingUser) {
+      throw new UserAlreadyExistsException();
     }
 
-    async login(
-        loginDto: LoginDto
-    ): Promise<LoginResponseDto | HttpException> {
-        const user = await this.usersRepository.findOne({
-            where: [
-                { email: loginDto.email },
-            ]
-        });
+    const user = new User();
+    user.nom = createUserDto.nom;
+    user.prenom = createUserDto.prenom;
+    user.pseudo = createUserDto.pseudo;
+    user.email = createUserDto.email;
+    user.password = createUserDto.password;
+    user.icone = createUserDto.icone;
 
-        if (!user) throw new UserDoesntExistsException()
-
-        const isValidPassword = await user.comparePassword(loginDto.password);
-
-        if (!isValidPassword) {
-            throw new UnauthorizedException();
-        }
-
-        const payload = {
-            sub: user.id,
-            email: user.email,
-            role: user.role,
-            firstName: user.firstName,
-            lastName: user.lastName,
-        };
-
-        return {
-            token: await this.jwtService.signAsync(payload),
-        };
+    const errors = await validate(user);
+    if (errors.length > 0) {
+      throw new HttpException('Erreurs de validation', 400);
     }
+
+    await this.usersRepository.save(user);
+
+    const token = await this.generateToken(user, false);
+
+    const { password: _pass, ...userWithoutPassword } = user;
+
+    return {
+      message: 'Utilisateur créé avec succès',
+      user: userWithoutPassword,
+      token,
+    };
+  }
+
+  async login(loginDto: LoginDto): Promise<LoginResponseDto> {
+    const user = await this.usersRepository.findOne({
+      where: [{ email: loginDto.email }],
+    });
+
+    if (!user) throw new UserDoesntExistsException();
+
+    const isValidPassword = await user.comparePassword(loginDto.password);
+
+    if (!isValidPassword) {
+      throw new UnauthorizedException('Identifiants invalides');
+    }
+
+    const token = await this.generateToken(user, loginDto.rememberMe || false);
+
+    const { password: _pass, ...userWithoutPassword } = user;
+
+    return {
+      token,
+      user: userWithoutPassword,
+      rememberMe: loginDto.rememberMe,
+    };
+  }
+
+  verifyToken(user: { userId: number; email: string }): { message: string; user: { userId: number; email: string } } {
+    return {
+      message: 'Token valide',
+      user,
+    };
+  }
+
+  async rememberMeVerify(
+    userId: number,
+  ): Promise<{ message: string; user: any; token: string }> {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Utilisateur non trouvé');
+    }
+
+    const token = await this.generateToken(user, false);
+    const { password: _pass, ...userWithoutPassword } = user;
+
+    return {
+      message: 'Remember me vérifié avec succès',
+      user: userWithoutPassword,
+      token,
+    };
+  }
+
+  private async generateToken(
+    user: User,
+    rememberMe: boolean,
+  ): Promise<string> {
+    const payload = {
+      sub: user.id,
+      userId: user.id,
+      email: user.email,
+      rememberMe,
+    };
+
+    const expiresIn = rememberMe
+      ? this.configService.get<string>('JWT_REMEMBER_EXPIRES_IN') ||
+        jwtConstants.rememberExpiresIn
+      : this.configService.get<string>('JWT_EXPIRES_IN') ||
+        jwtConstants.expiresIn;
+
+    return this.jwtService.signAsync(payload, { expiresIn });
+  }
+
+  async findUserById(id: number): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { id } });
+  }
 }

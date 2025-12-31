@@ -1,0 +1,190 @@
+{
+  "defaultStarterPack": {
+    "tags": [
+      {
+        "label": "Achats",
+        "color": "#ff8648"
+      },
+      {
+        "label": "Copain",
+        "color": "#01c7fc"
+      },
+      {
+        "label": "Cuisine",
+        "color": "#ff3a30"
+      },
+      {
+        "label": "Linge",
+        "color": "#5c5c5c"
+      },
+      {
+        "label": "Poubelles",
+        "color": "#61187c"
+      },
+      {
+        "label": "Sanitaire",
+        "color": "#0161fd"
+      },
+      {
+        "label": "Surfaces",
+        "color": "#ffcc02"
+      }
+    ],
+    "tasks": [
+      {
+        "label": "Petit dej",
+        "frequenceEstimee": 3,
+        "uniteFrequence": "semaine",
+        "points": 2,
+        "tagLabel": "Cuisine"
+      },
+      {
+        "label": "Faire le lit",
+        "frequenceEstimee": 7,
+        "uniteFrequence": "semaine",
+        "points": 2,
+        "tagLabel": "Linge"
+      },
+      {
+        "label": "Lancer lessive",
+        "frequenceEstimee": 3,
+        "uniteFrequence": "semaine",
+        "points": 1,
+        "tagLabel": "Linge"
+      },
+      {
+        "label": "Faire la cuisine",
+        "frequenceEstimee": 5,
+        "uniteFrequence": "semaine",
+        "points": 4,
+        "tagLabel": "Cuisine"
+      },
+      {
+        "label": "Faire les courses",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "semaine",
+        "points": 8,
+        "tagLabel": "Achats"
+      },
+      {
+        "label": "Faire le marché",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "semaine",
+        "points": 6,
+        "tagLabel": "Achats"
+      },
+      {
+        "label": "Nettoyer WC",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "semaine",
+        "points": 8,
+        "tagLabel": "Sanitaire"
+      },
+      {
+        "label": "Nettoyer douche",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "semaine",
+        "points": 6,
+        "tagLabel": "Sanitaire"
+      },
+      {
+        "label": "Petit nettoyage Litière",
+        "frequenceEstimee": 3,
+        "uniteFrequence": "semaine",
+        "points": 4,
+        "tagLabel": "Copain"
+      },
+      {
+        "label": "Gros nettoyage litière",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "mois",
+        "points": 10,
+        "tagLabel": "Copain"
+      },
+      {
+        "label": "Étendre lessive",
+        "frequenceEstimee": 3,
+        "uniteFrequence": "semaine",
+        "points": 4,
+        "tagLabel": "Linge"
+      },
+      {
+        "label": "Vider le lave-vaisselle",
+        "frequenceEstimee": 6,
+        "uniteFrequence": "semaine",
+        "points": 3,
+        "tagLabel": "Cuisine"
+      },
+      {
+        "label": "Plier le linge",
+        "frequenceEstimee": 3,
+        "uniteFrequence": "semaine",
+        "points": 5,
+        "tagLabel": "Linge"
+      },
+      {
+        "label": "Débarrasser table",
+        "frequenceEstimee": 10,
+        "uniteFrequence": "semaine",
+        "points": 1,
+        "tagLabel": "Cuisine"
+      },
+      {
+        "label": "Passer un coup surfaces",
+        "frequenceEstimee": 3,
+        "uniteFrequence": "semaine",
+        "points": 3,
+        "tagLabel": "Surfaces"
+      },
+      {
+        "label": "Brosser poils canapé et banc",
+        "frequenceEstimee": 2,
+        "uniteFrequence": "semaine",
+        "points": 3,
+        "tagLabel": "Copain"
+      },
+      {
+        "label": "Poubelle cuisine",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "semaine",
+        "points": 5,
+        "tagLabel": "Poubelles"
+      },
+      {
+        "label": "Poubelle tri",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "semaine",
+        "points": 3,
+        "tagLabel": "Poubelles"
+      },
+      {
+        "label": "Poubelles sanitaires",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "semaine",
+        "points": 4,
+        "tagLabel": "Poubelles"
+      },
+      {
+        "label": "Aspirateur",
+        "frequenceEstimee": 2,
+        "uniteFrequence": "mois",
+        "points": 6,
+        "tagLabel": "Surfaces"
+      },
+      {
+        "label": "Remplir + lancer lave-vaisselle",
+        "frequenceEstimee": 4,
+        "uniteFrequence": "semaine",
+        "points": 1,
+        "tagLabel": "Cuisine"
+      },
+      {
+        "label": "Repassage",
+        "frequenceEstimee": 1,
+        "uniteFrequence": "semaine",
+        "points": 2,
+        "tagLabel": "Linge"
+      }
+    ]
+  }
+}

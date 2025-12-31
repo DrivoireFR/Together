@@ -1,21 +1,21 @@
-import { IsEmail, IsIn, IsNotEmpty, IsString } from "class-validator";
-import { UserType } from "src/users/entities/user.entity";
+import { IsEmail, IsNotEmpty, IsOptional, MinLength } from 'class-validator';
 
 export class RegisterUserDto {
-    @IsEmail()
-    @IsNotEmpty()
-    email: string;
+  @IsNotEmpty()
+  nom: string;
 
-    @IsString()
-    @IsNotEmpty()
-    password: string;
+  @IsNotEmpty()
+  prenom: string;
 
-    @IsIn(Object.values(UserType))
-    @IsNotEmpty()
-    role: UserType;
-}
+  @IsNotEmpty()
+  pseudo: string;
 
-export class RegisterUserResponseDto {
-    email: string;
-    role: UserType;
+  @IsEmail()
+  email: string;
+
+  @MinLength(6)
+  password: string;
+
+  @IsOptional()
+  icone?: string;
 }

@@ -1,60 +1,76 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate } from "typeorm";
-import { IsEmail, IsIn, MinLength } from 'class-validator';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BeforeInsert,
+  BeforeUpdate,
+  ManyToMany,
+  OneToMany,
+} from 'typeorm';
+import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import * as bcrypt from 'bcrypt';
-
-export enum UserType {
-    ADMIN = 'ADMIN',
-    OWNER = "OWNER",
-    USER = "USER"
-}
+import { Group } from '../../groups/entities/group.entity';
+import { Action } from '../../actions/entities/action.entity';
+import { UserTaskState } from '../../user-task-states/entities/user-task-state.entity';
+import { Achievement } from '../../achievements/entities/achievement.entity';
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({ unique: true })
-    @IsEmail()
-    email: string;
+  @Column()
+  @IsNotEmpty()
+  nom: string;
 
-    @Column({ nullable: true })
-    firstName?: string;
+  @Column()
+  @IsNotEmpty()
+  prenom: string;
 
-    @Column({ nullable: true })
-    lastName?: string;
+  @Column({ unique: true })
+  @IsNotEmpty()
+  pseudo: string;
 
-    @Column()
-    @MinLength(6)
-    password: string;
+  @Column({ unique: true })
+  @IsEmail()
+  email: string;
 
-    @Column({
-        type: "text",
-        default: UserType.USER
-    })
-    @IsIn(Object.values(UserType))
-    role: UserType
+  @Column()
+  @MinLength(6)
+  password: string;
 
-    @Column({ default: false })
-    is_active: boolean;
+  @Column({ nullable: true })
+  icone?: string;
 
-    @Column({ default: false })
-    profile_value_unlocked: boolean;
+  @ManyToMany(() => Group, (group) => group.users)
+  groups: Group[];
 
-    @CreateDateColumn()
-    created_at: Date;
+  @OneToMany(() => Action, (action) => action.user)
+  actions: Action[];
 
-    @UpdateDateColumn()
-    updated_at: Date;
+  @OneToMany(() => UserTaskState, (userTaskState) => userTaskState.user)
+  taskStates: UserTaskState[];
 
-    @BeforeInsert()
-    @BeforeUpdate()
-    async hashPassword() {
-        if (this.password) {
-            this.password = await bcrypt.hash(this.password, 10);
-        }
+  @OneToMany(() => Achievement, (achievement) => achievement.user)
+  achievements: Achievement[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async hashPassword() {
+    if (this.password && !this.password.startsWith('$2')) {
+      this.password = await bcrypt.hash(this.password, 10);
     }
+  }
 
-    async comparePassword(candidatePassword: string): Promise<boolean> {
-        return bcrypt.compare(candidatePassword, this.password);
-    }
+  async comparePassword(candidatePassword: string): Promise<boolean> {
+    return bcrypt.compare(candidatePassword, this.password);
+  }
 }

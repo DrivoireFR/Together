@@ -1,16 +1,21 @@
-import { IsEmail, IsIn, IsNotEmpty, IsString } from "class-validator";
-import { UserType } from "../entities/user.entity";
+import { IsEmail, IsNotEmpty, IsOptional, MinLength } from 'class-validator';
 
 export class CreateUserDto {
-    @IsEmail({}, { message: 'Email must be a valid email address' })
-    @IsNotEmpty({ message: 'Email is required' })
-    email: string;
+  @IsNotEmpty()
+  nom: string;
 
-    @IsString({ message: 'Password must be a string' })
-    @IsNotEmpty({ message: 'Password is required' })
-    password: string;
+  @IsNotEmpty()
+  prenom: string;
 
-    @IsIn(Object.values(UserType))
-    @IsNotEmpty({ message: 'Role is required' })
-    role: UserType;
+  @IsNotEmpty()
+  pseudo: string;
+
+  @IsEmail()
+  email: string;
+
+  @MinLength(6)
+  password: string;
+
+  @IsOptional()
+  icone?: string;
 }

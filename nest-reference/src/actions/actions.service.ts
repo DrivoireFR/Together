@@ -1,0 +1,234 @@
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, MoreThanOrEqual } from 'typeorm';
+import { Action } from './entities/action.entity';
+import { Task } from '../tasks/entities/task.entity';
+import { User } from '../users/entities/user.entity';
+import { UserTaskState } from '../user-task-states/entities/user-task-state.entity';
+import { CreateActionDto } from './dto/create-action.dto';
+import { UpdateActionDto } from './dto/update-action.dto';
+
+@Injectable()
+export class ActionsService {
+  constructor(
+    @InjectRepository(Action)
+    private actionRepository: Repository<Action>,
+    @InjectRepository(Task)
+    private taskRepository: Repository<Task>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    @InjectRepository(UserTaskState)
+    private userTaskStateRepository: Repository<UserTaskState>,
+  ) {}
+
+  async create(createActionDto: CreateActionDto, userId: number) {
+    const task = await this.taskRepository.findOne({
+      where: { id: createActionDto.taskId },
+      relations: ['group'],
+    });
+
+    if (!task) {
+      throw new NotFoundException('Tâche non trouvée');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['groups'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('Utilisateur non trouvé');
+    }
+
+    const isMemberOfGroup = user.groups.some(
+      (group) => group.id === task.group.id,
+    );
+    if (!isMemberOfGroup) {
+      throw new ForbiddenException(
+        "Vous n'êtes pas membre du groupe de cette tâche",
+      );
+    }
+
+    const userTaskState = await this.userTaskStateRepository.findOne({
+      where: {
+        user: { id: userId },
+        task: { id: createActionDto.taskId },
+      },
+    });
+
+    const isUserConcerned = userTaskState?.isConcerned || false;
+
+    const action = new Action();
+    action.task = task;
+    action.user = user;
+    action.group = task.group;
+    action.date = new Date(createActionDto.date);
+    action.isHelpingHand = !isUserConcerned;
+
+    await this.actionRepository.save(action);
+
+    const now = new Date();
+    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const userActions = await this.actionRepository.find({
+      where: {
+        user: { id: userId },
+        date: MoreThanOrEqual(firstOfMonth),
+      },
+      relations: ['task'],
+    });
+
+    const totalDone = userActions.reduce((acc, act) => {
+      return acc + act.task.points;
+    }, 0);
+
+    return {
+      message: 'Action créée avec succès',
+      action,
+      totalDone,
+    };
+  }
+
+  async findAll() {
+    const actions = await this.actionRepository.find({
+      relations: ['task', 'user', 'group'],
+    });
+
+    return {
+      message: 'Actions récupérées avec succès',
+      actions,
+    };
+  }
+
+  async findOne(id: number) {
+    const action = await this.actionRepository.findOne({
+      where: { id },
+      relations: ['task', 'user', 'group'],
+    });
+
+    if (!action) {
+      throw new NotFoundException('Action non trouvée');
+    }
+
+    return {
+      message: 'Action récupérée avec succès',
+      action,
+    };
+  }
+
+  async findByUserId(userId: number) {
+    const actions = await this.actionRepository.find({
+      where: { user: { id: userId } },
+      relations: ['task', 'user', 'group'],
+    });
+
+    return {
+      message: "Actions de l'utilisateur récupérées avec succès",
+      actions,
+    };
+  }
+
+  async findByGroupId(groupId: number) {
+    const actions = await this.actionRepository.find({
+      where: { group: { id: groupId } },
+      relations: ['task', 'user', 'group'],
+    });
+
+    return {
+      message: 'Actions du groupe récupérées avec succès',
+      actions,
+    };
+  }
+
+  async findRecentByGroupId(groupId: number) {
+    const actions = await this.actionRepository.find({
+      where: { group: { id: groupId } },
+      relations: ['task', 'user', 'group'],
+      order: { createdAt: 'DESC' },
+      take: 50,
+    });
+
+    return {
+      message: '50 dernières actions du groupe récupérées avec succès',
+      actions,
+      total: actions.length,
+    };
+  }
+
+  async findByTaskId(taskId: number) {
+    const actions = await this.actionRepository.find({
+      where: { task: { id: taskId } },
+      relations: ['task', 'user', 'group'],
+    });
+
+    return {
+      message: 'Actions de la tâche récupérées avec succès',
+      actions,
+    };
+  }
+
+  async findMyActions(userId: number) {
+    const actions = await this.actionRepository.find({
+      where: { user: { id: userId } },
+      relations: ['task', 'user', 'group'],
+    });
+
+    return {
+      message: 'Mes actions récupérées avec succès',
+      actions,
+    };
+  }
+
+  async update(id: number, updateActionDto: UpdateActionDto, userId: number) {
+    const action = await this.actionRepository.findOne({
+      where: { id },
+      relations: ['task', 'user', 'group'],
+    });
+
+    if (!action) {
+      throw new NotFoundException('Action non trouvée');
+    }
+
+    if (action.user.id !== userId) {
+      throw new ForbiddenException(
+        'Vous ne pouvez modifier que vos propres actions',
+      );
+    }
+
+    if (updateActionDto.date) action.date = new Date(updateActionDto.date);
+
+    await this.actionRepository.save(action);
+
+    return {
+      message: 'Action mise à jour avec succès',
+      action,
+    };
+  }
+
+  async remove(id: number, userId: number) {
+    const action = await this.actionRepository.findOne({
+      where: { id },
+      relations: ['task', 'user', 'group'],
+    });
+
+    if (!action) {
+      throw new NotFoundException('Action non trouvée');
+    }
+
+    if (action.user.id !== userId) {
+      throw new ForbiddenException(
+        'Vous ne pouvez supprimer que vos propres actions',
+      );
+    }
+
+    await this.actionRepository.remove(action);
+
+    return {
+      message: 'Action supprimée avec succès',
+    };
+  }
+}

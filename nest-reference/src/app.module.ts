@@ -4,17 +4,28 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import { User } from './users/entities/user.entity';
-import { EstablishmentsModule } from './establishments/establishments.module';
-import { Establishment } from './establishments/entities/establishment.entity';
 import { ConfigModule } from '@nestjs/config';
-import { PartnerRegistrationModule } from './partner-registration/partner-registration.module';
-import { MailModule } from './mail/mail.module';
-import { StripeModule } from './stripe/stripe.module';
-import { PartnerRegistration } from './partner-registration/entities/partner-registration.entity';
-import { AdminOwnerModule } from './admin-owner/admin-owner.module';
-import { OwnerOverviewModule } from './owner-overview/owner-overview.module';
+
+// Entities
+import { User } from './users/entities/user.entity';
+import { Group } from './groups/entities/group.entity';
+import { Task } from './tasks/entities/task.entity';
+import { Action } from './actions/entities/action.entity';
+import { Tag } from './tags/entities/tag.entity';
+import { UserTaskState } from './user-task-states/entities/user-task-state.entity';
+import { TaskBundle } from './task-bundles/entities/task-bundle.entity';
+import { Congrats } from './congrats/entities/congrats.entity';
+import { Achievement } from './achievements/entities/achievement.entity';
+
+// Modules
+import { GroupsModule } from './groups/groups.module';
+import { TasksModule } from './tasks/tasks.module';
+import { ActionsModule } from './actions/actions.module';
+import { TagsModule } from './tags/tags.module';
+import { UserTaskStatesModule } from './user-task-states/user-task-states.module';
+import { StatsModule } from './stats/stats.module';
+import { CongratsModule } from './congrats/congrats.module';
+import { AchievementsModule } from './achievements/achievements.module';
 
 @Module({
   imports: [
@@ -26,23 +37,29 @@ import { OwnerOverviewModule } from './owner-overview/owner-overview.module';
       database: process.env.DATABASE_PATH || './database.sqlite',
       entities: [
         User,
-        Establishment,
-        PartnerRegistration
+        Group,
+        Task,
+        Action,
+        Tag,
+        UserTaskState,
+        TaskBundle,
+        Congrats,
+        Achievement,
       ],
       synchronize: true,
     }),
     AuthModule,
     UsersModule,
-    EstablishmentsModule,
-    PartnerRegistrationModule,
-    MailModule,
-    AdminOwnerModule,
-    OwnerOverviewModule,
-    StripeModule,
+    GroupsModule,
+    TasksModule,
+    ActionsModule,
+    TagsModule,
+    UserTaskStatesModule,
+    StatsModule,
+    CongratsModule,
+    AchievementsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {
-  constructor(private dataSource: DataSource) { }
-}
+export class AppModule {}

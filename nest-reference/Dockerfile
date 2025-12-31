@@ -1,7 +1,7 @@
-# Dockerfile pour l'API NestJS
+# Dockerfile pour l'API NestJS - Together
 
 # Stage de développement
-FROM node:24-alpine AS development
+FROM node:20-alpine AS development
 
 # Installer dumb-init pour une gestion propre des signaux
 RUN apk add --no-cache dumb-init
@@ -14,6 +14,9 @@ COPY package*.json ./
 
 # Installer toutes les dépendances (dev + production)
 RUN npm ci && npm cache clean --force
+
+# Copier le code source
+COPY . .
 
 # Créer le répertoire pour la base de données
 RUN mkdir -p /app/data
@@ -32,8 +35,8 @@ ENV PORT=3000
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["npm", "run", "start:dev"]
 
-# Stage de builder (existant)
-FROM node:24-alpine AS builder
+# Stage de builder
+FROM node:20-alpine AS builder
 
 # Définir le répertoire de travail
 WORKDIR /app
@@ -50,8 +53,8 @@ COPY . .
 # Construire l'application
 RUN npm run build
 
-# Stage de production (existant)
-FROM node:24-alpine AS production
+# Stage de production
+FROM node:20-alpine AS production
 
 # Installer dumb-init pour une gestion propre des signaux
 RUN apk add --no-cache dumb-init
@@ -69,18 +72,20 @@ COPY package*.json ./
 # Installer uniquement les dépendances de production
 RUN npm ci --only=production && npm cache clean --force
 
-# Créer le répertoire pour la base de données avec les bonnes permissions (en tant que root)
+# Créer le répertoire pour la base de données avec les bonnes permissions
 RUN mkdir -p /app/data && chown nestjs:nodejs /app/data
 
 # Copier les fichiers construits depuis le stage builder
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nestjs:nodejs /app/views ./views
 
 # Créer le répertoire public avec les bonnes permissions
 RUN mkdir -p /app/public && chown nestjs:nodejs /app/public
 
-# Copier le dossier public s'il contient des fichiers (maintenant que .gitkeep existe)
+# Copier le dossier public s'il contient des fichiers
 COPY --from=builder --chown=nestjs:nodejs /app/public ./public
+
+# Copier le dossier data (starter-packs.json)
+COPY --from=builder --chown=nestjs:nodejs /app/src/data ./dist/data
 
 # Changer vers l'utilisateur non-root
 USER nestjs

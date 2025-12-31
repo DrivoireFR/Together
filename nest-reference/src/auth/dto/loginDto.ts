@@ -1,15 +1,19 @@
-import { IsEmail, IsNotEmpty, IsString } from "class-validator";
+import { IsEmail, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
 
 export class LoginDto {
-    @IsEmail()
-    @IsNotEmpty()
-    email: string;
+  @IsEmail()
+  email: string;
 
-    @IsString()
-    @IsNotEmpty()
-    password: string;
+  @IsNotEmpty()
+  password: string;
+
+  @IsOptional()
+  @IsBoolean()
+  rememberMe?: boolean;
 }
 
 export class LoginResponseDto {
-    token: string;
+  token: string;
+  user: any;
+  rememberMe?: boolean;
 }

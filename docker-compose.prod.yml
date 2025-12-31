@@ -1,25 +1,26 @@
 services:
   api:
     build:
-      context: ./api
+      context: ./nest-reference
       dockerfile: Dockerfile
-    container_name: rencontraire-api
+      target: production
+    container_name: together-api-prod
     restart: unless-stopped
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"
     environment:
+      - DATABASE_PATH=/app/data/database.sqlite
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+      - JWT_REMEMBER_EXPIRES_IN=${JWT_REMEMBER_EXPIRES_IN:-30d}
+      - PORT=3000
+      - CORS_ORIGINS=${CORS_ORIGINS}
       - NODE_ENV=production
     networks:
-      - dokploy-network
+      - together-network
     volumes:
       - api_uploads:/app/public/uploads
       - api_database:/app/data
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.rencontraire-api.rule=Host(`api.rencontraire.creative-developer.com`)
-      - traefik.http.routers.rencontraire-api.entrypoints=web
-      - traefik.http.services.rencontraire-api.loadbalancer.server.port=3000
-      - traefik.http.routers.rencontraire-api.tls.certresolver=letsencrypt
     healthcheck:
       test:
         [
@@ -28,31 +29,26 @@ services:
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://localhost:3000/health",
+          "http://localhost:3000/api/health",
         ]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Back-office Vue.js
-  back-office:
+  web-app:
     build:
-      context: ./back-office
+      context: ./web-app
       dockerfile: Dockerfile
-    container_name: rencontraire-backoffice
+      args:
+        - VITE_API_URL=${VITE_API_URL:-/api}
+    container_name: together-webapp-prod
     restart: unless-stopped
-    expose:
-      - "80"
+    ports:
+      - "80:80"
     depends_on:
       - api
     networks:
-      - dokploy-network
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.rencontraire-backoffice.rule=Host(`admin.rencontraire.creative-developer.com`)
-      - traefik.http.routers.rencontraire-backoffice.entrypoints=web
-      - traefik.http.services.rencontraire-backoffice.loadbalancer.server.port=80
-      - traefik.http.routers.rencontraire-backoffice.tls.certresolver=letsencrypt
+      - together-network
     healthcheck:
       test:
         [
@@ -74,5 +70,5 @@ volumes:
     driver: local
 
 networks:
-  dokploy-network:
-    external: true
+  together-network:
+    driver: bridge
