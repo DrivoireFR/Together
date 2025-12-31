@@ -32,6 +32,8 @@ import { LoggerModule } from './common/logger/logger.module';
 
 // Common
 import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
+import { CircuitBreakerInterceptor } from './common/interceptors/circuit-breaker.interceptor';
+import { QueryLoggerInterceptor } from './common/interceptors/query-logger.interceptor';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 
 @Module({
@@ -101,6 +103,16 @@ import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
     {
       provide: APP_INTERCEPTOR,
       useClass: TimeoutInterceptor,
+    },
+    // Global circuit breaker interceptor
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CircuitBreakerInterceptor,
+    },
+    // Global query logger interceptor
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: QueryLoggerInterceptor,
     },
     // Global exception filter
     {
