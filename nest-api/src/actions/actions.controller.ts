@@ -34,8 +34,16 @@ export class ActionsController {
 
   @UseGuards(AuthGuard)
   @Get()
-  findAll() {
-    return this.actionsService.findAll();
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('currentMonthOnly') currentMonthOnly?: string,
+  ) {
+    return this.actionsService.findAll(
+      page ? +page : 1,
+      limit ? +limit : 50,
+      currentMonthOnly !== 'false',
+    );
   }
 
   @UseGuards(AuthGuard)

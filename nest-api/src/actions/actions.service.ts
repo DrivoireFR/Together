@@ -117,14 +117,41 @@ export class ActionsService {
     };
   }
 
-  async findAll() {
-    const actions = await this.actionRepository.find({
-      relations: ['task', 'user', 'group'],
-    });
+  async findAll(page = 1, limit = 50, currentMonthOnly = true) {
+    const startTime = Date.now();
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(Math.max(1, limit), 100);
+
+    const queryBuilder = this.actionRepository
+      .createQueryBuilder('action')
+      .leftJoin('action.task', 'task')
+      .addSelect(['task.id', 'task.label', 'task.points'])
+      .leftJoin('action.user', 'user')
+      .addSelect(['user.id', 'user.pseudo', 'user.icone'])
+      .orderBy('action.date', 'DESC')
+      .skip((safePage - 1) * safeLimit)
+      .take(safeLimit);
+
+    if (currentMonthOnly) {
+      queryBuilder.andWhere('action.date >= :firstOfMonth', {
+        firstOfMonth: this.getFirstOfMonth(),
+      });
+    }
+
+    const [actions, total] = await queryBuilder.getManyAndCount();
+
+    const duration = Date.now() - startTime;
+    this.logger.log(`findAll(): ${actions.length}/${total} actions in ${duration}ms`);
 
     return {
       message: 'Actions récupérées avec succès',
       actions,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
     };
   }
 
