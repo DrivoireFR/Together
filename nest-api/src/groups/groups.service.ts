@@ -9,6 +9,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Group } from './entities/group.entity';
 import { User } from '../users/entities/user.entity';
+import { Action } from '../actions/entities/action.entity';
+import { Task } from '../tasks/entities/task.entity';
+import { Tag } from '../tags/entities/tag.entity';
+import { UserTaskState } from '../user-task-states/entities/user-task-state.entity';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { StarterPackService } from './services/starter-pack.service';
@@ -23,6 +27,14 @@ export class GroupsService {
     private groupRepository: Repository<Group>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Action)
+    private actionRepository: Repository<Action>,
+    @InjectRepository(Task)
+    private taskRepository: Repository<Task>,
+    @InjectRepository(Tag)
+    private tagRepository: Repository<Tag>,
+    @InjectRepository(UserTaskState)
+    private userTaskStateRepository: Repository<UserTaskState>,
     private starterPackService: StarterPackService,
     private hotActionsService: HotActionsService,
   ) {}
