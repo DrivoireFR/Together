@@ -1,7 +1,7 @@
 services:
   api:
     build:
-      context: ./nest-reference
+      context: ./nest-api
       dockerfile: Dockerfile
       target: development
     container_name: together-api

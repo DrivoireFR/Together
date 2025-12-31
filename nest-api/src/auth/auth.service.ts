@@ -94,6 +94,23 @@ export class AuthService {
     };
   }
 
+  async getProfile(userId: number): Promise<{ message: string; user: any }> {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Utilisateur non trouvé');
+    }
+
+    const { password: _pass, ...userWithoutPassword } = user;
+
+    return {
+      message: 'Profil récupéré avec succès',
+      user: userWithoutPassword,
+    };
+  }
+
   async rememberMeVerify(
     userId: number,
   ): Promise<{ message: string; user: any; token: string }> {

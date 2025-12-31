@@ -112,7 +112,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const setUserData = async (userData: User) => {
+  const setUserData = async (userData: User | undefined) => {
+    if (!userData || !userData.id) {
+      console.error('Données utilisateur invalides:', userData)
+      return
+    }
     user.value = userData
     groupStore.getUserGroups(userData.id)
   }

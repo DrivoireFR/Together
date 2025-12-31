@@ -1,7 +1,7 @@
 services:
   api:
     build:
-      context: ./nest-reference
+      context: ./nest-api
       dockerfile: Dockerfile
       target: development
     container_name: together-api-dev
@@ -19,7 +19,7 @@ services:
     networks:
       - together-network
     volumes:
-      - ./nest-reference:/app
+      - ./nest-api:/app
       - /app/node_modules
       - api_database:/app/data
     command: npm run start:dev
