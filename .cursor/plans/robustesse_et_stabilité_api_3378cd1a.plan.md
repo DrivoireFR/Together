@@ -259,4 +259,3 @@ Fichiers à modifier :
 - ✅ Protection contre les DDoS et brute force
 - ✅ Visibilité complète sur les erreurs en production
 - ✅ Dégradation gracieuse avec timeouts
-- ✅ Réduction de 70-90% du temps de réponse sur les endpoints lourds
