@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rencontraire - Transformez votre établissement en lieu de rencontre connecté</title>
+    <meta name="description"
+        content="Plateforme #1 pour les propriétaires d'établissements. Communiquez, animez et boostez votre activité.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#3b82f6',
+                            foreground: '#ffffff'
+                        },
+                        background: '#ffffff',
+                        foreground: '#0f172a',
+                        muted: {
+                            DEFAULT: '#f1f5f9',
+                            foreground: '#64748b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .text-primary {
+            color: #3b82f6;
+        }
+
+        .bg-primary {
+            background-color: #3b82f6;
+        }
+
+        .bg-primary\/10 {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .bg-primary\/20 {
+            background-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .bg-primary\/80 {
+            background-color: rgba(59, 130, 246, 0.8);
+        }
+
+        .text-primary-foreground {
+            color: #ffffff;
+        }
+
+        .text-muted-foreground {
+            color: #64748b;
+        }
+
+        .bg-muted\/30 {
+            background-color: rgba(241, 245, 249, 0.3);
+        }
+
+        .bg-muted\/50 {
+            background-color: rgba(241, 245, 249, 0.5);
+        }
+
+        .border-white\/20 {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .hover\:bg-white\/10:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .bg-gradient-to-r {
+            background-image: linear-gradient(to right, var(--tw-gradient-stops));
+        }
+
+        .from-primary {
+            --tw-gradient-from: #3b82f6;
+            --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(59, 130, 246, 0));
+        }
+
+        .to-primary\/60 {
+            --tw-gradient-to: rgba(59, 130, 246, 0.6);
+        }
+
+        .to-primary\/80 {
+            --tw-gradient-to: rgba(59, 130, 246, 0.8);
+        }
+
+        .bg-clip-text {
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .text-transparent {
+            color: transparent;
+        }
+
+        .from-primary\/20 {
+            --tw-gradient-from: rgba(59, 130, 246, 0.2);
+        }
+
+        .to-transparent {
+            --tw-gradient-to: transparent;
+        }
+
+        .bg-gradient-to-tr {
+            background-image: linear-gradient(to top right, var(--tw-gradient-stops));
+        }
+
+        .fill-yellow-400 {
+            fill: #facc15;
+        }
+
+        .text-yellow-400 {
+            color: #facc15;
+        }
+
+        .text-green-600 {
+            color: #16a34a;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-background">
+    <!-- Hero Section -->
+    <section class="container mx-auto px-6 py-12 lg:py-20">
+        <div class="text-center max-w-4xl mx-auto">
+            <div
+                class="inline-flex items-center px-4 py-2 mb-6 bg-primary/10 text-primary rounded-full text-sm font-medium">
+                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z" />
+                </svg>
+                Plateforme #1 pour les propriétaires d'établissements
+            </div>
+
+            <h1
+                class="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                Transformez votre établissement en lieu de <span class="text-primary">rencontre connecté</span>
+            </h1>
+
+            <p class="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+                Créez une expérience unique pour vos clients grâce à Rencontraire. Communiquez, animez et boostez votre
+                activité avec notre plateforme innovante.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                    class="inline-flex items-center px-8 py-6 bg-primary text-primary-foreground rounded-lg text-lg font-medium hover:bg-primary/90 transition-colors">
+                    Commencer gratuitement
+                    <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+                <button
+                    class="inline-flex items-center px-8 py-6 border border-gray-300 text-foreground rounded-lg text-lg font-medium hover:bg-gray-50 transition-colors">
+                    <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15M9 10V9a2 2 0 012-2h2a2 2 0 012 2v1.093M9 10v4.586a1 1 0 01-.293.707L6.293 17.707A1 1 0 015.586 18H4a1 1 0 01-1-1v-1.586a1 1 0 01.293-.707L5.707 12.293A1 1 0 016 12h1.586a1 1 0 00.707-.293L9.707 10.293A1 1 0 0110.414 10H11" />
+                    </svg>
+                    Voir la démo
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="bg-muted/30 py-12">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="text-center">
+                    <div class="text-3xl lg:text-4xl font-bold text-primary mb-2">
+                        2,500+
+                    </div>
+                    <p class="text-muted-foreground">Établissements partenaires</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl lg:text-4xl font-bold text-primary mb-2">
+                        50,000+
+                    </div>
+                    <p class="text-muted-foreground">Messages échangés/jour</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl lg:text-4xl font-bold text-primary mb-2">
+                        94%
+                    </div>
+                    <p class="text-muted-foreground">Satisfaction clients</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl lg:text-4xl font-bold text-primary mb-2">
+                        < 2min </div>
+                            <p class="text-muted-foreground">Temps de réponse moyen</p>
+                    </div>
+                </div>
+            </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-20">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-5xl font-bold mb-4">
+                    Trois avantages qui changent tout
+                </h2>
+                <p class="text-xl text-muted-foreground max-w-2xl mx-auto">
+                    Découvrez comment Rencontraire peut transformer votre établissement en véritable lieu de vie
+                    connecté
+                </p>
+            </div>
+
+            <div class="space-y-20">
+                <!-- Feature 1 -->
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <svg class="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl lg:text-3xl font-bold">Vue sur les discussions clients</h3>
+                        </div>
+
+                        <p class="text-lg text-muted-foreground leading-relaxed">
+                            Observez en temps réel les conversations de vos clients pour mieux comprendre leurs besoins
+                            et améliorer leur expérience.
+                        </p>
+
+                        <ul class="space-y-3">
+                            <li class="flex items-center gap-3">
+                                <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Anticipez les demandes</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Identifiez les problèmes</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Optimisez votre service</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1725352118061-3da248f1826d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYWZlJTIwb3duZXIlMjBtb2JpbGUlMjBjaGF0JTIwY29tbXVuaWNhdGlvbnxlbnwxfHx8fDE3NTUzMzI0MDh8MA&ixlib=rb-4.1.0&q=80&w=1080"
+                                alt="Vue sur les discussions clients"
+                                class="w-full h-80 lg:h-96 object-cover rounded-2xl shadow-2xl" loading="lazy" />
+                            <div class="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-2xl">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="grid lg:grid-cols-2 gap-12 items-center lg:grid-flow-col-dense">
+                    <div class="space-y-6 lg:col-start-2">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <svg class="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl lg:text-3xl font-bold">Communication directe naturelle</h3>
+                        </div>
+
+                        <p class="text-lg text-muted-foreground leading-relaxed">
+                            Communiquez instantanément avec vos clients via un chat intuitif, comme s'ils étaient sur
+                            WhatsApp ou Messenger.
+                        </p>
+
+                        <ul class="space-y-3">
+                            <li class="flex items-center gap-3">
+                                <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Réponses immédiates</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Interface familière</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Relation client renforcée</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="lg:col-start-1">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1586864030223-a918b07d357d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYWZlJTIwb3duZXIlMjBtb2JpbGUlMjBjaGF0JTIwY29tbXVuaWNhdGlvbnxlbnwxfHx8fDE3NTUzMzI0MDh8MA&ixlib=rb-4.1.0&q=80&w=1080"
+                                alt="Communication directe naturelle"
+                                class="w-full h-80 lg:h-96 object-cover rounded-2xl shadow-2xl" loading="lazy" />
+                            <div class="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-2xl">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <svg class="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl lg:text-3xl font-bold">Animation de votre établissement</h3>
+                        </div>
+
+                        <p class="text-lg text-muted-foreground leading-relaxed">
+                            Lancez des promotions flash, annoncez des événements et créez de l'engagement avec des
+                            communications prioritaires.
+                        </p>
+
+                        <ul class="space-y-3">
+                            <li class="flex items-center gap-3">
+                                <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Promotions instantanées</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Événements en direct</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Engagement client</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1615472847561-b745cf6a2fec?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHhiYXIlMjBldmVudHMlMjBoYXBweSUyMGN1c3RvbWVyc3xlbnwxfHx8fDE3NTUzMzI0MTF8MA&ixlib=rb-4.1.0&q=80&w=1080"
+                                alt="Animation de votre établissement"
+                                class="w-full h-80 lg:h-96 object-cover rounded-2xl shadow-2xl" loading="lazy" />
+                            <div class="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-2xl">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="bg-muted/30 py-20">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-4xl font-bold mb-4">
+                    Ils nous font confiance
+                </h2>
+                <p class="text-xl text-muted-foreground">
+                    Découvrez les retours de nos partenaires
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Testimonial 1 -->
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <div class="flex mb-4">
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                    </div>
+                    <p class="text-muted-foreground mb-6 leading-relaxed">
+                        "Rencontraire a révolutionné notre relation client. Nous répondons aux questions en temps réel
+                        et nos ventes ont augmenté de 25%."
+                    </p>
+                    <div>
+                        <div class="font-medium">Sophie Martin</div>
+                        <div class="text-sm text-muted-foreground">Propriétaire - Café du Boulevard</div>
+                    </div>
+                </div>
+
+                <!-- Testimonial 2 -->
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <div class="flex mb-4">
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                    </div>
+                    <p class="text-muted-foreground mb-6 leading-relaxed">
+                        "Les communications spéciales nous permettent de remplir la salle même en période creuse. Un
+                        outil indispensable !"
+                    </p>
+                    <div>
+                        <div class="font-medium">Pierre Dubois</div>
+                        <div class="text-sm text-muted-foreground">Manager - Restaurant Le Gourmet</div>
+                    </div>
+                </div>
+
+                <!-- Testimonial 3 -->
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <div class="flex mb-4">
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        <svg class="h-4 w-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                    </div>
+                    <p class="text-muted-foreground mb-6 leading-relaxed">
+                        "Nos soirées événements sont toujours pleines grâce aux notifications instantanées. L'engagement
+                        client est incroyable."
+                    </p>
+                    <div>
+                        <div class="font-medium">Marie Leroy</div>
+                        <div class="text-sm text-muted-foreground">Organisatrice - Bar à Cocktails Zen</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20">
+        <div class="container mx-auto px-6">
+            <div
+                class="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg border-0 p-16 text-center">
+                <svg class="h-16 w-16 mx-auto mb-6 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <h2 class="text-3xl lg:text-4xl font-bold mb-4">
+                    Prêt à révolutionner votre établissement ?
+                </h2>
+                <p class="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
+                    Rejoignez plus de 2,500 établissements qui ont déjà choisi Rencontraire pour améliorer leur relation
+                    client et booster leur activité.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button
+                        class="inline-flex items-center px-8 py-6 bg-white text-primary rounded-lg text-lg font-medium hover:bg-gray-50 transition-colors">
+                        Commencer l'inscription
+                        <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                    <button
+                        class="inline-flex items-center px-8 py-6 border border-white/20 text-white hover:bg-white/10 rounded-lg text-lg font-medium transition-colors">
+                        <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                        </svg>
+                        Contacter un expert
+                    </button>
+                </div>
+
+                <div class="mt-8 text-sm opacity-75">
+                    ✓ Gratuit pendant 30 jours · ✓ Sans engagement · ✓ Support inclus
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-muted/50 py-12">
+        <div class="container mx-auto px-6">
+            <div class="text-center">
+                <div class="flex items-center justify-center gap-2 mb-4">
+                    <svg class="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <span class="text-xl font-bold">Rencontraire</span>
+                </div>
+                <p class="text-muted-foreground">
+                    Transformons ensemble vos établissements en lieux de rencontre connectés
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

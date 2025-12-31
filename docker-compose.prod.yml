@@ -1,0 +1,78 @@
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: rencontraire-api
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - dokploy-network
+    volumes:
+      - api_uploads:/app/public/uploads
+      - api_database:/app/data
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.rencontraire-api.rule=Host(`api.rencontraire.creative-developer.com`)
+      - traefik.http.routers.rencontraire-api.entrypoints=web
+      - traefik.http.services.rencontraire-api.loadbalancer.server.port=3000
+      - traefik.http.routers.rencontraire-api.tls.certresolver=letsencrypt
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Back-office Vue.js
+  back-office:
+    build:
+      context: ./back-office
+      dockerfile: Dockerfile
+    container_name: rencontraire-backoffice
+    restart: unless-stopped
+    expose:
+      - "80"
+    depends_on:
+      - api
+    networks:
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.rencontraire-backoffice.rule=Host(`admin.rencontraire.creative-developer.com`)
+      - traefik.http.routers.rencontraire-backoffice.entrypoints=web
+      - traefik.http.services.rencontraire-backoffice.loadbalancer.server.port=80
+      - traefik.http.routers.rencontraire-backoffice.tls.certresolver=letsencrypt
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  api_uploads:
+    driver: local
+  api_database:
+    driver: local
+
+networks:
+  dokploy-network:
+    external: true

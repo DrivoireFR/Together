@@ -1,0 +1,72 @@
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: rencontraire-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./api/.env
+    environment:
+      - DATABASE_PATH=/app/data/database.sqlite
+    networks:
+      - rencontraire-network
+    volumes:
+      - api_uploads:/app/public/uploads
+      - api_database:/app/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Back-office Vue.js
+  back-office:
+    build:
+      context: ./back-office
+      dockerfile: Dockerfile
+    container_name: rencontraire-backoffice
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - rencontraire-network
+    volumes:
+      - ./back-office/src:/app/src:delegated
+      - ./back-office/public:/app/public:delegated
+      - /app/node_modules # Évite d'écraser node_modules
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  api_uploads:
+    driver: local
+  api_database:
+    driver: local
+
+networks:
+  rencontraire-network:
+    driver: bridge
