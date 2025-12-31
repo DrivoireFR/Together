@@ -106,11 +106,51 @@ export class TasksService {
     };
   }
 
-  async findOne(id: number) {
-    const task = await this.taskRepository.findOne({
-      where: { id },
-      relations: ['group', 'tag', 'actions'],
-    });
+  private getFirstOfMonth(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+
+  async findOne(id: number, includeActions = false, currentMonthOnly = true) {
+    // Par défaut : pas d'actions (optimisation)
+    if (!includeActions) {
+      const task = await this.taskRepository.findOne({
+        where: { id },
+        relations: ['group', 'tag'],
+      });
+
+      if (!task) {
+        throw new NotFoundException('Tâche non trouvée');
+      }
+
+      return {
+        message: 'Tâche récupérée avec succès',
+        task,
+      };
+    }
+
+    // Si actions demandées
+    const queryBuilder = this.taskRepository
+      .createQueryBuilder('task')
+      .leftJoinAndSelect('task.group', 'group')
+      .leftJoinAndSelect('task.tag', 'tag')
+      .where('task.id = :id', { id });
+
+    if (currentMonthOnly) {
+      queryBuilder.leftJoinAndSelect(
+        'task.actions',
+        'actions',
+        'actions.date >= :firstOfMonth',
+        { firstOfMonth: this.getFirstOfMonth() },
+      );
+    } else {
+      queryBuilder.leftJoinAndSelect('task.actions', 'actions');
+      this.logger.warn(
+        `Loading FULL HISTORY of actions for task ${id} - may impact performance`,
+      );
+    }
+
+    const task = await queryBuilder.getOne();
 
     if (!task) {
       throw new NotFoundException('Tâche non trouvée');

@@ -32,8 +32,16 @@ export class TasksController {
 
   @UseGuards(AuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tasksService.findOne(+id);
+  findOne(
+    @Param('id') id: string,
+    @Query('includeActions') includeActions?: string,
+    @Query('currentMonthOnly') currentMonthOnly?: string,
+  ) {
+    return this.tasksService.findOne(
+      +id,
+      includeActions === 'true',
+      currentMonthOnly !== 'false',
+    );
   }
 
   @UseGuards(AuthGuard)
