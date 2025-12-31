@@ -14,6 +14,7 @@ export const useTasksStore = defineStore('tasks', () => {
   const selectedTagFilter = ref<Tag | null>(null)
   const sortByUrgency = ref(false)
   const isLoading = ref(false)
+  const loadingTasks = ref<Set<number>>(new Set())
   const error = ref<string | undefined>(undefined)
 
   // État pour la gestion de reconnaissance des tâches
@@ -61,7 +62,7 @@ export const useTasksStore = defineStore('tasks', () => {
 
         const priorityA = getUrgencyPriority(a.hurryState)
         const priorityB = getUrgencyPriority(b.hurryState)
-        
+
         // Sort in descending order (most urgent first)
         return priorityB - priorityA
       })
@@ -284,7 +285,7 @@ export const useTasksStore = defineStore('tasks', () => {
   }
 
   const createActionForTask = async (taskId: number) => {
-    isLoading.value = true
+    loadingTasks.value.add(taskId)
     error.value = undefined
 
     try {
@@ -296,6 +297,15 @@ export const useTasksStore = defineStore('tasks', () => {
       const result = await taskRepository.createAction(payload)
 
       if (result.isSuccess) {
+        // Ajouter l'action à la liste locale sans recharger toute la liste
+        if (result.data.action) {
+          actions.value.unshift(result.data.action)
+          // Limiter à 50 actions pour éviter une liste trop longue
+          if (actions.value.length > 50) {
+            actions.value = actions.value.slice(0, 50)
+          }
+        }
+
         showfeedback.value = true
         feedbackTotalDone.value = result.data.totalDone
 
@@ -309,8 +319,12 @@ export const useTasksStore = defineStore('tasks', () => {
       error.value = errorMessage
       return { success: false, error: errorMessage }
     } finally {
-      isLoading.value = false
+      loadingTasks.value.delete(taskId)
     }
+  }
+
+  const isTaskLoading = (taskId: number) => {
+    return loadingTasks.value.has(taskId)
   }
 
   const deleteAction = async (actionId: number) => {
@@ -493,6 +507,7 @@ export const useTasksStore = defineStore('tasks', () => {
     updateTask,
     deleteTask,
     createActionForTask,
+    isTaskLoading,
     deleteAction,
     setTagFilter,
     clearTagFilter,

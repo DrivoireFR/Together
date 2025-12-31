@@ -1,5 +1,11 @@
 <template>
-  <div :class="cardClasses" class="task-card-clickable">
+  <div :class="[cardClasses, 'task-card-clickable', { 'task-card--loading': isLoading }]">
+    <!-- Loading overlay -->
+    <div v-if="isLoading" class="task-loading-overlay">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Traitement...</p>
+    </div>
+    
     <div class="task-header">
       <div class="task-icon" v-if="task.iconUrl">
         <img :src="task.iconUrl" :alt="task.label" />
@@ -54,8 +60,10 @@
         size="lg" 
         @click.stop="$emit('click')"
         color="danger"
+        :disabled="isLoading"
         >
-        C'est fait !
+        <span v-if="!isLoading">C'est fait !</span>
+        <span v-else>Traitement...</span>
       </BaseButton>
     </div>
   </div>
@@ -65,6 +73,7 @@
 import { computed } from 'vue'
 import type { Task, Tag, HurryState } from '@/domain/types'
 import { difficultyDescriptions } from '@/shared/constants'
+import { useTasksStore } from '@/domain/stores/tasksStore'
 import TagChip from './TagChip.vue'
 import BaseButton from './BaseButton.vue'
 
@@ -78,6 +87,10 @@ const props = withDefaults(defineProps<Props>(), {
   showActions: false,
   variant: 'default'
 })
+
+const tasksStore = useTasksStore()
+
+const isLoading = computed(() => tasksStore.isTaskLoading(props.task.id))
 
 defineEmits<{
   edit: []
@@ -391,5 +404,49 @@ const hurryClass = computed(() => {
 
 .main-action .btn {
   width: 100%;
+}
+
+.task-card--loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.task-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(2px);
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  gap: var(--spacing-2);
+}
+
+.loading-spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid var(--color-gray-200);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  font-weight: var(--font-weight-medium);
+  margin: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
