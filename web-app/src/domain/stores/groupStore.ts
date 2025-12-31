@@ -221,6 +221,12 @@ export const useGroupStore = defineStore('group', () => {
       return
     }
 
+    // Le backend exige au moins 2 caractères
+    if (nom.trim().length < 2) {
+      searchResults.value = []
+      return
+    }
+
     isSearching.value = true
     error.value = undefined
 
