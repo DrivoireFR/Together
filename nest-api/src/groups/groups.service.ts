@@ -441,34 +441,46 @@ export class GroupsService {
   }
 
   async remove(id: number) {
+    const startTime = Date.now();
+
+    // Optimisation: Ne charge PAS les relations
     const group = await this.groupRepository.findOne({
       where: { id },
-      relations: ['users', 'tasks', 'actions', 'tags'],
     });
 
     if (!group) {
       throw new NotFoundException('Groupe non trouvé');
     }
 
-    if (group.tasks && group.tasks.length > 0) {
+    // Utiliser count() au lieu de charger toutes les entités
+    const [tasksCount, actionsCount, tagsCount] = await Promise.all([
+      this.taskRepository.count({ where: { group: { id } } }),
+      this.actionRepository.count({ where: { group: { id } } }),
+      this.tagRepository.count({ where: { group: { id } } }),
+    ]);
+
+    if (tasksCount > 0) {
       throw new BadRequestException(
-        'Impossible de supprimer le groupe car il contient des tâches',
+        `Impossible de supprimer: ${tasksCount} tâche(s) présente(s)`,
       );
     }
 
-    if (group.actions && group.actions.length > 0) {
+    if (actionsCount > 0) {
       throw new BadRequestException(
-        'Impossible de supprimer le groupe car il contient des actions',
+        `Impossible de supprimer: ${actionsCount} action(s) présente(s)`,
       );
     }
 
-    if (group.tags && group.tags.length > 0) {
+    if (tagsCount > 0) {
       throw new BadRequestException(
-        'Impossible de supprimer le groupe car il contient des tags',
+        `Impossible de supprimer: ${tagsCount} tag(s) présent(s)`,
       );
     }
 
     await this.groupRepository.remove(group);
+
+    const duration = Date.now() - startTime;
+    this.logger.log(`Removed group ${id} in ${duration}ms`);
 
     return {
       message: 'Groupe supprimé avec succès',
