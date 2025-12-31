@@ -8,6 +8,7 @@ import {
   Put,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ActionsService } from './actions.service';
@@ -51,8 +52,21 @@ export class ActionsController {
 
   @UseGuards(AuthGuard)
   @Get('group/:groupId')
-  findByGroupId(@Param('groupId') groupId: string) {
-    return this.actionsService.findByGroupId(+groupId);
+  findByGroupId(
+    @Param('groupId') groupId: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('fullHistory') fullHistory?: string,
+  ) {
+    return this.actionsService.findByGroupId(+groupId, {
+      page: page ? +page : undefined,
+      limit: limit ? +limit : undefined,
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
+      includeFullHistory: fullHistory === 'true',
+    });
   }
 
   @UseGuards(AuthGuard)
