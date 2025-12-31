@@ -24,7 +24,7 @@ export class AuthService {
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async register(
     createUserDto: RegisterUserDto,
@@ -145,9 +145,9 @@ export class AuthService {
 
     const expiresIn = rememberMe
       ? this.configService.get<string>('JWT_REMEMBER_EXPIRES_IN') ||
-        jwtConstants.rememberExpiresIn
+      jwtConstants.rememberExpiresIn
       : this.configService.get<string>('JWT_EXPIRES_IN') ||
-        jwtConstants.expiresIn;
+      jwtConstants.expiresIn;
 
     return this.jwtService.signAsync(payload, { expiresIn });
   }

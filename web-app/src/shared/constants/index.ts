@@ -1,5 +1,7 @@
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 
+export const STORAGE_PREFIX = import.meta.env.VITE_STORAGE_PREFIX || 'together_'
+
 export const STORAGE_KEYS = {
   TOKEN: 'auth_token',
   USER: 'user_data',
