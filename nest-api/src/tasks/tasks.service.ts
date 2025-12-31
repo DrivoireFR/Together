@@ -211,23 +211,41 @@ export class TasksService {
   }
 
   async remove(id: number) {
-    const task = await this.taskRepository.findOne({
-      where: { id },
-      relations: ['actions', 'userStates'],
-    });
+    const queryRunner =
+      this.taskRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (!task) {
-      throw new NotFoundException('Tâche non trouvée');
+    try {
+      const task = await queryRunner.manager.findOne(Task, {
+        where: { id },
+        relations: ['actions', 'userStates'],
+      });
+
+      if (!task) {
+        throw new NotFoundException('Tâche non trouvée');
+      }
+
+      // Supprimer les userStates associés
+      if (task.userStates && task.userStates.length > 0) {
+        await queryRunner.manager.remove(task.userStates);
+      }
+
+      // Supprimer la tâche (les actions sont supprimées en cascade)
+      await queryRunner.manager.remove(task);
+
+      await queryRunner.commitTransaction();
+
+      this.logger.log(`Task removed: ${id} "${task.label}"`);
+
+      return {
+        message: 'Tâche supprimée avec succès',
+      };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
-
-    if (task.userStates && task.userStates.length > 0) {
-      await this.userTaskStateRepository.remove(task.userStates);
-    }
-
-    await this.taskRepository.remove(task);
-
-    return {
-      message: 'Tâche supprimée avec succès',
-    };
   }
 }

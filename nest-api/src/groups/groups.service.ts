@@ -40,31 +40,52 @@ export class GroupsService {
   ) {}
 
   async create(createGroupDto: CreateGroupDto, userId: number) {
-    const existingGroup = await this.groupRepository.findOne({
-      where: { nom: createGroupDto.nom },
-    });
+    const queryRunner =
+      this.groupRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (existingGroup) {
-      throw new BadRequestException('Un groupe avec ce nom existe déjà');
+    try {
+      const existingGroup = await queryRunner.manager.findOne(Group, {
+        where: { nom: createGroupDto.nom },
+      });
+
+      if (existingGroup) {
+        throw new BadRequestException('Un groupe avec ce nom existe déjà');
+      }
+
+      const group = new Group();
+      group.nom = createGroupDto.nom;
+      await queryRunner.manager.save(group);
+
+      const user = await queryRunner.manager.findOne(User, {
+        where: { id: userId },
+      });
+
+      if (user) {
+        group.users = [user];
+        await queryRunner.manager.save(group);
+      }
+
+      await queryRunner.commitTransaction();
+
+      const starterPack = this.starterPackService.getDefaultStarterPackData();
+
+      this.logger.log(
+        `Group created: ${group.id} "${group.nom}" by user ${userId}`,
+      );
+
+      return {
+        message: 'Groupe créé avec succès',
+        group,
+        starterPack,
+      };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
-
-    const group = new Group();
-    group.nom = createGroupDto.nom;
-    await this.groupRepository.save(group);
-
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (user) {
-      group.users = [user];
-      await this.groupRepository.save(group);
-    }
-
-    const starterPack = this.starterPackService.getDefaultStarterPackData();
-
-    return {
-      message: 'Groupe créé avec succès',
-      group,
-      starterPack,
-    };
   }
 
   async findAll(page = 1, limit = 20) {
