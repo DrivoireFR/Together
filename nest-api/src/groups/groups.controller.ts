@@ -23,7 +23,7 @@ import { Timeout, TimeoutValues } from '../common/decorators/timeout.decorator';
 
 @Controller('groups')
 export class GroupsController {
-  constructor(private readonly groupsService: GroupsService) {}
+  constructor(private readonly groupsService: GroupsService) { }
 
   // Rate limit: 3 group creations per minute
   @UseGuards(AuthGuard)
@@ -123,13 +123,17 @@ export class GroupsController {
 
   @UseGuards(AuthGuard)
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateGroupDto: UpdateGroupDto) {
-    return this.groupsService.update(+id, updateGroupDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateGroupDto: UpdateGroupDto,
+    @Request() req: RequestWithUser,
+  ) {
+    return this.groupsService.update(+id, updateGroupDto, req.user.userId);
   }
 
   @UseGuards(AuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.groupsService.remove(+id);
+  remove(@Param('id') id: string, @Request() req: RequestWithUser) {
+    return this.groupsService.remove(+id, req.user.userId);
   }
 }

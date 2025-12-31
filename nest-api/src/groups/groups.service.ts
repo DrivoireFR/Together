@@ -37,7 +37,7 @@ export class GroupsService {
     private userTaskStateRepository: Repository<UserTaskState>,
     private starterPackService: StarterPackService,
     private hotActionsService: HotActionsService,
-  ) {}
+  ) { }
 
   async create(createGroupDto: CreateGroupDto, userId: number) {
     const queryRunner =
@@ -239,6 +239,13 @@ export class GroupsService {
       throw new NotFoundException('Groupe non trouvé');
     }
 
+    // Vérifier que l'utilisateur fait partie du groupe
+    const isMember = group.users.some(user => user.id === userId);
+    if (!isMember) {
+      this.logger.warn(`User ${userId} attempted to access group ${id} without permission`);
+      throw new NotFoundException('Groupe non trouvé');
+    }
+
     // Optimisation: Charger uniquement les userStates de l'utilisateur connecté
     const userTaskStates = await this.userTaskStateRepository.find({
       where: {
@@ -279,14 +286,14 @@ export class GroupsService {
           ...task,
           userTaskState: userTaskState
             ? {
-                id: userTaskState.id,
-                isAcknowledged: userTaskState.isAcknowledged,
-                isConcerned: userTaskState.isConcerned,
-                acknowledgedAt: userTaskState.acknowledgedAt,
-                concernedAt: userTaskState.concernedAt,
-                createdAt: userTaskState.createdAt,
-                updatedAt: userTaskState.updatedAt,
-              }
+              id: userTaskState.id,
+              isAcknowledged: userTaskState.isAcknowledged,
+              isConcerned: userTaskState.isConcerned,
+              acknowledgedAt: userTaskState.acknowledgedAt,
+              concernedAt: userTaskState.concernedAt,
+              createdAt: userTaskState.createdAt,
+              updatedAt: userTaskState.updatedAt,
+            }
             : null,
           hurryState: hurryInfo?.hurryState || 'nope',
           expectedActionsAtDate: hurryInfo?.expectedActionsAtDate || 0,
@@ -433,13 +440,23 @@ export class GroupsService {
     };
   }
 
-  async update(id: number, updateGroupDto: UpdateGroupDto) {
+  async update(id: number, updateGroupDto: UpdateGroupDto, userId?: number) {
     const group = await this.groupRepository.findOne({
       where: { id },
+      relations: ['users'],
     });
 
     if (!group) {
       throw new NotFoundException('Groupe non trouvé');
+    }
+
+    // Vérifier que l'utilisateur fait partie du groupe
+    if (userId) {
+      const isMember = group.users.some(user => user.id === userId);
+      if (!isMember) {
+        this.logger.warn(`User ${userId} attempted to update group ${id} without permission`);
+        throw new ForbiddenException('Vous devez être membre du groupe pour le modifier');
+      }
     }
 
     if (updateGroupDto.nom && updateGroupDto.nom !== group.nom) {
@@ -461,16 +478,26 @@ export class GroupsService {
     };
   }
 
-  async remove(id: number) {
+  async remove(id: number, userId?: number) {
     const startTime = Date.now();
 
-    // Optimisation: Ne charge PAS les relations
+    // Charger le groupe avec les users pour vérifier l'accès
     const group = await this.groupRepository.findOne({
       where: { id },
+      relations: ['users'],
     });
 
     if (!group) {
       throw new NotFoundException('Groupe non trouvé');
+    }
+
+    // Vérifier que l'utilisateur fait partie du groupe
+    if (userId) {
+      const isMember = group.users.some(user => user.id === userId);
+      if (!isMember) {
+        this.logger.warn(`User ${userId} attempted to delete group ${id} without permission`);
+        throw new ForbiddenException('Vous devez être membre du groupe pour le supprimer');
+      }
     }
 
     // Utiliser count() au lieu de charger toutes les entités

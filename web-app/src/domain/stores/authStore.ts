@@ -54,7 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
             setUserData(verifyResult.data.user)
             StorageUtil.setItem(STORAGE_KEYS.USER, verifyResult.data.user)
 
-            groupStore.checkGroupAndRedirect()
+            groupStore.checkGroupAndRedirect(verifyResult.data.user.id)
           } else {
             // Token remember me invalide ou expiré, déconnecter
             logout()
@@ -68,7 +68,7 @@ export const useAuthStore = defineStore('auth', () => {
             setUserData(verifyResult.data.user)
             StorageUtil.setItem(STORAGE_KEYS.USER, verifyResult.data.user)
 
-            groupStore.checkGroupAndRedirect()
+            groupStore.checkGroupAndRedirect(verifyResult.data.user.id)
           } else {
             // Token invalide, déconnecter silencieusement
             logout()
@@ -159,6 +159,8 @@ export const useAuthStore = defineStore('auth', () => {
     // Nettoyer le localStorage
     StorageUtil.removeItem(STORAGE_KEYS.TOKEN)
     StorageUtil.removeItem(STORAGE_KEYS.USER)
+    // Nettoyer le groupe sélectionné pour éviter les accès non autorisés
+    StorageUtil.removeItem('selectedGroupId')
   }
 
   const fetchProfile = async () => {
