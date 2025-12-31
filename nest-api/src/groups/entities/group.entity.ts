@@ -8,6 +8,7 @@ import {
   JoinTable,
   OneToMany,
   BeforeInsert,
+  Index,
 } from 'typeorm';
 import { IsNotEmpty } from 'class-validator';
 import { User } from '../../users/entities/user.entity';
@@ -17,6 +18,7 @@ import { Tag } from '../../tags/entities/tag.entity';
 import { Achievement } from '../../achievements/entities/achievement.entity';
 
 @Entity()
+@Index(['nom']) // Index pour searchByName
 export class Group {
   @PrimaryGeneratedColumn()
   id: number;
