@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Action } from './entities/action.entity';
 import { Task } from '../tasks/entities/task.entity';
 import { User } from '../users/entities/user.entity';
@@ -91,20 +91,18 @@ export class ActionsService {
 
     await this.actionRepository.save(action);
 
-    const now = new Date();
-    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    // Optimisation: Agrégation SQL au lieu de charger toutes les actions
+    const firstOfMonth = this.getFirstOfMonth();
 
-    const userActions = await this.actionRepository.find({
-      where: {
-        user: { id: userId },
-        date: MoreThanOrEqual(firstOfMonth),
-      },
-      relations: ['task'],
-    });
+    const result = await this.actionRepository
+      .createQueryBuilder('action')
+      .leftJoin('action.task', 'task')
+      .select('SUM(task.points)', 'totalDone')
+      .where('action.userId = :userId', { userId })
+      .andWhere('action.date >= :firstOfMonth', { firstOfMonth })
+      .getRawOne<{ totalDone: string | null }>();
 
-    const totalDone = userActions.reduce((acc, act) => {
-      return acc + act.task.points;
-    }, 0);
+    const totalDone = parseInt(result?.totalDone ?? '0', 10);
 
     this.logger.log(
       `Action created: user ${userId} completed task ${task.id} (${task.label}) - isHelpingHand: ${action.isHelpingHand}`,
