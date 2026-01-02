@@ -21,9 +21,13 @@ self.addEventListener('activate', (event) => {
 
 // Gestion des requêtes réseau (mode réseau d'abord)
 self.addEventListener('fetch', (event) => {
-    // Laisser passer toutes les requêtes normalement
-    // Aucun cache, juste pour respecter les critères PWA
-    event.respondWith(fetch(event.request))
+    // Ne pas intercepter les requêtes - laisser le navigateur gérer
+    // Cela évite les erreurs si le réseau échoue
+    if (event.request.mode === 'navigate') {
+        // Pour la navigation, on laisse passer sans intercepter
+        return
+    }
+    // Pour les autres requêtes, on les laisse passer aussi
 })
 
 // Gestion des messages depuis l'app

@@ -9,15 +9,15 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci
 
+# Build arguments for environment variables - MUST be before COPY to invalidate cache
+ARG VITE_API_BASE_URL=/api
+
 # Copy source code
 COPY . .
 
-# Build arguments for environment variables
-ARG VITE_API_URL=/api
-ENV VITE_API_URL=$VITE_API_URL
-
-# Build the application
-RUN npm run build
+# Set env and build
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+RUN echo "Building with VITE_API_BASE_URL=$VITE_API_BASE_URL" && npm run build
 
 # Production stage
 FROM nginx:alpine AS production

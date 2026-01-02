@@ -4,10 +4,9 @@ services:
       context: ./nest-api
       dockerfile: Dockerfile
       target: production
-    container_name: together-api-prod
-    restart: unless-stopped
+    restart: always
     ports:
-      - "3000:3000"
+      - 3000
     environment:
       - DATABASE_PATH=/app/data/database.sqlite
       - JWT_SECRET=${JWT_SECRET}
@@ -17,51 +16,30 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS}
       - NODE_ENV=production
     networks:
-      - together-network
+      - dokploy-network
     volumes:
       - api_uploads:/app/public/uploads
       - api_database:/app/data
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:3000/api/health",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   web-app:
     build:
       context: ./web-app
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=${VITE_API_URL:-/api}
-    container_name: together-webapp-prod
-    restart: unless-stopped
+        - VITE_API_BASE_URL=/api
+    restart: always
     ports:
-      - "80:80"
-    depends_on:
-      - api
+      - 80
     networks:
-      - together-network
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:80",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - dokploy-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.together-webapp.rule=Host(`to-get-there.creative-developer.com`)"
+      - "traefik.http.routers.together-webapp.entrypoints=web"
+      - "traefik.http.routers.together-webapp-secure.rule=Host(`to-get-there.creative-developer.com`)"
+      - "traefik.http.routers.together-webapp-secure.entrypoints=websecure"
+      - "traefik.http.routers.together-webapp-secure.tls.certResolver=letsencrypt"
+      - "traefik.http.services.together-webapp.loadbalancer.server.port=80"
 
 volumes:
   api_uploads:
@@ -70,5 +48,5 @@ volumes:
     driver: local
 
 networks:
-  together-network:
-    driver: bridge
+  dokploy-network:
+    external: true

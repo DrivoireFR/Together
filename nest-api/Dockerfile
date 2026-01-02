@@ -81,6 +81,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 # Créer le répertoire public avec les bonnes permissions
 RUN mkdir -p /app/public && chown nestjs:nodejs /app/public
 
+# Créer le répertoire logs avec les bonnes permissions
+RUN mkdir -p /app/logs && chown nestjs:nodejs /app/logs
+
 # Copier le dossier public s'il contient des fichiers
 COPY --from=builder --chown=nestjs:nodejs /app/public ./public
 
