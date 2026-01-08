@@ -2,35 +2,35 @@
   <div class="tag-filter">
     <div class="tag-filter-header">
       <h3 class="tag-filter-title">Filtrer par tag</h3>
-      <BaseButton 
-        v-if="selectedTag" 
-        variant="ghost" 
-        size="sm" 
-        @click="clearFilter"
-      >
-        Effacer le filtre
-      </BaseButton>
     </div>
     
-    <div class="tag-list" v-if="tags.length > 0">
+    <div class="tag-list" v-if="tasksStore.tags.length > 0">
       <TagChip
-        v-for="tag in tags"
+        v-for="tag in tasksStore.tags"
         :key="tag.id"
         :tag="tag"
         :tasks-count="getTasksCountForTag(tag)"
-        :is-selected="selectedTag?.id === tag.id"
+        :is-selected="tasksStore.selectedTagFilter?.id === tag.id"
         variant="outlined"
-        @click="selectTag(tag)"
+        @click="tasksStore.setTagFilter(tag)"
       />
       
       <!-- Option pour afficher toutes les tâches -->
       <TagChip
         :tag="allTasksTag"
         :tasks-count="totalTasksCount"
-        :is-selected="!selectedTag"
+        :is-selected="!tasksStore.selectedTagFilter"
         variant="outlined"
-        @click="clearFilter"
+        @click="tasksStore.setTagFilter(null)"
       />
+
+      <div class="urgency-container">
+        <UrgencyFilter
+          v-if="tasksStore.hasTasks"
+          :sort-by-urgency="tasksStore.sortByUrgency"
+          @toggle-urgency-sort="tasksStore.toggleSortByUrgency()"
+        />
+      </div>
     </div>
     
     <div class="empty-state" v-else>
@@ -44,17 +44,13 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Tag, Task } from '@/domain/types'
+import type { Tag } from '@/domain/types'
 import TagChip from '@/presentation/components/atoms/TagChip.vue'
-import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
+import UrgencyFilter from './UrgencyFilter.vue'
+import { useTasksStore } from '@/domain/stores/tasksStore'
 
-interface Props {
-  tags: Tag[]
-  tasks: Task[]
-  selectedTag?: Tag | null
-}
+const tasksStore = useTasksStore()
 
-const props = defineProps<Props>()
 
 const allTasksTag = computed((): Tag => ({
   id: -1,
@@ -66,23 +62,11 @@ const allTasksTag = computed((): Tag => ({
   updatedAt: ''
 }))
 
-const totalTasksCount = computed(() => props.tasks.length)
+const totalTasksCount = computed(() => tasksStore.tasks.length)
 
 const getTasksCountForTag = (tag: Tag): number => {
-  return props.tasks.filter(task => task.tag?.id === tag.id).length
+  return tasksStore.tasks.filter(task => task.tag?.id === tag.id).length
 }
-
-const selectTag = (tag: Tag) => {
-  emit('tag-selected', tag)
-}
-
-const clearFilter = () => {
-  emit('tag-selected', null)
-}
-
-const emit = defineEmits<{
-  'tag-selected': [tag: Tag | null]
-}>()
 </script>
 
 <style scoped>
@@ -108,7 +92,10 @@ const emit = defineEmits<{
 }
 
 .tag-list {
-  display: flex;
+  --cols: 5;
+  display: grid;
+  grid-auto-flow: row dense;
+  grid-template-columns: repeat(var(--cols), 1fr);
   flex-wrap: wrap;
   gap: var(--spacing-2);
 }
@@ -131,4 +118,15 @@ const emit = defineEmits<{
   margin: 0;
   line-height: 1.5;
 }
+
+.urgency-container {
+  grid-column: span var(--cols);
+}
+
+@media screen and (max-width: 800px) {
+  .tag-list {
+    --cols: 3;
+  }
+}
+
 </style>

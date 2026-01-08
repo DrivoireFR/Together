@@ -11,7 +11,7 @@ const router = createRouter({
     {
       path: '/login',
       name: 'Login',
-      component: () => import('@/presentation/views/LoginView.vue'),
+      component: () => import('@/presentation/views/auth/LoginView.vue'),
       meta: {
         requiresAuth: false,
         layout: 'auth'
@@ -20,7 +20,7 @@ const router = createRouter({
     {
       path: '/register',
       name: 'Register',
-      component: () => import('@/presentation/views/RegisterView.vue'),
+      component: () => import('@/presentation/views/auth/RegisterView.vue'),
       meta: {
         requiresAuth: false,
         layout: 'auth'
@@ -29,7 +29,7 @@ const router = createRouter({
     {
       path: '/groups',
       name: 'Groups',
-      component: () => import('@/presentation/views/GroupsView.vue'),
+      component: () => import('@/presentation/views/GroupSelectionView.vue'),
       meta: {
         requiresAuth: true,
         layout: 'app'
@@ -38,21 +38,38 @@ const router = createRouter({
     {
       path: '/groups/:id',
       name: 'GroupDetail',
-      component: () => import('@/presentation/views/GroupDetailView.vue'),
+      component: () => import('@/presentation/views/group/GroupLayout.vue'),
       meta: {
         requiresAuth: true,
         layout: 'app'
-      }
+      },
+      children: [
+        {
+          path: '',
+          name: 'GroupHomeCats',
+          component: () => import('@/presentation/views/group/GroupHome.vue')
+        },
+        {
+          path: 'tasks',
+          name: 'GroupTasks',
+          component: () => import('@/presentation/views/group/GroupTasks.vue')
+        },
+        {
+          path: 'history',
+          name: 'GroupHistory',
+          component: () => import('@/presentation/views/group/GroupHistory.vue')
+        },
+        {
+          path: 'stats',
+          name: 'GroupStats',
+          component: () => import('@/presentation/views/group/GroupStatsView.vue'),
+          meta: {
+            requiresAuth: true,
+            layout: 'app'
+          }
+        }
+      ]
     },
-    {
-      path: '/groups/:id/stats',
-      name: 'GroupStats',
-      component: () => import('@/presentation/views/GroupStatsView.vue'),
-      meta: {
-        requiresAuth: true,
-        layout: 'app'
-      }
-    }
   ]
 })
 

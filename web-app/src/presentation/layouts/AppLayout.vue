@@ -49,15 +49,22 @@
     <main class="app-main">
       <slot />
     </main>
+    <footer class="bottom-nav">
+      <RouterLink :to="homeRoute">Home</RouterLink>
+      <RouterLink :to="tasksRoute">Tasks</RouterLink>
+      <RouterLink :to="historyRoute">History</RouterLink>
+    </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { UserGroupIcon, ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/domain/stores/authStore'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
+import { computed } from 'vue'
 
+const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
@@ -65,10 +72,31 @@ const handleLogout = () => {
   authStore.logout()
   router.push('/login')
 }
+
+// Computed pour récupérer le groupId depuis la route
+const groupId = computed(() => route.params.id as string)
+
+// Routes pour la navigation
+const homeRoute = computed(() => ({
+  name: 'GroupHomeCats',
+  params: { id: groupId.value }
+}))
+
+const tasksRoute = computed(() => ({
+  name: 'GroupTasks',
+  params: { id: groupId.value }
+}))
+
+const historyRoute = computed(() => ({
+  name: 'GroupHistory',
+  params: { id: groupId.value }
+}))
 </script>
 
 <style scoped>
 .app-layout {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background-color: var(--color-gray-50);
 }
@@ -175,9 +203,18 @@ const handleLogout = () => {
 }
 
 .app-main {
+  flex: 1;
   max-width: 80rem;
   margin: 0 auto;
   padding: var(--spacing-8) var(--spacing-4);
+}
+
+.bottom-nav {
+  display: grid;
+  margin-top: auto;
+  height: 100px;
+  background: white;
+  width: 100%;
 }
 
 /* Responsive design */

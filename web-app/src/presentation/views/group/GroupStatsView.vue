@@ -1,5 +1,4 @@
 <template>
-  <AppLayout>
     <div class="stats-container">
       <div v-if="isLoading" class="loading-state">
         <div class="loading-spinner"></div>
@@ -12,6 +11,8 @@
           <div class="header-content">
             <h1 class="stats-title">Statistiques de {{ groupStore.currentGroup.nom }}</h1>
             <p class="stats-description">Analyse des actions et performances du groupe</p>
+            <span class="stat-item">{{ groupStore.currentGroup.users.length }} membre{{ groupStore.currentGroup.users.length > 1 ? 's' : '' }}</span>
+            <span class="stat-item">{{ groupStore.currentGroup.tasks.length }} tâche{{ groupStore.currentGroup.tasks.length > 1 ? 's' : '' }}</span>
           </div>
           <BaseButton
             variant="ghost"
@@ -110,15 +111,14 @@
       <div v-else-if="!isLoading" class="error-state">
         <h3 class="error-title">Impossible de charger les statistiques</h3>
         <p class="error-description">Une erreur s'est produite lors du chargement des données</p>
-        <BaseButton
+        <!-- <BaseButton
           variant="primary"
           @click="loadStatistics"
         >
           Réessayer
-        </BaseButton>
+        </BaseButton> -->
       </div>
     </div>
-  </AppLayout>
 </template>
 
 <script setup lang="ts">
@@ -126,7 +126,6 @@ import { computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGroupStore } from '@/domain/stores/groupStore'
 import { useStatsStore } from '@/domain/stores/statsStore'
-import AppLayout from '@/presentation/layouts/AppLayout.vue'
 import ProgressBar from '@/presentation/components/atoms/ProgressBar.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 
@@ -142,16 +141,16 @@ const goBackToGroup = () => {
   router.push({ name: 'GroupDetail', params: { id: groupId.value } })
 }
 
-const loadStatistics = async () => {
-  const id = groupId.value
-  if (id && !isNaN(id)) {
-    await statsStore.fetchOverview(id)
-  }
-}
+// const loadStatistics = async () => {
+//   const id = groupId.value
+//   if (id && !isNaN(id)) {
+//     await statsStore.fetchOverview(id)
+//   }
+// }
 
 // Initialisation
 onMounted(async () => {
-  await loadStatistics()
+  // await loadStatistics()
 })
 
 // Nettoyage
@@ -476,6 +475,17 @@ onUnmounted(() => {
     grid-template-columns: 1fr;
     gap: var(--spacing-4);
   }
+}
+
+.stat-item {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-1) var(--spacing-3);
+  background: var(--color-gray-100);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
 }
 
 @media (max-width: 640px) {

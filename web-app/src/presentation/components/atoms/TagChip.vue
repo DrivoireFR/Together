@@ -4,8 +4,8 @@
     :style="chipStyles"
     @click="$emit('click')"
   >
-    <span class="tag-label">{{ tag.label }}</span>
     <span v-if="tasksCount > 0" class="tasks-count">{{ tasksCount }}</span>
+    <span class="tag-label">{{ tag.label }}</span>
   </button>
 </template>
 
@@ -71,10 +71,13 @@ const chipStyles = computed(() => {
 
 <style scoped>
 .tag-chip {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-1);
   border: 1px solid;
+  aspect-ratio: 1/1;
   border-radius: var(--border-radius-lg);
   font-weight: var(--font-weight-medium);
   transition: all 0.15s ease;
@@ -118,12 +121,12 @@ const chipStyles = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 var(--spacing-1);
+  padding: var(--spacing-2);
+  height: 2em;
+  width: 2em;
   background: rgba(255, 255, 255, 0.3);
   border-radius: var(--border-radius-full);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
 }
 
