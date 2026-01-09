@@ -36,7 +36,7 @@ const router = createRouter({
       }
     },
     {
-      path: '/groups/:id',
+      path: '/group/:id',
       name: 'GroupDetail',
       component: () => import('@/presentation/views/group/GroupLayout.vue'),
       meta: {
@@ -58,6 +58,11 @@ const router = createRouter({
           path: 'history',
           name: 'GroupHistory',
           component: () => import('@/presentation/views/group/GroupHistory.vue')
+        },
+        {
+          path: 'settings',
+          name: 'GroupSettings',
+          component: () => import('@/presentation/views/group/GroupSettings.vue')
         },
         {
           path: 'stats',

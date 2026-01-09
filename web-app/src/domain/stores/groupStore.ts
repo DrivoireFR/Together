@@ -212,7 +212,11 @@ export const useGroupStore = defineStore('group', () => {
 
   const navigateToGroup = (groupId: number) => {
     StorageUtil.setItem('selectedGroupId', String(groupId))
-    router.push(`/groups/${groupId}`)
+    const groupRoute = {
+      name: 'GroupHomeCats',
+      params: { id: groupId }
+    }
+    router.push(groupRoute)
   }
 
   const searchGroupsByName = async (nom: string) => {
@@ -373,7 +377,11 @@ export const useGroupStore = defineStore('group', () => {
   const onGroupClick = (id: number) => {
     StorageUtil.setItem('selectedGroupId', String(id))
 
-    router.push(`/groups/${id}`)
+    const groupRoute = {
+      name: 'GroupHomeCats',
+      params: { id: id }
+    }
+    router.push(groupRoute)
   }
 
   const checkGroupAndRedirect = async (userId?: number) => {
@@ -396,8 +404,12 @@ export const useGroupStore = defineStore('group', () => {
     const hasAccess = groups.value.some(group => group.id === Number(selectedGroupId))
 
     if (hasAccess) {
-      // L'utilisateur a accès, rediriger vers le groupe
-      router.push(`/groups/${selectedGroupId}`)
+      const groupRoute = {
+        name: 'GroupHomeCats',
+        params: { id: Number(selectedGroupId) }
+      }
+
+      router.push(groupRoute)
     } else {
       // L'utilisateur n'a pas accès, supprimer le selectedGroupId
       StorageUtil.removeItem('selectedGroupId')

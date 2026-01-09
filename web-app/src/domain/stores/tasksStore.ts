@@ -3,8 +3,11 @@ import { ref, computed } from 'vue'
 import { taskRepository } from '@/data/repositories/taskRepository'
 import { statsRepository } from '@/data/repositories/statsRepository'
 import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload, GroupStatistics, UpdateTaskPayload, HurryState } from '../types'
+import { useRoute, useRouter } from 'vue-router'
 
 export const useTasksStore = defineStore('tasks', () => {
+  const route = useRoute()
+  const router = useRouter()
   // State
   const tasks = ref<Task[]>([])
   const tags = ref<Tag[]>([])
@@ -103,45 +106,6 @@ export const useTasksStore = defineStore('tasks', () => {
 
   const setTags = (items: Tag[]) => {
     tags.value = items
-  }
-
-  const fetchTasksByGroupId = async (groupId: number) => {
-    isLoading.value = true
-    error.value = undefined
-
-    try {
-      const result = await taskRepository.getTasksByGroupId(groupId)
-
-      if (result.isSuccess) {
-        tasks.value = result.data.tasks
-        await fetchTags()
-      } else {
-        error.value = result.message
-      }
-    } catch (err) {
-      error.value = 'Erreur lors du chargement des tâches'
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  const fetchTagsByGroupId = async (groupId: number) => {
-    isLoading.value = true
-    error.value = undefined
-
-    try {
-      const result = await taskRepository.getTagsByGroupId(groupId)
-
-      if (result.isSuccess) {
-        tags.value = result.data.tags
-      } else {
-        error.value = result.message
-      }
-    } catch (err) {
-      error.value = 'Erreur lors du chargement des tags'
-    } finally {
-      isLoading.value = false
-    }
   }
 
   const _handleNewTasks = () => {
@@ -375,6 +339,13 @@ export const useTasksStore = defineStore('tasks', () => {
 
   const setTagFilter = (tag: Tag | null) => {
     selectedTagFilter.value = tag
+    const id = route.params.id
+    const tasksRoute = {
+      name: 'GroupTasks',
+      params: { id: id }
+    }
+    router.push(tasksRoute)
+    console.log(id)
   }
 
   const clearTagFilter = () => {
@@ -499,8 +470,6 @@ export const useTasksStore = defineStore('tasks', () => {
     // Actions
     setTasks,
     setTags,
-    fetchTasksByGroupId,
-    fetchTagsByGroupId,
     fetchRecentActionsByGroupId,
     createTask,
     createTag,

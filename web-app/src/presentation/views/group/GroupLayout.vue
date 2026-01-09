@@ -1,5 +1,5 @@
 <template>
-  <AppLayout>
+  <GroupLayout>
     <div class="group-detail-container">
       <div v-if="isLoading" class="loading-state">
         <div class="loading-spinner"></div>
@@ -47,21 +47,17 @@
         :show="tasksStore.showTaskAcknowledgmentModal"
       />
     </div>
-  </AppLayout>
+  </GroupLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useGroupStore } from '@/domain/stores/groupStore'
 import { useTasksStore } from '@/domain/stores/tasksStore'
 import type { Tag } from '@/domain/types'
-import AppLayout from '@/presentation/layouts/AppLayout.vue'
-import TagFilter from '@/presentation/components/molecules/TagFilter.vue'
-import BaseModal from '@/presentation/components/atoms/BaseModal.vue'
+import GroupLayout from '@/presentation/layouts/GroupLayout.vue'
 import BaseCard from '@/presentation/components/atoms/BaseCard.vue'
-import CreateTagForm from '@/presentation/components/molecules/CreateTagForm.vue'
-import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import TaskAcknowledgmentModal from '@/presentation/components/molecules/TaskAcknowledgmentModal.vue'
 
 const route = useRoute()

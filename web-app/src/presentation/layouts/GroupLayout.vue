@@ -49,6 +49,12 @@
     <main class="app-main">
       <slot />
     </main>
+    <footer class="bottom-nav">
+      <RouterLink :to="homeRoute">Home</RouterLink>
+      <RouterLink :to="historyRoute">History</RouterLink>
+      <RouterLink :to="StatsRoute">Stats</RouterLink>
+      <RouterLink :to="SettingsRoute">Settings</RouterLink>
+    </footer>
   </div>
 </template>
 
@@ -67,6 +73,30 @@ const handleLogout = () => {
   authStore.logout()
   router.push('/login')
 }
+
+// Computed pour récupérer le groupId depuis la route
+const groupId = computed(() => route.params.id as string)
+
+// Routes pour la navigation
+const homeRoute = computed(() => ({
+  name: 'GroupHomeCats',
+  params: { id: groupId.value }
+}))
+
+const StatsRoute = computed(() => ({
+  name: 'GroupStats',
+  params: { id: groupId.value }
+}))
+
+const historyRoute = computed(() => ({
+  name: 'GroupHistory',
+  params: { id: groupId.value }
+}))
+
+const SettingsRoute = computed(() => ({
+  name: 'GroupSettings',
+  params: { id: groupId.value }
+}))
 </script>
 
 <style scoped>
