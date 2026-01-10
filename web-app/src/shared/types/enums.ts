@@ -10,5 +10,6 @@ export enum Icon {
     Tasks,
     Historique,
     Stats,
-    Parametres
+    Parametres,
+    Urgent,
 }

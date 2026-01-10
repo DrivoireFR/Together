@@ -15,7 +15,6 @@
         @click="tasksStore.setTagFilter(tag)"
       />
       
-      <!-- Option pour afficher toutes les tâches -->
       <TagChip
         :tag="allTasksTag"
         :tasks-count="totalTasksCount"
@@ -25,11 +24,7 @@
       />
 
       <div class="urgency-container">
-        <UrgencyFilter
-          v-if="tasksStore.hasTasks"
-          :sort-by-urgency="tasksStore.sortByUrgency"
-          @toggle-urgency-sort="tasksStore.toggleSortByUrgency()"
-        />
+        <UrgencyFilter />
       </div>
     </div>
     
@@ -72,8 +67,6 @@ const getTasksCountForTag = (tag: Tag): number => {
 <style scoped>
 .tag-filter {
   background: var(--color-white);
-  border: 1px solid var(--color-gray-200);
-  border-radius: var(--border-radius-lg);
   padding: var(--spacing-4);
 }
 
@@ -92,10 +85,10 @@ const getTasksCountForTag = (tag: Tag): number => {
 }
 
 .tag-list {
-  --cols: 5;
   display: grid;
+  width: 100%;
   grid-auto-flow: row dense;
-  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   flex-wrap: wrap;
   gap: var(--spacing-2);
 }
@@ -117,16 +110,6 @@ const getTasksCountForTag = (tag: Tag): number => {
   color: var(--color-gray-500);
   margin: 0;
   line-height: 1.5;
-}
-
-.urgency-container {
-  grid-column: span var(--cols);
-}
-
-@media screen and (max-width: 800px) {
-  .tag-list {
-    --cols: 3;
-  }
 }
 
 </style>

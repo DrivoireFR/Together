@@ -1,6 +1,7 @@
 /* Variables de thème */
 :root {
   /* Custom */
+  --icon-color: black;
   --bottom-nav-bar-height: 80px;
   --wrapper-s-max-w: 600px;
   --wrapper-max-w: 800px;

@@ -19,6 +19,7 @@
     import showerSvg from '@/assets/icons/shower.svg?raw'
     import catSvg from '@/assets/icons/cat.svg?raw'
     import allSvg from '@/assets/icons/all.svg?raw'
+    import urgentSvg from '@/assets/icons/urgent.svg?raw'
     import { Icon } from '@/shared/types/enums'
 
     const props = defineProps<{
@@ -38,6 +39,7 @@
         [Icon.Historique]: historySvg,
         [Icon.Stats]: statsSvg,
         [Icon.Parametres]: paramsSvg,
+        [Icon.Urgent]: urgentSvg,
     }
 
 const svgContent = computed(() => svgMap[props.icon] || null)

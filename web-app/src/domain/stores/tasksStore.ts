@@ -53,21 +53,21 @@ export const useTasksStore = defineStore('tasks', () => {
 
     // Apply urgency sorting
     if (sortByUrgency.value) {
-      filteredList = [...filteredList].sort((a, b) => {
+      filteredList = [...filteredList].filter((a, b) => {
         const getUrgencyPriority = (hurryState: HurryState | undefined) => {
           switch (hurryState) {
-            case 'yes': return 3 // Most urgent
-            case 'maybe': return 2 // Moderately urgent
-            case 'no': return 1 // Not urgent
-            default: return 0 // No urgency state (lowest priority)
+            case 'yes': return 3
+            case 'maybe': return 2
+            case 'no': return 1
+            default: return 0
           }
         }
 
         const priorityA = getUrgencyPriority(a.hurryState)
-        const priorityB = getUrgencyPriority(b.hurryState)
+        // const priorityB = getUrgencyPriority(b.hurryState)
 
         // Sort in descending order (most urgent first)
-        return priorityB - priorityA
+        return priorityA
       })
     }
 
@@ -345,7 +345,6 @@ export const useTasksStore = defineStore('tasks', () => {
       params: { id: id }
     }
     router.push(tasksRoute)
-    console.log(id)
   }
 
   const clearTagFilter = () => {
@@ -356,8 +355,14 @@ export const useTasksStore = defineStore('tasks', () => {
     sortByUrgency.value = enabled
   }
 
-  const toggleSortByUrgency = () => {
+  const onUrgencyCatTap = () => {
     sortByUrgency.value = !sortByUrgency.value
+    const id = route.params.id
+    const tasksRoute = {
+      name: 'GroupTasks',
+      params: { id: id }
+    }
+    router.push(tasksRoute)
   }
 
   const clearCurrentTask = () => {
@@ -481,7 +486,7 @@ export const useTasksStore = defineStore('tasks', () => {
     setTagFilter,
     clearTagFilter,
     setSortByUrgency,
-    toggleSortByUrgency,
+    onUrgencyCatTap,
     clearCurrentTask,
     clearError,
     clearData,

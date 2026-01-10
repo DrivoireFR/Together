@@ -69,6 +69,7 @@ onMounted(() => {
 .nav-view {
   margin: auto 0;
   height: 60vh;
+  width: 100%;
   overflow-y: scroll;
 }
 
