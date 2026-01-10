@@ -1,7 +1,7 @@
 <template>
   <div class="tag-filter">
     <div class="tag-filter-header">
-      <h3 class="tag-filter-title">Filtrer par tag</h3>
+      <h3 class="tag-filter-title">Quelle catégorie ?</h3>
     </div>
     
     <div class="tag-list" v-if="tasksStore.tags.length > 0">

@@ -1,8 +1,6 @@
 <template>
-    <div class="group-home">
-        <TagFilter v-if="tasksStore.hasTags || tasksStore.hasTasks"/>
-    </div>
-  </template>
+    <TagFilter v-if="tasksStore.hasTags || tasksStore.hasTasks"/>
+</template>
   
   <script setup lang="ts">
   import { useTasksStore } from '@/domain/stores/tasksStore'

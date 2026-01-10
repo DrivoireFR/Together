@@ -24,9 +24,6 @@
 <script setup lang="ts">
 import AuthLayout from '@/presentation/layouts/AuthLayout.vue'
 import LoginForm from '@/presentation/components/molecules/LoginForm.vue'
-import type { LoginPayload } from '@/domain/types'
-
-
 </script>
 
 <style scoped>

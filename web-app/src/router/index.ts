@@ -38,7 +38,7 @@ const router = createRouter({
     {
       path: '/group/:id',
       name: 'GroupDetail',
-      component: () => import('@/presentation/views/group/GroupLayout.vue'),
+      component: () => import('@/presentation/views/group/GroupView.vue'),
       meta: {
         requiresAuth: true,
         layout: 'app'
