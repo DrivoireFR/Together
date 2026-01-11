@@ -47,22 +47,34 @@ const router = createRouter({
         {
           path: '',
           name: 'GroupHomeCats',
-          component: () => import('@/presentation/views/group/GroupHome.vue')
+          component: () => import('@/presentation/views/group/GroupHome.vue'),
+          meta: {
+            requiresAuth: true,
+          }
         },
         {
           path: 'tasks',
           name: 'GroupTasks',
-          component: () => import('@/presentation/views/group/GroupTasks.vue')
+          component: () => import('@/presentation/views/group/GroupTasks.vue'),
+          meta: {
+            requiresAuth: true,
+          }
         },
         {
           path: 'history',
           name: 'GroupHistory',
-          component: () => import('@/presentation/views/group/GroupHistory.vue')
+          component: () => import('@/presentation/views/group/GroupHistory.vue'),
+          meta: {
+            requiresAuth: true,
+          }
         },
         {
           path: 'settings',
           name: 'GroupSettings',
-          component: () => import('@/presentation/views/group/GroupSettings.vue')
+          component: () => import('@/presentation/views/group/GroupSettings.vue'),
+          meta: {
+            requiresAuth: true,
+          }
         },
         {
           path: 'stats',
@@ -70,7 +82,14 @@ const router = createRouter({
           component: () => import('@/presentation/views/group/GroupStatsView.vue'),
           meta: {
             requiresAuth: true,
-            layout: 'app'
+          }
+        },
+        {
+          path: 'add',
+          name: 'GroupAddForm',
+          component: () => import('@/presentation/views/group/GroupAddForm.vue'),
+          meta: {
+            requiresAuth: true,
           }
         }
       ]

@@ -88,7 +88,7 @@ const getTasksCountForTag = (tag: Tag): number => {
   display: grid;
   width: 100%;
   grid-auto-flow: row dense;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
   flex-wrap: wrap;
   gap: var(--spacing-2);
 }

@@ -141,16 +141,16 @@ const goBackToGroup = () => {
   router.push({ name: 'GroupDetail', params: { id: groupId.value } })
 }
 
-// const loadStatistics = async () => {
-//   const id = groupId.value
-//   if (id && !isNaN(id)) {
-//     await statsStore.fetchOverview(id)
-//   }
-// }
+const loadStatistics = async () => {
+  const id = groupId.value
+  if (id && !isNaN(id)) {
+    await statsStore.fetchOverview(id)
+  }
+}
 
 // Initialisation
 onMounted(async () => {
-  // await loadStatistics()
+  await loadStatistics()
 })
 
 // Nettoyage

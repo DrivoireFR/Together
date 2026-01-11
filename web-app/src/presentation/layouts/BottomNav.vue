@@ -58,6 +58,14 @@ const items: MenuItem[] = [
 	},
 	{
 		route: {
+			name: 'GroupAddForm',
+			params: { id: groupId.value }
+		},
+		icon: Icon.Add,
+		label: "Ajouter"
+	},
+	{
+		route: {
 			name: 'GroupStats',
 			params: { id: groupId.value }
 		},
@@ -78,7 +86,7 @@ const items: MenuItem[] = [
 <style scoped>
 .wrapper {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   height: var(--bottom-nav-bar-height);
   border-radius: 1rem 1rem 0 0;
   background: var(--color-secondary);
