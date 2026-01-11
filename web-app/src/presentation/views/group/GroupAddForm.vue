@@ -1,10 +1,12 @@
 <template>
     <div class="stats-container">
-      Add form
+      <CreateTagForm />
     </div>
 </template>
 
 <script setup lang="ts">
+import CreateTagForm from '@/presentation/components/molecules/CreateTagForm.vue';
+
 
 </script>
 

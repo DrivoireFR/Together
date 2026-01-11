@@ -7,6 +7,7 @@ import type {
   UserTaskState,
   CreateTaskPayload,
   CreateTagPayload,
+  UpdateTagPayload,
   CreateActionPayload,
   UpdateUserTaskStatePayload,
   CreateTaskResponse,
@@ -59,7 +60,7 @@ export class TaskRepository {
     return apiClient.post<{ tag: Tag }>('/tags', payload)
   }
 
-  async updateTag(id: number, payload: Partial<CreateTagPayload>): Promise<ApiResult<{ tag: Tag }>> {
+  async updateTag(id: number, payload: UpdateTagPayload): Promise<ApiResult<{ tag: Tag }>> {
     return apiClient.put<{ tag: Tag }>(`/tags/${id}`, payload)
   }
 

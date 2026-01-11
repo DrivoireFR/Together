@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { taskRepository } from '@/data/repositories/taskRepository'
 import { statsRepository } from '@/data/repositories/statsRepository'
-import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload, GroupStatistics, UpdateTaskPayload, HurryState } from '../types'
+import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, UpdateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload, GroupStatistics, UpdateTaskPayload, HurryState } from '../types'
 import { useRoute, useRouter } from 'vue-router'
 
 export const useTasksStore = defineStore('tasks', () => {
@@ -160,6 +160,32 @@ export const useTasksStore = defineStore('tasks', () => {
       }
     } catch (err) {
       const errorMessage = 'Erreur lors de la création du tag'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const updateTag = async (id: number, payload: UpdateTagPayload) => {
+    isLoading.value = true
+    error.value = undefined
+
+    try {
+      const result = await taskRepository.updateTag(id, payload)
+
+      if (result.isSuccess) {
+        const index = tags.value.findIndex(t => t.id === id)
+        if (index !== -1) {
+          tags.value[index] = result.data.tag
+        }
+        return { success: true, tag: result.data.tag }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors de la modification du tag'
       error.value = errorMessage
       return { success: false, error: errorMessage }
     } finally {
@@ -478,6 +504,7 @@ export const useTasksStore = defineStore('tasks', () => {
     fetchRecentActionsByGroupId,
     createTask,
     createTag,
+    updateTag,
     updateTask,
     deleteTask,
     createActionForTask,

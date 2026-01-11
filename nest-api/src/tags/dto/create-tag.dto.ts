@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsHexColor, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsHexColor, IsNumber, IsEnum, IsOptional } from 'class-validator';
+import { Icon } from '../enums/icon.enum';
 
 export class CreateTagDto {
   @IsNotEmpty()
@@ -9,4 +10,8 @@ export class CreateTagDto {
 
   @IsNumber()
   groupId: number;
+
+  @IsOptional()
+  @IsEnum(Icon)
+  icon?: Icon;
 }

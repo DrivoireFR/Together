@@ -18,7 +18,7 @@ export class TagsService {
     private tagRepository: Repository<Tag>,
     @InjectRepository(Group)
     private groupRepository: Repository<Group>,
-  ) {}
+  ) { }
 
   async create(createTagDto: CreateTagDto, userId: number) {
     const group = await this.groupRepository.findOne({
@@ -51,6 +51,9 @@ export class TagsService {
     tag.label = createTagDto.label;
     tag.color = createTagDto.color;
     tag.group = group;
+    if (createTagDto.icon) {
+      tag.icon = createTagDto.icon;
+    }
 
     await this.tagRepository.save(tag);
 
@@ -170,6 +173,7 @@ export class TagsService {
 
     if (updateTagDto.label) tag.label = updateTagDto.label;
     if (updateTagDto.color) tag.color = updateTagDto.color;
+    if (updateTagDto.icon !== undefined) tag.icon = updateTagDto.icon;
 
     await this.tagRepository.save(tag);
 

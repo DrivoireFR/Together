@@ -1,3 +1,11 @@
+/**
+ * Enum Icon - Liste des icônes disponibles pour les tags
+ * 
+ * IMPORTANT: Cette énum doit être synchronisée avec l'énum Icon côté backend
+ * (nest-api/src/tags/enums/icon.enum.ts)
+ * 
+ * Si vous modifiez cette énum, vous DEVEZ également mettre à jour l'énum côté backend.
+ */
 export enum Icon {
     Courses = "Courses",
     Copain = "Copain",

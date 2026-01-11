@@ -1,9 +1,9 @@
 <template>
-  <form @submit.prevent="handleSubmit" class="create-tag-form">
+  <form @submit.prevent="handleSubmit" class="edit-tag-form">
     <div class="form-header">
-      <h2 class="form-title">Créer un nouveau tag</h2>
+      <h2 class="form-title">Modifier le tag</h2>
       <p class="form-description">
-        Organisez vos tâches en créant des catégories avec des couleurs distinctives.
+        Modifiez les détails de votre tag et changez son icône.
       </p>
     </div>
 
@@ -49,10 +49,23 @@
       <div class="form-group">
         <IconSelector
           v-model="formData.icon"
-          :color="formData.color"
-          label="Choisissez votre icône"
-          :previewLabel="formData.label"
+          label="Icône (optionnel)"
         />
+      </div>
+
+      <div class="color-preview" v-if="formData.color">
+        <div class="preview-container">
+          <span class="preview-label">Aperçu :</span>
+          <div 
+            class="tag-preview"
+            :style="{ backgroundColor: formData.color }"
+          >
+            <div v-if="formData.icon" class="tag-preview-icon">
+              <Icon :icon="formData.icon" />
+            </div>
+            <span>{{ formData.label || 'Nom du tag' }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -71,44 +84,62 @@
         :loading="tasksStore.isLoading"
         :disabled="!isFormValid"
       >
-        Créer le tag
+        Modifier le tag
       </BaseButton>
     </div>
   </form>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import type { CreateTagPayload } from '@/domain/types'
+import { ref, computed, watch, onMounted } from 'vue'
+import type { Tag, UpdateTagPayload } from '@/domain/types'
 import { useTasksStore } from '@/domain/stores/tasksStore'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import IconSelector from '@/presentation/components/molecules/IconSelector.vue'
 import Icon from '@/presentation/components/atoms/Icon.vue'
-import { useGroupStore } from '@/domain/stores/groupStore'
 
-const tasksStore = useTasksStore()
-const groupStore = useGroupStore()
+interface Props {
+  tag: Tag
+  onSuccess?: () => void
+  onCancel?: () => void
+}
 
-const formData = ref<CreateTagPayload>({
-  label: '',
-  color: '#3B82F6', // Couleur primaire par défaut
-  groupId: groupStore.currentGroup!.id // TODO carefull imperativ declarator here ...
+const props = withDefaults(defineProps<Props>(), {
+  onSuccess: () => {},
+  onCancel: () => {}
 })
 
-const errors = ref<Partial<Record<keyof CreateTagPayload, string>>>({})
+const tasksStore = useTasksStore()
+
+const formData = ref<UpdateTagPayload>({
+  label: '',
+  color: '',
+  icon: undefined
+})
+
+const errors = ref<Partial<Record<keyof UpdateTagPayload, string>>>({})
+
+// Initialiser le formulaire avec les données du tag
+onMounted(() => {
+  formData.value = {
+    label: props.tag.label,
+    color: props.tag.color,
+    icon: props.tag.icon
+  }
+})
 
 const isFormValid = computed(() => {
-  return formData.value.label.trim().length > 0 &&
-         formData.value.color.length > 0 &&
-         isValidColor(formData.value.color) &&
+  return formData.value.label?.trim().length > 0 &&
+         formData.value.color?.length > 0 &&
+         isValidColor(formData.value.color || '') &&
          Object.keys(errors.value).length === 0
 })
 
 const validateForm = () => {
   errors.value = {}
   
-  if (!formData.value.label.trim()) {
+  if (!formData.value.label?.trim()) {
     errors.value.label = 'Le nom du tag est requis'
   } else if (formData.value.label.trim().length < 2) {
     errors.value.label = 'Le nom du tag doit contenir au moins 2 caractères'
@@ -124,7 +155,6 @@ const validateForm = () => {
 }
 
 const isValidColor = (color: string): boolean => {
-  // Vérifier si c'est un code hexadécimal valide
   const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
   return hexRegex.test(color)
 }
@@ -132,37 +162,29 @@ const isValidColor = (color: string): boolean => {
 const handleSubmit = async () => {
   if (!validateForm()) return
   
-  const payload: CreateTagPayload = {
-    ...formData.value,
-    label: formData.value.label.trim()
+  const payload: UpdateTagPayload = {
+    label: formData.value.label?.trim(),
+    color: formData.value.color,
+    icon: formData.value.icon
   }
   
-  const result = await tasksStore.createTag(payload)
+  const result = await tasksStore.updateTag(props.tag.id, payload)
   
   if (result.success) {
-    // Reset form
-    formData.value = {
-      label: '',
-      color: '#3B82F6',
-      groupId: groupStore.currentGroup!.id,
-      icon: undefined
-    }
-    errors.value = {}
-    
-    // props.onSuccess()
+    props.onSuccess()
   }
 }
 
 const handleCancel = () => {
-  // Reset form
+  // Reset form to original tag data
   formData.value = {
-    label: '',
-    color: '#3B82F6',
-    groupId: groupStore.currentGroup!.id
+    label: props.tag.label,
+    color: props.tag.color,
+    icon: props.tag.icon
   }
   errors.value = {}
   
-  // props.onCancel()
+  props.onCancel()
 }
 
 // Validation en temps réel
@@ -177,12 +199,10 @@ watch(() => formData.value.color, () => {
     delete errors.value.color
   }
 })
-
-
 </script>
 
 <style scoped>
-.create-tag-form {
+.edit-tag-form {
   max-width: 32rem;
   margin: 0 auto;
 }
@@ -335,4 +355,4 @@ watch(() => formData.value.color, () => {
     gap: var(--spacing-2);
   }
 }
-</style> 
+</style>

@@ -1,4 +1,5 @@
-import { IsOptional, IsNotEmpty, IsHexColor } from 'class-validator';
+import { IsOptional, IsNotEmpty, IsHexColor, IsEnum } from 'class-validator';
+import { Icon } from '../enums/icon.enum';
 
 export class UpdateTagDto {
   @IsOptional()
@@ -8,4 +9,8 @@ export class UpdateTagDto {
   @IsOptional()
   @IsHexColor()
   color?: string;
+
+  @IsOptional()
+  @IsEnum(Icon)
+  icon?: Icon;
 }

@@ -5,6 +5,9 @@
     @click="$emit('click')"
   >
     <span v-if="tasksCount > 0" class="tasks-count">{{ tasksCount }}</span>
+    <div v-if="tag.icon" class="tag-icon">
+      <Icon :icon="tag.icon" />
+    </div>
     <span class="tag-label">{{ tag.label }}</span>
   </button>
 </template>
@@ -12,6 +15,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Tag } from '@/domain/types'
+import Icon from '@/presentation/components/atoms/Icon.vue'
 
 interface Props {
   tag: Tag
@@ -115,6 +119,20 @@ const chipStyles = computed(() => {
 
 .tag-label {
   white-space: nowrap;
+}
+
+.tag-icon {
+  width: 1rem;
+  height: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tag-icon :deep(svg) {
+  width: 100%;
+  height: 100%;
 }
 
 .tasks-count {

@@ -11,6 +11,7 @@ import { IsNotEmpty, IsHexColor } from 'class-validator';
 import { Task } from '../../tasks/entities/task.entity';
 import { Group } from '../../groups/entities/group.entity';
 import { Congrats } from '../../congrats/entities/congrats.entity';
+import { Icon } from '../enums/icon.enum';
 
 @Entity()
 export class Tag {
@@ -27,6 +28,9 @@ export class Tag {
 
   @Column({ default: false })
   isDefault: boolean;
+
+  @Column({ type: 'simple-enum', enum: Icon, nullable: true })
+  icon?: Icon;
 
   @ManyToOne(() => Group, (group) => group.tags)
   group: Group;
