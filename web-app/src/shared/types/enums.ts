@@ -21,4 +21,5 @@ export enum Icon {
     Parametres = "Parametres",
     Urgent = "Urgent",
     Add = "Ajouter",
+    Options = "Options",
 }

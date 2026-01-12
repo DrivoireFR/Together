@@ -5,7 +5,7 @@
     </div>
     
     <div class="tag-list" v-if="tasksStore.tags.length > 0">
-      <TagChip
+      <TagButton
         v-for="tag in tasksStore.tags"
         :key="tag.id"
         :tag="tag"
@@ -13,9 +13,10 @@
         :is-selected="tasksStore.selectedTagFilter?.id === tag.id"
         variant="outlined"
         @click="tasksStore.setTagFilter(tag)"
+        @modify="tasksStore.onModifyTag(tag)"
       />
       
-      <TagChip
+      <TagButton
         :tag="allTasksTag"
         :tasks-count="totalTasksCount"
         :is-selected="!tasksStore.selectedTagFilter"
@@ -40,7 +41,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Tag } from '@/domain/types'
-import TagChip from '@/presentation/components/atoms/TagChip.vue'
+import TagButton from '@/presentation/components/atoms/TagButton.vue'
 import UrgencyFilter from './UrgencyFilter.vue'
 import { useTasksStore } from '@/domain/stores/tasksStore'
 

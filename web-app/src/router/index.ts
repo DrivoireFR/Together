@@ -91,6 +91,14 @@ const router = createRouter({
           meta: {
             requiresAuth: true,
           }
+        },
+        {
+          path: 'tag/edit',
+          name: 'GroupEditTag',
+          component: () => import('@/presentation/views/group/GroupEditTag.vue'),
+          meta: {
+            requiresAuth: true,
+          }
         }
       ]
     },

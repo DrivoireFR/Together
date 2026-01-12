@@ -1,5 +1,5 @@
 <template>
-    <div class="stats-container">
+    <div class="group-add-container">
       <CreateTagForm />
     </div>
 </template>

@@ -50,22 +50,9 @@
         <IconSelector
           v-model="formData.icon"
           label="Icône (optionnel)"
+          :color="formData.color"
+          :preview-label="formData.label"
         />
-      </div>
-
-      <div class="color-preview" v-if="formData.color">
-        <div class="preview-container">
-          <span class="preview-label">Aperçu :</span>
-          <div 
-            class="tag-preview"
-            :style="{ backgroundColor: formData.color }"
-          >
-            <div v-if="formData.icon" class="tag-preview-icon">
-              <Icon :icon="formData.icon" />
-            </div>
-            <span>{{ formData.label || 'Nom du tag' }}</span>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -99,39 +86,27 @@ import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import IconSelector from '@/presentation/components/molecules/IconSelector.vue'
 import Icon from '@/presentation/components/atoms/Icon.vue'
 
-interface Props {
-  tag: Tag
-  onSuccess?: () => void
-  onCancel?: () => void
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  onSuccess: () => {},
-  onCancel: () => {}
-})
-
 const tasksStore = useTasksStore()
 
+const tag = tasksStore.selectedTagFilter
+
+
 const formData = ref<UpdateTagPayload>({
-  label: '',
-  color: '',
-  icon: undefined
+  label: tag?.label,
+  color: tag?.color,
+  icon: tag?.icon
 })
 
 const errors = ref<Partial<Record<keyof UpdateTagPayload, string>>>({})
 
 // Initialiser le formulaire avec les données du tag
 onMounted(() => {
-  formData.value = {
-    label: props.tag.label,
-    color: props.tag.color,
-    icon: props.tag.icon
-  }
+
 })
 
 const isFormValid = computed(() => {
-  return formData.value.label?.trim().length > 0 &&
-         formData.value.color?.length > 0 &&
+  return (formData.value.label?.trim() ?? '').length > 0 &&
+         (formData.value.color ?? '').length > 0 &&
          isValidColor(formData.value.color || '') &&
          Object.keys(errors.value).length === 0
 })
@@ -168,23 +143,13 @@ const handleSubmit = async () => {
     icon: formData.value.icon
   }
   
-  const result = await tasksStore.updateTag(props.tag.id, payload)
-  
-  if (result.success) {
-    props.onSuccess()
-  }
+  tasksStore.updateTag(payload)
 }
 
 const handleCancel = () => {
-  // Reset form to original tag data
-  formData.value = {
-    label: props.tag.label,
-    color: props.tag.color,
-    icon: props.tag.icon
-  }
   errors.value = {}
   
-  props.onCancel()
+  tasksStore.onCancelTagEdit()
 }
 
 // Validation en temps réel

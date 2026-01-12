@@ -167,7 +167,9 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const updateTag = async (id: number, payload: UpdateTagPayload) => {
+  const updateTag = async (payload: UpdateTagPayload) => {
+    if (!selectedTagFilter.value) return
+    const id: number = selectedTagFilter.value.id
     isLoading.value = true
     error.value = undefined
 
@@ -179,7 +181,12 @@ export const useTasksStore = defineStore('tasks', () => {
         if (index !== -1) {
           tags.value[index] = result.data.tag
         }
-        return { success: true, tag: result.data.tag }
+        const groupId = route.params.id
+        const groupRoute = {
+          name: 'GroupHomeCats',
+          params: { id: groupId }
+        }
+        router.push(groupRoute)
       } else {
         error.value = result.message
         return { success: false, error: result.message }
@@ -373,6 +380,26 @@ export const useTasksStore = defineStore('tasks', () => {
     router.push(tasksRoute)
   }
 
+  const onModifyTag = (tag: Tag) => {
+    selectedTagFilter.value = tag
+    const id = route.params.id
+    const editTagRoute = {
+      name: 'GroupEditTag',
+      params: { id: id }
+    }
+    router.push(editTagRoute)
+  }
+
+  const onCancelTagEdit = () => {
+    selectedTagFilter.value = null
+    const id = route.params.id
+    const GroupRoute = {
+      name: 'GroupHomeCats',
+      params: { id: id }
+    }
+    router.push(GroupRoute)
+  }
+
   const clearTagFilter = () => {
     selectedTagFilter.value = null
   }
@@ -511,6 +538,8 @@ export const useTasksStore = defineStore('tasks', () => {
     isTaskLoading,
     deleteAction,
     setTagFilter,
+    onCancelTagEdit,
+    onModifyTag,
     clearTagFilter,
     setSortByUrgency,
     onUrgencyCatTap,
