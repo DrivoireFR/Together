@@ -40,14 +40,7 @@ export const useTasksStore = defineStore('tasks', () => {
   const hasActions = computed(() => actions.value.length > 0)
   const hasStatistics = computed(() => statistics.value !== null)
 
-  // Interactions
-  const showfeedback = ref(false)
-  const feedbackTotalDone = ref<number | null>(null)
-
-  const closeFeedback = () => {
-    showfeedback.value = false
-    feedbackTotalDone.value = null
-  }
+  // Interactions (removed showfeedback and feedbackTotalDone - now using useConfirmModal)
 
   const filteredTasks = computed(() => {
     let filteredList = tasks.value
@@ -334,17 +327,29 @@ export const useTasksStore = defineStore('tasks', () => {
       const result = await taskRepository.createAction(payload)
 
       if (result.isSuccess) {
-        // Ajouter l'action à la liste locale sans recharger toute la liste
-        if (result.data.action) {
-          actions.value.unshift(result.data.action)
-          // Limiter à 50 actions pour éviter une liste trop longue
-          if (actions.value.length > 50) {
-            actions.value = actions.value.slice(0, 50)
-          }
-        }
+        // Note: On n'ajoute pas l'action à la liste locale car la réponse simplifiée
+        // ne contient pas tous les champs nécessaires. Les actions seront rechargées
+        // lors du prochain fetch si nécessaire.
 
-        showfeedback.value = true
-        feedbackTotalDone.value = result.data.totalDone
+        // Afficher la modale de feedback avec navigation
+        const groupId = Number(route.params.id)
+        if (!isNaN(groupId)) {
+          useConfirmModal()
+            .title('Action créée avec succès')
+            .description(`Vous avez maintenant ${result.data.totalDone} points ce mois-ci !`)
+            .confirmLabel('Continuer')
+            .cancelLabel('')
+            .onConfirm(async () => {
+              // Naviguer vers la page d'accueil du groupe si on n'y est pas déjà
+              if (route.name !== 'GroupHomeCats') {
+                await router.push({
+                  name: 'GroupHomeCats',
+                  params: { id: groupId }
+                })
+              }
+            })
+            .open()
+        }
 
         return { success: true, action: result.data.action, totalDone: result.data.totalDone }
       } else {
@@ -556,17 +561,29 @@ export const useTasksStore = defineStore('tasks', () => {
       const result = await taskRepository.createActionForMember(payload)
 
       if (result.isSuccess) {
-        // Ajouter l'action à la liste locale sans recharger toute la liste
-        if (result.data.action) {
-          actions.value.unshift(result.data.action)
-          // Limiter à 50 actions pour éviter une liste trop longue
-          if (actions.value.length > 50) {
-            actions.value = actions.value.slice(0, 50)
-          }
-        }
+        // Note: On n'ajoute pas l'action à la liste locale car la réponse simplifiée
+        // ne contient pas tous les champs nécessaires. Les actions seront rechargées
+        // lors du prochain fetch si nécessaire.
 
-        showfeedback.value = true
-        feedbackTotalDone.value = result.data.totalDone
+        // Afficher la modale de feedback avec navigation
+        const groupId = Number(route.params.id)
+        if (!isNaN(groupId)) {
+          useConfirmModal()
+            .title('Action créée avec succès')
+            .description(`L'action a été déclarée. Total du mois : ${result.data.totalDone} points.`)
+            .confirmLabel('Continuer')
+            .cancelLabel('')
+            .onConfirm(async () => {
+              // Naviguer vers la page d'accueil du groupe si on n'y est pas déjà
+              if (route.name !== 'GroupHomeCats') {
+                await router.push({
+                  name: 'GroupHomeCats',
+                  params: { id: groupId }
+                })
+              }
+            })
+            .open()
+        }
 
         return { success: true, action: result.data.action, totalDone: result.data.totalDone }
       } else {
@@ -775,8 +792,5 @@ export const useTasksStore = defineStore('tasks', () => {
     closeTaskAcknowledgmentModal,
     skipTaskAcknowledgment,
     //Interactions
-    showfeedback,
-    feedbackTotalDone,
-    closeFeedback
   }
 })

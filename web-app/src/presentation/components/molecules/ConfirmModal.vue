@@ -21,6 +21,7 @@
             
             <div class="modal-footer">
               <button
+                v-if="modalConfig?.cancelLabel !== ''"
                 class="modal-button modal-button--cancel"
                 @click="closeModal"
               >

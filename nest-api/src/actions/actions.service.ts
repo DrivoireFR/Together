@@ -13,6 +13,7 @@ import { UserTaskState } from '../user-task-states/entities/user-task-state.enti
 import { ActionAcknowledgment } from './entities/action-acknowledgment.entity';
 import { CreateActionDto } from './dto/create-action.dto';
 import { UpdateActionDto } from './dto/update-action.dto';
+import { CreateActionResponseDto } from './dto/create-action-response.dto';
 
 export interface ActionsPaginationOptions {
   page?: number;
@@ -139,6 +140,16 @@ export class ActionsService {
       );
     }
 
+    // Recharger l'action avec uniquement les relations nécessaires
+    const savedAction = await this.actionRepository.findOne({
+      where: { id: action.id },
+      relations: ['task', 'task.tag', 'user', 'group'],
+    });
+
+    if (!savedAction) {
+      throw new NotFoundException('Action non trouvée après création');
+    }
+
     // Calculer le total pour l'utilisateur cible
     const firstOfMonth = this.getFirstOfMonth();
 
@@ -156,11 +167,41 @@ export class ActionsService {
       `Action created: user ${targetUserId} completed task ${task.id} (${task.label}) - isHelpingHand: ${action.isHelpingHand}`,
     );
 
-    return {
+    // Mapper vers le DTO de réponse
+    const response: CreateActionResponseDto = {
       message: 'Action créée avec succès',
-      action,
+      action: {
+        id: savedAction.id,
+        date: savedAction.date,
+        isHelpingHand: savedAction.isHelpingHand,
+        task: {
+          id: savedAction.task.id,
+          label: savedAction.task.label,
+          iconUrl: savedAction.task.iconUrl || null,
+          points: savedAction.task.points,
+          tag: savedAction.task.tag
+            ? {
+              id: savedAction.task.tag.id,
+              label: savedAction.task.tag.label,
+              color: savedAction.task.tag.color,
+            }
+            : null,
+        },
+        user: {
+          id: savedAction.user.id,
+          pseudo: savedAction.user.pseudo,
+          avatar: savedAction.user.avatar || null,
+        },
+        group: {
+          id: savedAction.group.id,
+          nom: savedAction.group.nom,
+          code: savedAction.group.code,
+        },
+      },
       totalDone,
     };
+
+    return response;
   }
 
   async findAll(page = 1, limit = 50, currentMonthOnly = true) {
