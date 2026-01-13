@@ -8,6 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tag } from './entities/tag.entity';
 import { Group } from '../groups/entities/group.entity';
+import { Task } from '../tasks/entities/task.entity';
+import { Congrats } from '../congrats/entities/congrats.entity';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 
@@ -184,41 +186,69 @@ export class TagsService {
   }
 
   async remove(id: number, userId: number) {
-    const tag = await this.tagRepository.findOne({
-      where: { id },
-      relations: ['group', 'tasks'],
-    });
+    const queryRunner =
+      this.tagRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (!tag) {
-      throw new NotFoundException('Tag non trouvé');
+    try {
+      // 1. Charger le tag avec toutes ses relations
+      const tag = await queryRunner.manager.findOne(Tag, {
+        where: { id },
+        relations: ['group', 'tasks', 'congrats'],
+      });
+
+      if (!tag) {
+        throw new NotFoundException('Tag non trouvé');
+      }
+
+      // 2. Vérifier les permissions
+      const group = await queryRunner.manager.findOne(Group, {
+        where: { id: tag.group.id },
+        relations: ['users'],
+      });
+
+      if (!group) {
+        throw new NotFoundException('Groupe associé non trouvé');
+      }
+
+      const isMember = group.users.some((user) => user.id === userId);
+      if (!isMember) {
+        throw new ForbiddenException(
+          'Vous devez être membre du groupe pour supprimer ce tag',
+        );
+      }
+
+      // 3. Mettre à jour les tâches : retirer la référence au tag (mettre à null)
+      if (tag.tasks && tag.tasks.length > 0) {
+        await queryRunner.manager
+          .createQueryBuilder()
+          .update(Task)
+          .set({ tag: null })
+          .where('tagId = :tagId', { tagId: id })
+          .execute();
+      }
+
+      // 4. Supprimer les congrats associés
+      if (tag.congrats && tag.congrats.length > 0) {
+        await queryRunner.manager.remove(Congrats, tag.congrats);
+      }
+
+      // 5. Supprimer le tag
+      await queryRunner.manager.remove(Tag, tag);
+
+      await queryRunner.commitTransaction();
+
+      return {
+        message: 'Tag supprimé avec succès',
+        tasksUpdated: tag.tasks?.length || 0,
+        congratsRemoved: tag.congrats?.length || 0,
+      };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
-
-    const group = await this.groupRepository.findOne({
-      where: { id: tag.group.id },
-      relations: ['users'],
-    });
-
-    if (!group) {
-      throw new NotFoundException('Groupe associé non trouvé');
-    }
-
-    const isMember = group.users.some((user) => user.id === userId);
-    if (!isMember) {
-      throw new ForbiddenException(
-        'Vous devez être membre du groupe pour supprimer ce tag',
-      );
-    }
-
-    if (tag.tasks && tag.tasks.length > 0) {
-      throw new BadRequestException(
-        'Impossible de supprimer le tag car il est utilisé par des tâches',
-      );
-    }
-
-    await this.tagRepository.remove(tag);
-
-    return {
-      message: 'Tag supprimé avec succès',
-    };
   }
 }
