@@ -5,9 +5,8 @@
       @click="goToTask"
     >
       <div class="button-content">
-        <span class="button-icon">📝</span>
+        <span class="button-icon" v-html="taskSvg"></span>
         <h2 class="button-title">Créer une tâche</h2>
-        <p class="button-description">Ajoutez une nouvelle tâche à votre groupe</p>
       </div>
     </button>
     
@@ -16,15 +15,16 @@
       @click="goToTag"
     >
       <div class="button-content">
-        <span class="button-icon">🏷️</span>
-        <h2 class="button-title">Créer un tag</h2>
-        <p class="button-description">Organisez vos tâches avec des catégories</p>
+        <span class="button-icon" v-html="catSvg"></span>
+        <h2 class="button-title">Créer une catégorie</h2>
       </div>
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
+import taskSvg from '@/assets/icons/task.svg?raw'
+import catSvg from '@/assets/icons/category.svg?raw'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -38,6 +38,13 @@ const goToTag = () => {
 }
 </script>
 
+<style>
+  .button-icon svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+</style>
 <style scoped>
 .selection-container {
   display: flex;
@@ -97,6 +104,9 @@ const goToTag = () => {
 }
 
 .button-icon {
+  --icon-color: white;
+  width: 5rem;
+  height: 5rem;
   font-size: 3rem;
   line-height: 1;
 }
