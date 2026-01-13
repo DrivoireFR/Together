@@ -46,19 +46,6 @@
         />
       </div>
 
-      <div class="form-group">
-        <label for="iconUrl" class="form-label">
-          URL de l'icône (optionnel)
-        </label>
-        <BaseInput
-          id="iconUrl"
-          v-model="formData.iconUrl"
-          type="url"
-          placeholder="https://exemple.com/icon.png"
-          :error="errors.iconUrl"
-        />
-      </div>
-
       <div class="form-row">
         <div class="form-group">
           <label for="frequenceEstimee" class="form-label">
@@ -97,33 +84,15 @@
       </div>
 
       <div class="form-group" v-if="tags.length > 0">
-        <label for="tagId" class="form-label">
-          Tag (optionnel)
-        </label>
-        <select
-          id="tagId"
+        <TagSelector
           v-model="formData.tagId"
-          class="form-select"
-          :class="{ 'form-select--error': errors.tagId }"
-        >
-          <option value="">Aucun tag</option>
-          <option 
-            v-for="tag in tags" 
-            :key="tag.id" 
-            :value="tag.id"
-          >
-            {{ tag.label }}
-          </option>
-        </select>
+          :tags="tags"
+          label="Catégorie"
+          :allow-none="true"
+        />
         <span v-if="errors.tagId" class="form-error">
           {{ errors.tagId }}
         </span>
-      </div>
-
-      <div class="frequency-preview" v-if="frequencyText">
-        <p class="frequency-text">
-          <strong>Aperçu :</strong> {{ frequencyText }}
-        </p>
       </div>
     </div>
 
@@ -155,6 +124,7 @@ import { useTasksStore } from '@/domain/stores/tasksStore'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseSlider from '@/presentation/components/atoms/BaseSlider.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
+import TagSelector from '@/presentation/components/molecules/TagSelector.vue'
 
 interface Props {
   tags: Tag[]

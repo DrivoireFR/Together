@@ -87,6 +87,16 @@ import IconSelector from '@/presentation/components/molecules/IconSelector.vue'
 import Icon from '@/presentation/components/atoms/Icon.vue'
 import { useGroupStore } from '@/domain/stores/groupStore'
 
+interface Props {
+  onSuccess?: () => void
+  onCancel?: () => void
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  onSuccess: () => {},
+  onCancel: () => {}
+})
+
 const tasksStore = useTasksStore()
 const groupStore = useGroupStore()
 
@@ -149,7 +159,7 @@ const handleSubmit = async () => {
     }
     errors.value = {}
     
-    // props.onSuccess()
+    props.onSuccess()
   }
 }
 
@@ -162,7 +172,7 @@ const handleCancel = () => {
   }
   errors.value = {}
   
-  // props.onCancel()
+  props.onCancel()
 }
 
 // Validation en temps réel

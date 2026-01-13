@@ -4,7 +4,7 @@
       :style="chipStyles"
       @click="$emit('click')"
     >
-      <div v-if="tag.id != -1" class="options" @click="onOptionClick">
+      <div v-if="tag.id != -1 && showOptions" class="options" @click="onOptionClick">
         <IconComp :icon="Icon.Options" />
       </div>
 
@@ -37,13 +37,15 @@ interface Props {
   isSelected?: boolean
   variant?: 'default' | 'outlined' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
+  showOptions?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   tasksCount: 0,
   isSelected: false,
   variant: 'default',
-  size: 'md'
+  size: 'md',
+  showOptions: true
 })
 
 const emit = defineEmits<{

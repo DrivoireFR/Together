@@ -89,9 +89,36 @@ const router = createRouter({
           path: 'add',
           name: 'GroupAddForm',
           component: () => import('@/presentation/views/group/GroupAddForm.vue'),
+          redirect: { name: 'GroupAddSelection' },
           meta: {
             requiresAuth: true,
-          }
+          },
+          children: [
+            {
+              path: '',
+              name: 'GroupAddSelection',
+              component: () => import('@/presentation/views/group/GroupAddSelection.vue'),
+              meta: {
+                requiresAuth: true,
+              }
+            },
+            {
+              path: 'task',
+              name: 'GroupAddTask',
+              component: () => import('@/presentation/views/group/GroupAddTask.vue'),
+              meta: {
+                requiresAuth: true,
+              }
+            },
+            {
+              path: 'tag',
+              name: 'GroupAddTag',
+              component: () => import('@/presentation/views/group/GroupAddTag.vue'),
+              meta: {
+                requiresAuth: true,
+              }
+            }
+          ]
         },
         {
           path: 'tag/edit',
