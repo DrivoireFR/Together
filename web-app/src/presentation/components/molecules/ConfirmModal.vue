@@ -19,7 +19,7 @@
               />
             </div>
             
-            <div class="modal-footer">
+            <div v-if="shouldShowFooter" class="modal-footer">
               <button
                 v-if="modalConfig?.cancelLabel !== ''"
                 class="modal-button modal-button--cancel"
@@ -28,6 +28,7 @@
                 {{ modalConfig?.cancelLabel || 'Annuler' }}
               </button>
               <button
+                v-if="modalConfig?.confirmLabel !== ''"
                 class="modal-button modal-button--confirm"
                 @click="handleConfirm"
               >
@@ -42,10 +43,17 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch } from 'vue'
+import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { useConfirmModalState } from '@/shared/composables/useConfirmModal'
 
 const { isOpen, modalConfig, closeModal, handleConfirm } = useConfirmModalState()
+
+const shouldShowFooter = computed(() => {
+  return modalConfig.value && (
+    (modalConfig.value.cancelLabel !== undefined && modalConfig.value.cancelLabel !== '') ||
+    (modalConfig.value.confirmLabel !== undefined && modalConfig.value.confirmLabel !== '')
+  )
+})
 
 const handleOverlayClick = (event: MouseEvent) => {
   if (event.target === event.currentTarget) {
@@ -99,15 +107,20 @@ watch(isOpen, (newValue) => {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  max-width: 100%;
 }
 
 .modal-content {
   width: 100%;
-  height: 100%;
+  max-width: 42rem;
+  max-height: 90vh;
   background: var(--color-white, #ffffff);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  border-radius: var(--border-radius-lg, 0.5rem);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .modal-header {

@@ -89,7 +89,7 @@ const buttonClasses = computed(() => {
   align-items: center;
   justify-content: center;
   font-weight: var(--font-weight-medium);
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-lg);
   transition: var(--transition-fast);
   transition-property: color, background-color, border-color, box-shadow;
   border: var(--border-width) solid transparent;

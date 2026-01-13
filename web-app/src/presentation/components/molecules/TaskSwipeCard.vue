@@ -12,21 +12,21 @@
     <div class="actions-layer">
       <div class="action action-left">
         <BaseButton @click="handleDeclare" :disabled="isLoading" class="action-button">
-          Déclarer
+          Pour moi
         </BaseButton>
       </div>
       
       <div class="action action-center">
-        <BaseButton @click="handleDeclareForMember" :disabled="isLoading" class="action-button">
-          Pour membre
+        <BaseButton variant="secondary" @click="handleDeclareForMember" :disabled="isLoading" class="action-button">
+          Pour un autre
         </BaseButton>
       </div>
       
-      <!-- Action 3: Déclarer pour membre (droite, 1/3) -->
+      <!-- Action 3: Options (droite, 1/3) -->
       <div class="action action-right">
-        <BaseButton @click="handleDeleteClick" variant="danger" :disabled="isLoading" class="action-button">
-          Supprimer
-        </BaseButton>
+        <button @click="handleOptionsClick" :disabled="isLoading" class="options-button">
+          Options
+        </button>
       </div>
     </div>
     
@@ -36,6 +36,16 @@
         :class="{ swiping: isSwiping }"
         :style="{ transform: `translateX(${translateXPercent}%)` }"
       >
+        <!-- Options overlay -->
+        <div v-if="showOverlay" class="options-overlay" @click.stop>
+          <button class="overlay-button overlay-button--left" @click="handleModify">
+            Modifier
+          </button>
+          <button class="overlay-button overlay-button--right" @click="handleDelete">
+            Supprimer
+          </button>
+        </div>
+        
         <div class="task-content" @click="handleCardClick">
           <div class="task-left">
             <h3 class="task-title">{{ task.label }}</h3>
@@ -59,11 +69,14 @@
 <script setup lang="ts">
 import { ref, computed, h, onMounted, onUnmounted } from 'vue'
 import type { Task, User } from '@/domain/types'
-import { useConfirmModal } from '@/shared/composables/useConfirmModal'
+import { useConfirmModal, useConfirmModalState } from '@/shared/composables/useConfirmModal'
 import { useTasksStore } from '@/domain/stores/tasksStore'
 import TagChip from '@/presentation/components/atoms/TagChip.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import MemberSelectorModal from '@/presentation/components/molecules/MemberSelectorModal.vue'
+import IconComp from '@/presentation/components/atoms/Icon.vue'
+import { Icon } from '@/shared/types/enums'
+import EditTaskForm from '@/presentation/components/molecules/EditTaskForm.vue'
 
 interface Props {
   task: Task
@@ -96,6 +109,9 @@ const SWIPE_THRESHOLD = 30 // pixels
 // 1 = swipe droite (66.67% = 2/3)
 // 2 = swipe gauche (-33.33% = -1/3)
 const swipeState = ref<0 | 1 | 2>(0)
+
+// Overlay state
+const showOverlay = ref(false)
 
 // Loading state
 const isLoading = computed(() => tasksStore.isTaskLoading(props.task.id))
@@ -304,6 +320,8 @@ const handleCardClick = (e: MouseEvent) => {
   // Si on clique sur un élément interactif, ne pas déclencher
   if (target.closest('.action-button') || 
       target.closest('.action') ||
+      target.closest('.options-overlay') ||
+      target.closest('.options-button') ||
       target.closest('a') ||
       target.tagName === 'BUTTON') {
     return
@@ -314,14 +332,32 @@ const handleCardClick = (e: MouseEvent) => {
   handleCardTap()
 }
 
-// Handle click outside to reset swipe
+// Overlay handlers
+const closeOverlay = () => {
+  showOverlay.value = false
+}
+
+const handleOptionsClick = (e: Event) => {
+  e.preventDefault()
+  e.stopPropagation()
+  showOverlay.value = !showOverlay.value
+}
+
+// Handle click outside to reset swipe and close overlay
 const handleClickOutside = (e: MouseEvent) => {
   if (!containerRef.value) return
   
   const target = e.target as HTMLElement
-  // Si le clic est en dehors de la carte et qu'on est dans un état swipé
-  if (!containerRef.value.contains(target) && swipeState.value !== 0) {
-    resetSwipe()
+  // Si le clic est en dehors de la carte
+  if (!containerRef.value.contains(target)) {
+    // Fermer l'overlay si ouvert
+    if (showOverlay.value) {
+      closeOverlay()
+    }
+    // Reset swipe si on est dans un état swipé
+    if (swipeState.value !== 0) {
+      resetSwipe()
+    }
   }
 }
 
@@ -338,6 +374,7 @@ onUnmounted(() => {
 const resetSwipe = () => {
   swipeState.value = 0
   translateXPercent.value = 0
+  closeOverlay()
 }
 
 const handleDeclare = async () => {
@@ -356,6 +393,49 @@ const handleDeleteClick = () => {
       resetSwipe()
     })
     .open()
+}
+
+const handleModify = (e: Event) => {
+  e.preventDefault()
+  e.stopPropagation()
+  closeOverlay()
+  
+  const { closeModal } = useConfirmModalState()
+  
+  const createEditTaskFormComponent = () => {
+    return h(EditTaskForm, {
+      task: props.task,
+      tags: tasksStore.tags,
+      onSuccess: () => {
+        // Le formulaire gère déjà la mise à jour via tasksStore
+        closeModal()
+        resetSwipe()
+      },
+      onCancel: () => {
+        // Fermer la modal quand on annule
+        closeModal()
+      }
+    })
+  }
+  
+  useConfirmModal()
+    .title('Modifier la tâche')
+    .description('')
+    .template(createEditTaskFormComponent as any)
+    .confirmLabel('')
+    .cancelLabel('')
+    .onConfirm(async () => {
+      // La soumission est gérée par le formulaire EditTaskForm via son bouton submit
+      // On ne fait rien ici
+    })
+    .open()
+}
+
+const handleDelete = (e: Event) => {
+  e.preventDefault()
+  e.stopPropagation()
+  closeOverlay()
+  handleDeleteClick()
 }
 
 const selectedMemberForAction = ref<User | null>(null)
@@ -432,13 +512,44 @@ const handleDeclareForMember = () => {
 }
 
 .action-right {
-  background: var(--color-blue-50);
+  background: var(--color-blue-20);
   border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0;
 }
 
 .action-button {
+  height: 100%;
   width: 100%;
   max-width: 200px;
+}
+
+.options-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  max-width: 200px;
+  padding: var(--spacing-2);
+  background: orange;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--border-radius-lg);
+  transition: background-color 0.15s ease;
+}
+
+.options-button:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.options-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.options-button :deep(svg) {
+  width: 24px;
+  height: 24px;
+  color: var(--color-gray-700);
 }
 
 /* Card layer (devant) */
@@ -463,6 +574,54 @@ const handleDeclareForMember = () => {
 
 .task-swipe-card.swiping {
   transition: none;
+}
+
+/* Options overlay */
+.options-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: row;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.overlay-button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: var(--font-weight-medium);
+  transition: background-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4);
+  font-size: var(--font-size-base);
+}
+
+.overlay-button--left {
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--color-primary, #007bff);
+}
+
+.overlay-button--left:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.overlay-button--right {
+  color: var(--color-danger, #dc3545);
+}
+
+.overlay-button--right:hover {
+  background-color: rgba(220, 53, 69, 0.1);
 }
 
 .task-content {
