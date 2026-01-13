@@ -79,17 +79,6 @@
         @blur="validateConfirmPassword"
       />
       
-      <!-- Icône (optionnel) -->
-      <BaseInput
-        v-model="form.icone"
-        type="text"
-        label="Icône (optionnel)"
-        placeholder="👨‍💼"
-        :error="errors.icone"
-        :disabled="authStore.isLoading"
-        :iconBefore="FaceSmileIcon"
-      />
-      
       <!-- Error message -->
       <div v-if="authStore.error" class="form-error">
         {{ authStore.error }}
@@ -115,8 +104,7 @@ import {
   EnvelopeIcon, 
   LockClosedIcon, 
   UserIcon, 
-  AtSymbolIcon, 
-  FaceSmileIcon 
+  AtSymbolIcon
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/domain/stores/authStore'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
@@ -135,8 +123,7 @@ const form = reactive({
   pseudo: '',
   email: '',
   password: '',
-  confirmPassword: '',
-  icone: ''
+  confirmPassword: ''
 })
 
 // Validation errors
@@ -146,8 +133,7 @@ const errors = reactive({
   pseudo: '',
   email: '',
   password: '',
-  confirmPassword: '',
-  icone: ''
+  confirmPassword: ''
 })
 
 // Computed
@@ -262,10 +248,6 @@ const handleSubmit = async () => {
       pseudo: form.pseudo.trim(),
       email: form.email.trim(),
       password: form.password
-    }
-    
-    if (form.icone.trim()) {
-      payload.icone = form.icone.trim()
     }
     
     const result = await authStore.register(payload)

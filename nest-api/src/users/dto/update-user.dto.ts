@@ -1,4 +1,5 @@
-import { IsOptional, IsNotEmpty } from 'class-validator';
+import { IsOptional, IsNotEmpty, IsEnum } from 'class-validator';
+import { Avatar } from '../enums/avatar.enum';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -14,5 +15,6 @@ export class UpdateUserDto {
   pseudo?: string;
 
   @IsOptional()
-  icone?: string;
+  @IsEnum(Avatar)
+  avatar?: Avatar;
 }

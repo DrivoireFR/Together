@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { authRepository } from '@/data/repositories/authRepository'
 import { StorageUtil } from '@/shared/utils/storage'
 import { STORAGE_KEYS } from '@/shared/constants'
-import type { User, LoginPayload, RegisterPayload } from '../types'
+import type { User, LoginPayload, RegisterPayload, UpdateProfilePayload } from '../types'
 import { useGroupStore } from './groupStore'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -196,6 +196,34 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const updateProfile = async (payload: UpdateProfilePayload) => {
+    if (!token.value) {
+      return { success: false, error: 'Non authentifié' }
+    }
+
+    isLoading.value = true
+    error.value = undefined
+
+    try {
+      const result = await authRepository.updateProfile(payload)
+
+      if (result.isSuccess) {
+        user.value = result.data.user
+        StorageUtil.setItem(STORAGE_KEYS.USER, result.data.user)
+        return { success: true }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors de la mise à jour du profil'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   const clearError = () => {
     error.value = undefined
   }
@@ -216,6 +244,7 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     fetchProfile,
+    updateProfile,
     clearError
   }
 })

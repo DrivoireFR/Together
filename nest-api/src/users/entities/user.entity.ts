@@ -15,6 +15,7 @@ import { Group } from '../../groups/entities/group.entity';
 import { Action } from '../../actions/entities/action.entity';
 import { UserTaskState } from '../../user-task-states/entities/user-task-state.entity';
 import { Achievement } from '../../achievements/entities/achievement.entity';
+import { Avatar } from '../enums/avatar.enum';
 
 @Entity()
 export class User {
@@ -41,8 +42,8 @@ export class User {
   @MinLength(6)
   password: string;
 
-  @Column({ nullable: true })
-  icone?: string;
+  @Column({ type: 'simple-enum', enum: Avatar, nullable: true })
+  avatar?: Avatar;
 
   @ManyToMany(() => Group, (group) => group.users)
   groups: Group[];

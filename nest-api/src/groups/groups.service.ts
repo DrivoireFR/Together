@@ -174,7 +174,7 @@ export class GroupsService {
         'users.prenom',
         'users.pseudo',
         'users.email',
-        'users.icone',
+        'users.avatar',
         'users.createdAt',
         'users.updatedAt',
       ])
@@ -228,7 +228,7 @@ export class GroupsService {
           prenom: true,
           pseudo: true,
           email: true,
-          icone: true,
+          avatar: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -369,7 +369,7 @@ export class GroupsService {
       .createQueryBuilder('group')
       .where('group.nom LIKE :nom', { nom: `%${nom}%` })
       .leftJoin('group.users', 'users')
-      .addSelect(['users.id', 'users.pseudo', 'users.icone'])
+      .addSelect(['users.id', 'users.pseudo', 'users.avatar'])
       // NE PAS charger 'tasks' et 'tags' (trop lourd)
       .take(safeLimit)
       .orderBy('group.createdAt', 'DESC')

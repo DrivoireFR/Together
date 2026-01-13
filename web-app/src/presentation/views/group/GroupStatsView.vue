@@ -74,17 +74,13 @@
                 class="user-goal"
               >
                 <div class="user-info">
-                  <div class="user-avatar">
-                    <img 
-                      v-if="goal.user.icone" 
-                      :src="goal.user.icone" 
-                      :alt="goal.user.prenom"
-                      class="avatar-image"
-                    />
-                    <span class="avatar-fallback">
-                      {{ goal.user.prenom.charAt(0) + goal.user.nom.charAt(0) }}
-                    </span>
-                  </div>
+                  <Avatar
+                    :avatar="goal.user.avatar"
+                    :username="goal.user.pseudo"
+                    :firstName="goal.user.prenom"
+                    :lastName="goal.user.nom"
+                    size="md"
+                  />
                   <div class="user-details">
                     <h3 class="user-name">{{ goal.user.prenom }} {{ goal.user.nom }}</h3>
                     <p class="user-pseudo">@{{ goal.user.pseudo }}</p>
@@ -128,6 +124,7 @@ import { useGroupStore } from '@/domain/stores/groupStore'
 import { useStatsStore } from '@/domain/stores/statsStore'
 import ProgressBar from '@/presentation/components/atoms/ProgressBar.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
+import Avatar from '@/presentation/components/atoms/Avatar.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -337,35 +334,6 @@ onUnmounted(() => {
   gap: var(--spacing-3);
 }
 
-.user-avatar {
-  width: var(--spacing-8);
-  height: var(--spacing-8);
-  border-radius: var(--border-radius-full);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--color-primary-light);
-  flex-shrink: 0;
-}
-
-.avatar-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.avatar-fallback {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-white);
-  background-color: var(--color-primary);
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 .user-details {
   display: flex;
@@ -501,10 +469,6 @@ onUnmounted(() => {
     grid-template-columns: 1fr;
   }
   
-  .user-avatar {
-    width: var(--spacing-6);
-    height: var(--spacing-6);
-  }
   
   .user-name {
     font-size: var(--font-size-sm);

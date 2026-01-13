@@ -1,3 +1,5 @@
+import type { Avatar } from '@/shared/types/enums'
+
 export interface LoginPayload {
   email: string
   password: string
@@ -10,5 +12,12 @@ export interface RegisterPayload {
   pseudo: string
   email: string
   password: string
-  icone?: string
+  avatar?: Avatar
+}
+
+export interface UpdateProfilePayload {
+  nom?: string
+  prenom?: string
+  pseudo?: string
+  avatar?: Avatar
 }

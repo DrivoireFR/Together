@@ -3,6 +3,7 @@ import type { ApiResult } from '@/shared/types/DataResult'
 import type {
   LoginPayload,
   RegisterPayload,
+  UpdateProfilePayload,
   AuthResponse,
   User,
   getProfileResponse
@@ -19,6 +20,10 @@ export class AuthRepository {
 
   async getProfile(): Promise<ApiResult<getProfileResponse>> {
     return apiClient.get<getProfileResponse>('/auth/profile')
+  }
+
+  async updateProfile(payload: UpdateProfilePayload): Promise<ApiResult<{ message: string; user: User }>> {
+    return apiClient.put<{ message: string; user: User }>('/users/profile', payload)
   }
 
   async refreshToken(): Promise<ApiResult<AuthResponse>> {

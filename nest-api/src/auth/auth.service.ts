@@ -51,7 +51,7 @@ export class AuthService {
     user.pseudo = createUserDto.pseudo;
     user.email = createUserDto.email;
     user.password = createUserDto.password;
-    user.icone = createUserDto.icone;
+    user.avatar = createUserDto.avatar;
 
     const errors = await validate(user);
     if (errors.length > 0) {

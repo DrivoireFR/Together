@@ -14,7 +14,7 @@ export class StatsService {
     private taskRepository: Repository<Task>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async getOverview(groupId: number) {
     const startTime = Date.now();
@@ -60,7 +60,7 @@ export class StatsService {
         'user.nom',
         'user.prenom',
         'user.pseudo',
-        'user.icone',
+        'user.avatar',
       ])
       .leftJoinAndSelect(
         'user.actions',

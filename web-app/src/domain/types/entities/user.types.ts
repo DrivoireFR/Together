@@ -1,11 +1,12 @@
 import type { Action } from './action.types'
+import type { Avatar } from '@/shared/types/enums'
 
 export interface User {
   id: number
   nom: string
   prenom: string
   pseudo: string
-  icone?: string
+  avatar?: Avatar
   email: string
   createdAt: string
   updatedAt: string

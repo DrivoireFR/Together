@@ -34,7 +34,7 @@ export class ActionsService {
     private userRepository: Repository<User>,
     @InjectRepository(UserTaskState)
     private userTaskStateRepository: Repository<UserTaskState>,
-  ) {}
+  ) { }
 
   private getFirstOfMonth(): Date {
     const now = new Date();
@@ -125,7 +125,7 @@ export class ActionsService {
       .leftJoin('action.task', 'task')
       .addSelect(['task.id', 'task.label', 'task.points'])
       .leftJoin('action.user', 'user')
-      .addSelect(['user.id', 'user.pseudo', 'user.icone'])
+      .addSelect(['user.id', 'user.pseudo', 'user.avatar'])
       .orderBy('action.date', 'DESC')
       .skip((safePage - 1) * safeLimit)
       .take(safeLimit);
@@ -226,7 +226,7 @@ export class ActionsService {
       .leftJoin('action.task', 'task')
       .addSelect(['task.id', 'task.label', 'task.points'])
       .leftJoin('action.user', 'user')
-      .addSelect(['user.id', 'user.pseudo', 'user.icone'])
+      .addSelect(['user.id', 'user.pseudo', 'user.avatar'])
       .where('action.groupId = :groupId', { groupId })
       .orderBy('action.date', 'DESC')
       .skip((safePage - 1) * safeLimit)
@@ -293,7 +293,7 @@ export class ActionsService {
     const queryBuilder = this.actionRepository
       .createQueryBuilder('action')
       .leftJoin('action.user', 'user')
-      .addSelect(['user.id', 'user.pseudo', 'user.icone'])
+      .addSelect(['user.id', 'user.pseudo', 'user.avatar'])
       .leftJoin('action.group', 'group')
       .addSelect(['group.id', 'group.nom'])
       .where('action.taskId = :taskId', { taskId })

@@ -1,4 +1,5 @@
-import { IsEmail, IsNotEmpty, IsOptional, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, MinLength, IsEnum } from 'class-validator';
+import { Avatar } from '../enums/avatar.enum';
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -17,5 +18,6 @@ export class CreateUserDto {
   password: string;
 
   @IsOptional()
-  icone?: string;
+  @IsEnum(Avatar)
+  avatar?: Avatar;
 }

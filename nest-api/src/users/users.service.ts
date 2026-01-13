@@ -9,7 +9,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async findAll(page = 1, limit = 50) {
     const safePage = Math.max(1, page);
@@ -22,7 +22,7 @@ export class UsersService {
         'prenom',
         'pseudo',
         'email',
-        'icone',
+        'avatar',
         'createdAt',
         'updatedAt',
       ],
@@ -51,7 +51,7 @@ export class UsersService {
         'prenom',
         'pseudo',
         'email',
-        'icone',
+        'avatar',
         'createdAt',
         'updatedAt',
       ],
@@ -72,7 +72,7 @@ export class UsersService {
         'prenom',
         'pseudo',
         'email',
-        'icone',
+        'avatar',
         'createdAt',
         'updatedAt',
       ],
@@ -103,7 +103,7 @@ export class UsersService {
     if (updateUserDto.nom) user.nom = updateUserDto.nom;
     if (updateUserDto.prenom) user.prenom = updateUserDto.prenom;
     if (updateUserDto.pseudo) user.pseudo = updateUserDto.pseudo;
-    if (updateUserDto.icone !== undefined) user.icone = updateUserDto.icone;
+    if (updateUserDto.avatar !== undefined) user.avatar = updateUserDto.avatar;
 
     await this.usersRepository.save(user);
 
