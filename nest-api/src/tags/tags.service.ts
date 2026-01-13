@@ -14,6 +14,7 @@ import { Task } from '../tasks/entities/task.entity';
 import { Congrats } from '../congrats/entities/congrats.entity';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
+import { TagResponseDto } from './dto/tag-response.dto';
 
 @Injectable()
 export class TagsService {
@@ -26,6 +27,18 @@ export class TagsService {
     @InjectRepository(Group)
     private groupRepository: Repository<Group>,
   ) { }
+
+  private formatTagResponse(tag: Tag): TagResponseDto {
+    return {
+      id: tag.id,
+      label: tag.label,
+      color: tag.color,
+      isDefault: tag.isDefault,
+      icon: tag.icon,
+      createdAt: tag.createdAt,
+      updatedAt: tag.updatedAt,
+    };
+  }
 
   async create(createTagDto: CreateTagDto, userId: number) {
     const group = await this.groupRepository.findOne({
@@ -66,7 +79,7 @@ export class TagsService {
 
     return {
       message: 'Tag créé avec succès',
-      tag,
+      tag: this.formatTagResponse(tag),
     };
   }
 
@@ -186,7 +199,7 @@ export class TagsService {
 
     return {
       message: 'Tag mis à jour avec succès',
-      tag,
+      tag: this.formatTagResponse(tag),
     };
   }
 

@@ -4,7 +4,7 @@
       :style="chipStyles"
       @click="$emit('click')"
     >
-      <div class="options" @click="onOptionClick">
+      <div v-if="tag.id != -1" class="options" @click="onOptionClick">
         <IconComp :icon="Icon.Options" />
       </div>
 

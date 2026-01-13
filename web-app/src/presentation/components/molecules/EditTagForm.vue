@@ -140,7 +140,7 @@ const handleSubmit = async () => {
   const payload: UpdateTagPayload = {
     label: formData.value.label?.trim(),
     color: formData.value.color,
-    icon: formData.value.icon
+    ...(formData.value.icon !== undefined && { icon: formData.value.icon })
   }
   
   tasksStore.updateTag(payload)

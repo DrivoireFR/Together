@@ -52,7 +52,6 @@ const allTasksTag = computed((): Tag => ({
   id: -1,
   label: 'Toutes les tâches',
   color: '#6b7280',
-  group: {} as any,
   tasks: [],
   createdAt: '',
   updatedAt: ''
