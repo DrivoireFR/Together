@@ -37,6 +37,9 @@
     </div>
 
     <form v-else class="profile-edit-form" @submit.prevent="handleSubmit">
+      <div v-if="submitError" class="profile-error-message">
+        {{ submitError }}
+      </div>
       <div class="profile-edit-content">
         <AvatarSelector
           v-model="editForm.avatar"
@@ -107,17 +110,22 @@ const editForm = reactive<UpdateProfilePayload>({
 })
 
 const errors = reactive<Record<string, string>>({})
+const submitError = ref<string>('')
 
 const startEditing = () => {
-  if (!user.value) return
-  editForm.nom = user.value.nom
-  editForm.prenom = user.value.prenom
-  editForm.pseudo = user.value.pseudo
+  if (!user.value) {
+    submitError.value = 'Impossible de charger les données utilisateur'
+    return
+  }
+  editForm.nom = user.value.nom || ''
+  editForm.prenom = user.value.prenom || ''
+  editForm.pseudo = user.value.pseudo || ''
   editForm.avatar = user.value.avatar
   isEditing.value = true
   errors.nom = ''
   errors.prenom = ''
   errors.pseudo = ''
+  submitError.value = ''
 }
 
 const cancelEditing = () => {
@@ -125,6 +133,7 @@ const cancelEditing = () => {
   errors.nom = ''
   errors.prenom = ''
   errors.pseudo = ''
+  submitError.value = ''
 }
 
 const validateForm = (): boolean => {
@@ -132,18 +141,54 @@ const validateForm = (): boolean => {
   errors.prenom = ''
   errors.pseudo = ''
 
-  if (!editForm.nom || editForm.nom.trim() === '') {
+  const nomTrimmed = editForm.nom?.trim() || ''
+  const prenomTrimmed = editForm.prenom?.trim() || ''
+  const pseudoTrimmed = editForm.pseudo?.trim() || ''
+
+  // Validation nom
+  if (!nomTrimmed) {
     errors.nom = 'Le nom est requis'
     return false
   }
-
-  if (!editForm.prenom || editForm.prenom.trim() === '') {
-    errors.prenom = 'Le prénom est requis'
+  if (nomTrimmed.length < 2) {
+    errors.nom = 'Le nom doit contenir au moins 2 caractères'
+    return false
+  }
+  if (nomTrimmed.length > 50) {
+    errors.nom = 'Le nom ne peut pas dépasser 50 caractères'
     return false
   }
 
-  if (!editForm.pseudo || editForm.pseudo.trim() === '') {
+  // Validation prénom
+  if (!prenomTrimmed) {
+    errors.prenom = 'Le prénom est requis'
+    return false
+  }
+  if (prenomTrimmed.length < 2) {
+    errors.prenom = 'Le prénom doit contenir au moins 2 caractères'
+    return false
+  }
+  if (prenomTrimmed.length > 50) {
+    errors.prenom = 'Le prénom ne peut pas dépasser 50 caractères'
+    return false
+  }
+
+  // Validation pseudo
+  if (!pseudoTrimmed) {
     errors.pseudo = 'Le pseudo est requis'
+    return false
+  }
+  if (pseudoTrimmed.length < 3) {
+    errors.pseudo = 'Le pseudo doit contenir au moins 3 caractères'
+    return false
+  }
+  if (pseudoTrimmed.length > 30) {
+    errors.pseudo = 'Le pseudo ne peut pas dépasser 30 caractères'
+    return false
+  }
+  const pseudoRegex = /^[a-zA-Z0-9._-]+$/
+  if (!pseudoRegex.test(pseudoTrimmed)) {
+    errors.pseudo = 'Le pseudo ne peut contenir que des lettres, chiffres, points, tirets et underscores'
     return false
   }
 
@@ -154,19 +199,20 @@ const handleSubmit = async () => {
   if (!validateForm()) return
 
   const payload: UpdateProfilePayload = {
-    nom: editForm.nom,
-    prenom: editForm.prenom,
-    pseudo: editForm.pseudo,
+    nom: editForm.nom?.trim(),
+    prenom: editForm.prenom?.trim(),
+    pseudo: editForm.pseudo?.trim(),
     avatar: editForm.avatar
   }
 
+  submitError.value = ''
   const result = await authStore.updateProfile(payload)
 
   if (result.success) {
     isEditing.value = false
+    submitError.value = ''
   } else {
-    // Les erreurs sont gérées par le store
-    console.error('Erreur lors de la mise à jour:', result.error)
+    submitError.value = result.error || 'Une erreur est survenue lors de la mise à jour du profil'
   }
 }
 </script>
@@ -240,5 +286,16 @@ const handleSubmit = async () => {
   display: flex;
   gap: var(--spacing-3);
   justify-content: flex-end;
+}
+
+.profile-error-message {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  padding: var(--spacing-3);
+  background-color: var(--color-danger-light);
+  border-radius: var(--border-radius-md);
+  border: var(--border-width) solid var(--color-danger);
+  margin-bottom: var(--spacing-4);
 }
 </style>

@@ -79,6 +79,14 @@
         @blur="validateConfirmPassword"
       />
       
+      <!-- Avatar (optional) -->
+      <AvatarSelector
+        v-model="form.avatar"
+        label="Avatar (optionnel)"
+        avatarSize="md"
+        :allow-none="true"
+      />
+      
       <!-- Error message -->
       <div v-if="authStore.error" class="form-error">
         {{ authStore.error }}
@@ -109,7 +117,9 @@ import {
 import { useAuthStore } from '@/domain/stores/authStore'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
+import AvatarSelector from '@/presentation/components/molecules/AvatarSelector.vue'
 import type { RegisterPayload } from '@/domain/types'
+import type { Avatar } from '@/shared/types/enums'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -117,13 +127,22 @@ const authStore = useAuthStore()
 
 
 // Form state
-const form = reactive({
+const form = reactive<{
+  nom: string
+  prenom: string
+  pseudo: string
+  email: string
+  password: string
+  confirmPassword: string
+  avatar?: Avatar
+}>({
   nom: '',
   prenom: '',
   pseudo: '',
   email: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  avatar: undefined
 })
 
 // Validation errors
@@ -247,7 +266,8 @@ const handleSubmit = async () => {
       prenom: form.prenom.trim(),
       pseudo: form.pseudo.trim(),
       email: form.email.trim(),
-      password: form.password
+      password: form.password,
+      avatar: form.avatar
     }
     
     const result = await authStore.register(payload)

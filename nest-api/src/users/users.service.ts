@@ -100,19 +100,30 @@ export class UsersService {
       throw new NotFoundException('Utilisateur non trouvé');
     }
 
-    if (updateUserDto.nom) user.nom = updateUserDto.nom;
-    if (updateUserDto.prenom) user.prenom = updateUserDto.prenom;
-    if (updateUserDto.pseudo) user.pseudo = updateUserDto.pseudo;
-    if (updateUserDto.avatar !== undefined) user.avatar = updateUserDto.avatar;
+    try {
+      if (updateUserDto.nom) user.nom = updateUserDto.nom.trim();
+      if (updateUserDto.prenom) user.prenom = updateUserDto.prenom.trim();
+      if (updateUserDto.pseudo) user.pseudo = updateUserDto.pseudo.trim();
+      if (updateUserDto.avatar !== undefined) user.avatar = updateUserDto.avatar;
 
-    await this.usersRepository.save(user);
+      await this.usersRepository.save(user);
 
-    const { password: _, ...userWithoutPassword } = user;
+      const { password: _, ...userWithoutPassword } = user;
 
-    return {
-      message: 'Profil mis à jour avec succès',
-      user: userWithoutPassword,
-    };
+      return {
+        message: 'Profil mis à jour avec succès',
+        user: userWithoutPassword,
+      };
+    } catch (error) {
+      // Re-throw NotFoundException pour qu'il soit géré par le filter
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      // Log les erreurs TypeORM pour debugging
+      throw new Error(
+        `Erreur lors de la mise à jour du profil: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+      );
+    }
   }
 
   async remove(id: number): Promise<void> {
