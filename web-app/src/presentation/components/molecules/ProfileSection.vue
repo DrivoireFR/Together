@@ -2,14 +2,6 @@
   <div class="profile-section">
     <div class="profile-section-header">
       <h2 class="profile-section-title">Profil</h2>
-      <BaseButton
-        v-if="!isEditing"
-        variant="outline"
-        size="sm"
-        @click="startEditing"
-      >
-        Modifier
-      </BaseButton>
     </div>
 
     <div v-if="!isEditing" class="profile-section-content">
@@ -33,6 +25,15 @@
           <span class="profile-info-label">Email</span>
           <span class="profile-info-value">{{ user?.email }}</span>
         </div>
+
+        <BaseButton
+          v-if="!isEditing"
+          variant="outline"
+          size="sm"
+          @click="startEditing"
+        >
+          Modifier
+        </BaseButton>
       </div>
     </div>
 
@@ -248,8 +249,8 @@ const handleSubmit = async () => {
 
 .profile-info {
   width: 100%;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--spacing-4);
 }
 

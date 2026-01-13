@@ -3,8 +3,10 @@ import { ref, computed } from 'vue'
 import { groupRepository } from '@/data/repositories/groupRepository'
 import type { Group, CreateGroupPayload, StarterPack } from '../types'
 import { useTasksStore } from './tasksStore'
+import { useAuthStore } from './authStore'
 import { useRouter } from 'vue-router'
 import { StorageUtil } from '@/shared/utils/storage'
+import { STORAGE_KEYS } from '@/shared/constants'
 import router from '@/router'
 
 
@@ -34,6 +36,7 @@ export const useGroupStore = defineStore('group', () => {
   const currentGroupMembers = computed(() => currentGroup.value?.users || [])
 
   const tasksStore = useTasksStore()
+  const authStore = useAuthStore()
   // Actions
   const fetchGroupById = async (id: number) => {
     if (currentGroup.value != null && currentGroup.value.id === id) return
@@ -42,6 +45,22 @@ export const useGroupStore = defineStore('group', () => {
     error.value = undefined
 
     try {
+      // Vérifier d'abord si l'utilisateur a accès au groupe
+      const userId = authStore.user?.id
+      if (userId) {
+        // Si les groupes ne sont pas encore chargés, les charger
+        if (groups.value.length === 0) {
+          await getUserGroups(userId)
+        }
+
+        // Vérifier que le groupe est dans la liste des groupes de l'utilisateur
+        const hasAccess = groups.value.some(group => group.id === id)
+        if (!hasAccess) {
+          error.value = 'Vous n\'avez pas accès à ce groupe'
+          return null
+        }
+      }
+
       const result = await groupRepository.getGroupById(id)
 
       if (result.isSuccess) {
@@ -211,7 +230,7 @@ export const useGroupStore = defineStore('group', () => {
   }
 
   const navigateToGroup = (groupId: number) => {
-    StorageUtil.setItem('selectedGroupId', String(groupId))
+    StorageUtil.setItem(STORAGE_KEYS.SELECTED_GROUP_ID, String(groupId))
     const groupRoute = {
       name: 'GroupHomeCats',
       params: { id: groupId }
@@ -374,8 +393,23 @@ export const useGroupStore = defineStore('group', () => {
     error.value = undefined
   }
 
+  const reset = () => {
+    groups.value = []
+    currentGroup.value = null
+    searchResults.value = []
+    isLoading.value = false
+    isSearching.value = false
+    error.value = undefined
+    currentStarterPack.value = null
+    createdGroupData.value = null
+    createdGroupId.value = null
+    showGroupCreatedModal.value = false
+    showStarterPackTagsModal.value = false
+    showStarterPackTasksModal.value = false
+  }
+
   const onGroupClick = (id: number) => {
-    StorageUtil.setItem('selectedGroupId', String(id))
+    StorageUtil.setItem(STORAGE_KEYS.SELECTED_GROUP_ID, String(id))
 
     const groupRoute = {
       name: 'GroupHomeCats',
@@ -385,7 +419,7 @@ export const useGroupStore = defineStore('group', () => {
   }
 
   const checkGroupAndRedirect = async (userId?: number) => {
-    const selectedGroupId = StorageUtil.getItem('selectedGroupId')
+    const selectedGroupId = StorageUtil.getItem<string>(STORAGE_KEYS.SELECTED_GROUP_ID)
     if (!selectedGroupId) {
       return
     }
@@ -395,7 +429,7 @@ export const useGroupStore = defineStore('group', () => {
       const result = await getUserGroups(userId)
       if (!result.success) {
         // Erreur lors du chargement des groupes, supprimer le selectedGroupId
-        StorageUtil.removeItem('selectedGroupId')
+        StorageUtil.removeItem(STORAGE_KEYS.SELECTED_GROUP_ID)
         return
       }
     }
@@ -412,7 +446,7 @@ export const useGroupStore = defineStore('group', () => {
       router.push(groupRoute)
     } else {
       // L'utilisateur n'a pas accès, supprimer le selectedGroupId
-      StorageUtil.removeItem('selectedGroupId')
+      StorageUtil.removeItem(STORAGE_KEYS.SELECTED_GROUP_ID)
     }
   }
 
@@ -464,6 +498,7 @@ export const useGroupStore = defineStore('group', () => {
     checkGroupAndRedirect,
     clearSearchResults,
     clearCurrentGroup,
-    clearError
+    clearError,
+    reset
   }
 })

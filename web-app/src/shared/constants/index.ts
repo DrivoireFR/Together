@@ -5,7 +5,8 @@ export const STORAGE_PREFIX = import.meta.env.VITE_STORAGE_PREFIX || 'together_'
 export const STORAGE_KEYS = {
   TOKEN: 'auth_token',
   USER: 'user_data',
-  REMEMBER_ME: 'remember_me'
+  REMEMBER_ME: 'remember_me',
+  SELECTED_GROUP_ID: 'selectedGroupId'
 } as const
 
 export const ROUTES = {

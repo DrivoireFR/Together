@@ -5,10 +5,14 @@ import { StorageUtil } from '@/shared/utils/storage'
 import { STORAGE_KEYS } from '@/shared/constants'
 import type { User, LoginPayload, RegisterPayload, UpdateProfilePayload } from '../types'
 import { useGroupStore } from './groupStore'
+import { useTasksStore } from './tasksStore'
+import { useStatsStore } from './statsStore'
 
 export const useAuthStore = defineStore('auth', () => {
   // stores
   const groupStore = useGroupStore()
+  const tasksStore = useTasksStore()
+  const statsStore = useStatsStore()
 
   // State
   const user = ref<User | null>(null)
@@ -24,7 +28,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Actions
   const initializeAuth = async () => {
     // Nettoyage des anciennes clés sans préfixe (migration)
-    const oldKeys = ['auth_token', 'user_data', 'remember_me', 'selectedGroupId']
+    const oldKeys = ['auth_token', 'user_data', 'remember_me', STORAGE_KEYS.SELECTED_GROUP_ID]
     oldKeys.forEach(key => {
       if (localStorage.getItem(key) !== null) {
         localStorage.removeItem(key)
@@ -136,6 +140,10 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     error.value = undefined
 
+    groupStore.reset()
+    tasksStore.clearData()
+    statsStore.clearStats()
+
     try {
       const result = await authRepository.register(payload)
 
@@ -146,6 +154,9 @@ export const useAuthStore = defineStore('auth', () => {
         // Sauvegarder dans le localStorage
         StorageUtil.setItem(STORAGE_KEYS.TOKEN, result.data.token)
         StorageUtil.setItem(STORAGE_KEYS.USER, result.data.user)
+
+        // Charger les groupes du nouvel utilisateur
+        await setUserData(result.data.user)
 
         return { success: true }
       } else {
@@ -167,11 +178,13 @@ export const useAuthStore = defineStore('auth', () => {
     StorageUtil.removeItem(STORAGE_KEYS.REMEMBER_ME)
     error.value = undefined
 
-    // Nettoyer le localStorage
     StorageUtil.removeItem(STORAGE_KEYS.TOKEN)
     StorageUtil.removeItem(STORAGE_KEYS.USER)
-    // Nettoyer le groupe sélectionné pour éviter les accès non autorisés
-    StorageUtil.removeItem('selectedGroupId')
+    StorageUtil.removeItem(STORAGE_KEYS.SELECTED_GROUP_ID)
+
+    groupStore.reset()
+    tasksStore.clearData()
+    statsStore.clearStats()
   }
 
   const fetchProfile = async () => {
