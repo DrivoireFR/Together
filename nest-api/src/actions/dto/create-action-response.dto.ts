@@ -7,7 +7,6 @@ export class CreateActionResponseDto {
         task: {
             id: number;
             label: string;
-            iconUrl: string | null;
             points: number;
             tag: {
                 id: number;

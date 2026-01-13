@@ -12,6 +12,8 @@ import { Tag } from '../tags/entities/tag.entity';
 import { UserTaskState } from '../user-task-states/entities/user-task-state.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { UpdateTaskResponseDto } from './dto/update-task-response.dto';
+import { CreateTaskResponseDto } from './dto/create-task-response.dto';
 
 @Injectable()
 export class TasksService {
@@ -26,7 +28,7 @@ export class TasksService {
     private tagRepository: Repository<Tag>,
     @InjectRepository(UserTaskState)
     private userTaskStateRepository: Repository<UserTaskState>,
-  ) {}
+  ) { }
 
   async create(createTaskDto: CreateTaskDto) {
     this.logger.debug(
@@ -63,7 +65,6 @@ export class TasksService {
 
     const task = new Task();
     task.label = createTaskDto.label;
-    task.iconUrl = createTaskDto.iconUrl;
     task.frequenceEstimee = createTaskDto.frequenceEstimee;
     task.uniteFrequence =
       (createTaskDto.uniteFrequence as FrequencyUnit) || FrequencyUnit.SEMAINE;
@@ -77,9 +78,15 @@ export class TasksService {
       `Task created: ${task.id} "${task.label}" in group ${group.id}`,
     );
 
+    // Recharger la tâche avec les relations pour formater la réponse
+    const createdTask = await this.taskRepository.findOne({
+      where: { id: task.id },
+      relations: ['group', 'tag'],
+    });
+
     return {
       message: 'Tâche créée avec succès',
-      task,
+      task: this.formatTaskResponse(createdTask),
     };
   }
 
@@ -109,6 +116,36 @@ export class TasksService {
   private getFirstOfMonth(): Date {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+
+  private formatTaskResponse(
+    task: Task | null,
+  ): UpdateTaskResponseDto['task'] | CreateTaskResponseDto['task'] {
+    if (!task) {
+      throw new NotFoundException('Tâche non trouvée');
+    }
+    return {
+      id: task.id,
+      label: task.label,
+      frequenceEstimee: task.frequenceEstimee,
+      uniteFrequence: task.uniteFrequence,
+      points: task.points,
+      group: {
+        id: task.group.id,
+        nom: task.group.nom,
+        code: task.group.code,
+      },
+      tag: task.tag
+        ? {
+          id: task.tag.id,
+          label: task.tag.label,
+          color: task.tag.color,
+          icon: task.tag.icon,
+        }
+        : null,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+    };
   }
 
   async findOne(id: number, includeActions = false, currentMonthOnly = true) {
@@ -174,6 +211,7 @@ export class TasksService {
 
     let tag: Tag | undefined = undefined;
     if (updateTaskDto.tagId) {
+      // On charge le group uniquement pour la validation, pas pour la réponse
       const foundTag = await this.tagRepository.findOne({
         where: { id: updateTaskDto.tagId },
         relations: ['group'],
@@ -193,8 +231,6 @@ export class TasksService {
     }
 
     if (updateTaskDto.label) task.label = updateTaskDto.label;
-    if (updateTaskDto.iconUrl !== undefined)
-      task.iconUrl = updateTaskDto.iconUrl;
     if (updateTaskDto.frequenceEstimee)
       task.frequenceEstimee = updateTaskDto.frequenceEstimee;
     if (updateTaskDto.uniteFrequence)
@@ -204,9 +240,15 @@ export class TasksService {
 
     await this.taskRepository.save(task);
 
+    // Recharger la tâche avec les relations pour formater la réponse
+    const updatedTask = await this.taskRepository.findOne({
+      where: { id: task.id },
+      relations: ['group', 'tag'],
+    });
+
     return {
       message: 'Tâche mise à jour avec succès',
-      task,
+      task: this.formatTaskResponse(updatedTask),
     };
   }
 

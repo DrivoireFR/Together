@@ -3,17 +3,12 @@ import {
   IsOptional,
   IsPositive,
   IsNumber,
-  IsUrl,
   IsIn,
 } from 'class-validator';
 
 export class CreateTaskDto {
   @IsNotEmpty()
   label: string;
-
-  @IsOptional()
-  @IsUrl()
-  iconUrl?: string;
 
   @IsPositive()
   frequenceEstimee: number;

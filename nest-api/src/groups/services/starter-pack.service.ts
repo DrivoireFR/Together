@@ -13,7 +13,6 @@ export interface StarterPackTag {
 
 export interface StarterPackTask {
   label: string;
-  iconUrl?: string;
   frequenceEstimee: number;
   uniteFrequence: string;
   points: number;
@@ -34,7 +33,7 @@ export class StarterPackService {
     private tagRepository: Repository<Tag>,
     @InjectRepository(Task)
     private taskRepository: Repository<Task>,
-  ) {}
+  ) { }
 
   getDefaultStarterPackData() {
     return (starterPackData as any).defaultStarterPack;
@@ -79,7 +78,6 @@ export class StarterPackService {
     const tasks = taskData.map((taskInfo) => {
       const task = new Task();
       task.label = taskInfo.label;
-      task.iconUrl = taskInfo.iconUrl || undefined;
       task.frequenceEstimee = taskInfo.frequenceEstimee;
       task.uniteFrequence = taskInfo.uniteFrequence as FrequencyUnit;
       task.points = taskInfo.points;

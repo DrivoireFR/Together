@@ -177,7 +177,6 @@ export class ActionsService {
         task: {
           id: savedAction.task.id,
           label: savedAction.task.label,
-          iconUrl: savedAction.task.iconUrl || null,
           points: savedAction.task.points,
           tag: savedAction.task.tag
             ? {
@@ -429,7 +428,7 @@ export class ActionsService {
     const queryBuilder = this.actionRepository
       .createQueryBuilder('action')
       .leftJoin('action.task', 'task')
-      .addSelect(['task.id', 'task.label', 'task.points', 'task.iconUrl'])
+      .addSelect(['task.id', 'task.label', 'task.points'])
       .leftJoin('action.group', 'group')
       .addSelect(['group.id', 'group.nom'])
       .where('action.userId = :userId', { userId })

@@ -8,7 +8,7 @@ import {
   OneToMany,
   Index,
 } from 'typeorm';
-import { IsNotEmpty, IsPositive, IsUrl, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsPositive } from 'class-validator';
 import { Group } from '../../groups/entities/group.entity';
 import { Tag } from '../../tags/entities/tag.entity';
 import { Action } from '../../actions/entities/action.entity';
@@ -30,11 +30,6 @@ export class Task {
   @Column()
   @IsNotEmpty()
   label: string;
-
-  @Column({ nullable: true })
-  @IsUrl()
-  @IsOptional()
-  iconUrl?: string;
 
   @Column({ type: 'int' })
   @IsPositive()

@@ -3,7 +3,6 @@ import {
   IsNotEmpty,
   IsPositive,
   IsNumber,
-  IsUrl,
   IsIn,
 } from 'class-validator';
 
@@ -11,10 +10,6 @@ export class UpdateTaskDto {
   @IsOptional()
   @IsNotEmpty()
   label?: string;
-
-  @IsOptional()
-  @IsUrl()
-  iconUrl?: string;
 
   @IsOptional()
   @IsPositive()

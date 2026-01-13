@@ -11,9 +11,6 @@ export class StarterPackTaskDto {
   @IsNotEmpty()
   label: string;
 
-  @IsOptional()
-  iconUrl?: string;
-
   @IsPositive()
   frequenceEstimee: number;
 

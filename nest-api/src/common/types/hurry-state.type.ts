@@ -7,7 +7,6 @@ export enum HurryState {
 export interface TaskWithHurry {
   id: number;
   label: string;
-  iconUrl?: string;
   frequenceEstimee: number;
   uniteFrequence: string;
   points: number;

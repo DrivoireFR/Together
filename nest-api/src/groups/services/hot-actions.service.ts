@@ -13,7 +13,7 @@ export class HotActionsService {
     private taskRepository: Repository<Task>,
     @InjectRepository(Action)
     private actionRepository: Repository<Action>,
-  ) {}
+  ) { }
 
   async getTasksWithHurryState(groupId: number): Promise<TaskWithHurry[]> {
     const now = new Date();
@@ -28,7 +28,6 @@ export class HotActionsService {
       .where('task.groupId = :groupId', { groupId })
       .groupBy('task.id')
       .addGroupBy('task.label')
-      .addGroupBy('task.iconUrl')
       .addGroupBy('task.frequenceEstimee')
       .addGroupBy('task.uniteFrequence')
       .addGroupBy('task.points')
@@ -50,7 +49,6 @@ export class HotActionsService {
         return {
           id: task.id,
           label: task.label,
-          iconUrl: task.iconUrl,
           frequenceEstimee: task.frequenceEstimee,
           uniteFrequence: task.uniteFrequence,
           points: task.points,
