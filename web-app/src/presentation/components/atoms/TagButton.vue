@@ -29,6 +29,7 @@ import { computed, ref, onMounted, onUnmounted } from 'vue'
 import type { Tag } from '@/domain/types'
 import IconComp from '@/presentation/components/atoms/Icon.vue'
 import { Icon } from '@/shared/types/enums'
+import { useTasksStore } from '@/domain/stores/tasksStore'
 
 interface Props {
   tag: Tag
@@ -48,9 +49,9 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   click: []
   modify: []
-  delete: []
 }>()
 
+const tasksStore = useTasksStore()
 const showOverlay = ref(false)
 
 const chipClasses = computed(() => [
@@ -83,7 +84,7 @@ function onModify(e: Event) {
 function onDelete(e: Event) {
   e.preventDefault()
   e.stopPropagation()
-  emit('delete')
+  tasksStore.deleteTag(props.tag)
   closeOverlay()
 }
 

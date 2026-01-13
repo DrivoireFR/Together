@@ -4,6 +4,7 @@ import { taskRepository } from '@/data/repositories/taskRepository'
 import { statsRepository } from '@/data/repositories/statsRepository'
 import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, UpdateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload, GroupStatistics, UpdateTaskPayload, HurryState } from '../types'
 import { useRoute, useRouter } from 'vue-router'
+import { useConfirmModal } from '@/shared/composables/useConfirmModal'
 
 export const useTasksStore = defineStore('tasks', () => {
   const route = useRoute()
@@ -187,6 +188,7 @@ export const useTasksStore = defineStore('tasks', () => {
           params: { id: groupId }
         }
         router.push(groupRoute)
+        return { success: true, tag: result.data.tag }
       } else {
         error.value = result.message
         return { success: false, error: result.message }
@@ -198,6 +200,39 @@ export const useTasksStore = defineStore('tasks', () => {
     } finally {
       isLoading.value = false
     }
+  }
+
+  const deleteTag = (tag: Tag) => {
+    useConfirmModal()
+      .title('Supprimer le tag')
+      .description('Êtes-vous sûr de vouloir supprimer cette catégorie ? Cette action est irréversible. Les tâches seronts conservée')
+      .confirmLabel('Supprimer')
+      .cancelLabel('Annuler')
+      .onConfirm(async () => {
+        isLoading.value = true
+        error.value = undefined
+
+        try {
+          const result = await taskRepository.deleteTag(tag.id)
+
+          if (result.isSuccess) {
+            tags.value = tags.value.filter(t => t.id !== tag.id)
+
+            // Si le tag supprimé était le filtre actif, le réinitialiser
+            if (selectedTagFilter.value?.id === tag.id) {
+              selectedTagFilter.value = null
+            }
+          } else {
+            error.value = result.message
+          }
+        } catch (err) {
+          const errorMessage = 'Erreur lors de la suppression du tag'
+          error.value = errorMessage
+        } finally {
+          isLoading.value = false
+        }
+      })
+      .open()
   }
 
   const fetchTags = async () => {
@@ -532,6 +567,7 @@ export const useTasksStore = defineStore('tasks', () => {
     createTask,
     createTag,
     updateTag,
+    deleteTag,
     updateTask,
     deleteTask,
     createActionForTask,
