@@ -10,6 +10,7 @@ import { Action } from './entities/action.entity';
 import { Task } from '../tasks/entities/task.entity';
 import { User } from '../users/entities/user.entity';
 import { UserTaskState } from '../user-task-states/entities/user-task-state.entity';
+import { ActionAcknowledgment } from './entities/action-acknowledgment.entity';
 import { CreateActionDto } from './dto/create-action.dto';
 import { UpdateActionDto } from './dto/update-action.dto';
 
@@ -34,6 +35,8 @@ export class ActionsService {
     private userRepository: Repository<User>,
     @InjectRepository(UserTaskState)
     private userTaskStateRepository: Repository<UserTaskState>,
+    @InjectRepository(ActionAcknowledgment)
+    private actionAcknowledgmentRepository: Repository<ActionAcknowledgment>,
   ) { }
 
   private getFirstOfMonth(): Date {
@@ -42,8 +45,11 @@ export class ActionsService {
   }
 
   async create(createActionDto: CreateActionDto, userId: number) {
+    const targetUserId = createActionDto.userId || userId;
+    const isForOtherUser = createActionDto.userId && createActionDto.userId !== userId;
+
     this.logger.debug(
-      `Creating action for task ${createActionDto.taskId} by user ${userId}`,
+      `Creating action for task ${createActionDto.taskId} by user ${userId}${isForOtherUser ? ` for user ${targetUserId}` : ''}`,
     );
 
     const task = await this.taskRepository.findOne({
@@ -55,27 +61,55 @@ export class ActionsService {
       throw new NotFoundException('Tâche non trouvée');
     }
 
-    const user = await this.userRepository.findOne({
+    const requestingUser = await this.userRepository.findOne({
       where: { id: userId },
       relations: ['groups'],
     });
 
-    if (!user) {
+    if (!requestingUser) {
       throw new NotFoundException('Utilisateur non trouvé');
     }
 
-    const isMemberOfGroup = user.groups.some(
+    // Vérifier que l'utilisateur qui crée l'action est membre du groupe
+    const isRequestingUserMember = requestingUser.groups.some(
       (group) => group.id === task.group.id,
     );
-    if (!isMemberOfGroup) {
+    if (!isRequestingUserMember) {
       throw new ForbiddenException(
         "Vous n'êtes pas membre du groupe de cette tâche",
       );
     }
 
+    // Si l'action est pour un autre utilisateur, vérifier que cet utilisateur est aussi membre
+    let targetUser: User;
+    if (isForOtherUser) {
+      const foundTargetUser = await this.userRepository.findOne({
+        where: { id: targetUserId },
+        relations: ['groups'],
+      });
+
+      if (!foundTargetUser) {
+        throw new NotFoundException('Utilisateur cible non trouvé');
+      }
+
+      const isTargetUserMember = foundTargetUser.groups.some(
+        (group) => group.id === task.group.id,
+      );
+      if (!isTargetUserMember) {
+        throw new ForbiddenException(
+          "L'utilisateur cible n'est pas membre du groupe de cette tâche",
+        );
+      }
+
+      targetUser = foundTargetUser;
+    } else {
+      targetUser = requestingUser;
+    }
+
+    // Déterminer si c'est un helping hand (basé sur l'utilisateur cible, pas le créateur)
     const userTaskState = await this.userTaskStateRepository.findOne({
       where: {
-        user: { id: userId },
+        user: { id: targetUserId },
         task: { id: createActionDto.taskId },
       },
     });
@@ -84,28 +118,42 @@ export class ActionsService {
 
     const action = new Action();
     action.task = task;
-    action.user = user;
+    action.user = targetUser;
     action.group = task.group;
     action.date = new Date(createActionDto.date);
     action.isHelpingHand = !isUserConcerned;
 
     await this.actionRepository.save(action);
 
-    // Optimisation: Agrégation SQL au lieu de charger toutes les actions
+    // Si l'action est créée pour un autre utilisateur, créer un ActionAcknowledgment
+    if (isForOtherUser) {
+      const acknowledgment = new ActionAcknowledgment();
+      acknowledgment.action = action;
+      acknowledgment.requestedBy = requestingUser;
+      acknowledgment.requestedFor = targetUser;
+      acknowledgment.status = 'pending';
+      await this.actionAcknowledgmentRepository.save(acknowledgment);
+
+      this.logger.log(
+        `Action created for other user: user ${userId} created action ${action.id} for user ${targetUserId} - acknowledgment ${acknowledgment.id} created`,
+      );
+    }
+
+    // Calculer le total pour l'utilisateur cible
     const firstOfMonth = this.getFirstOfMonth();
 
     const result = await this.actionRepository
       .createQueryBuilder('action')
       .leftJoin('action.task', 'task')
       .select('SUM(task.points)', 'totalDone')
-      .where('action.userId = :userId', { userId })
+      .where('action.userId = :userId', { userId: targetUserId })
       .andWhere('action.date >= :firstOfMonth', { firstOfMonth })
       .getRawOne<{ totalDone: string | null }>();
 
     const totalDone = parseInt(result?.totalDone ?? '0', 10);
 
     this.logger.log(
-      `Action created: user ${userId} completed task ${task.id} (${task.label}) - isHelpingHand: ${action.isHelpingHand}`,
+      `Action created: user ${targetUserId} completed task ${task.id} (${task.label}) - isHelpingHand: ${action.isHelpingHand}`,
     );
 
     return {
@@ -425,6 +473,104 @@ export class ActionsService {
 
     return {
       message: 'Action supprimée avec succès',
+    };
+  }
+
+  async getPendingAcknowledgment(userId: number) {
+    const acknowledgments = await this.actionAcknowledgmentRepository.find({
+      where: {
+        requestedFor: { id: userId },
+        status: 'pending',
+      },
+      relations: [
+        'action',
+        'action.task',
+        'action.user',
+        'action.group',
+        'requestedBy',
+        'requestedFor',
+      ],
+      order: {
+        createdAt: 'ASC',
+      },
+    });
+
+    return {
+      message: 'Actions en attente récupérées avec succès',
+      acknowledgments,
+    };
+  }
+
+  async acceptActionAcknowledgment(ackId: number, userId: number) {
+    const acknowledgment = await this.actionAcknowledgmentRepository.findOne({
+      where: { id: ackId },
+      relations: ['action', 'requestedFor'],
+    });
+
+    if (!acknowledgment) {
+      throw new NotFoundException('Acknowledgment non trouvé');
+    }
+
+    if (acknowledgment.requestedFor.id !== userId) {
+      throw new ForbiddenException(
+        "Vous ne pouvez accepter que les actions qui vous sont destinées",
+      );
+    }
+
+    if (acknowledgment.status !== 'pending') {
+      throw new ForbiddenException(
+        "Cette action a déjà été traitée",
+      );
+    }
+
+    acknowledgment.status = 'accepted';
+    await this.actionAcknowledgmentRepository.save(acknowledgment);
+
+    this.logger.log(
+      `Action acknowledgment ${ackId} accepted by user ${userId}`,
+    );
+
+    return {
+      message: 'Action acceptée avec succès',
+      acknowledgment,
+    };
+  }
+
+  async rejectActionAcknowledgment(ackId: number, userId: number) {
+    const acknowledgment = await this.actionAcknowledgmentRepository.findOne({
+      where: { id: ackId },
+      relations: ['action', 'requestedFor'],
+    });
+
+    if (!acknowledgment) {
+      throw new NotFoundException('Acknowledgment non trouvé');
+    }
+
+    if (acknowledgment.requestedFor.id !== userId) {
+      throw new ForbiddenException(
+        "Vous ne pouvez refuser que les actions qui vous sont destinées",
+      );
+    }
+
+    if (acknowledgment.status !== 'pending') {
+      throw new ForbiddenException(
+        "Cette action a déjà été traitée",
+      );
+    }
+
+    // Supprimer l'action associée
+    const actionId = acknowledgment.action.id;
+    await this.actionRepository.remove(acknowledgment.action);
+
+    // Supprimer l'acknowledgment
+    await this.actionAcknowledgmentRepository.remove(acknowledgment);
+
+    this.logger.log(
+      `Action acknowledgment ${ackId} rejected by user ${userId}, action ${actionId} deleted`,
+    );
+
+    return {
+      message: 'Action refusée et supprimée avec succès',
     };
   }
 }

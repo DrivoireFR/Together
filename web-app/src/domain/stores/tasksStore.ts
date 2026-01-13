@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { taskRepository } from '@/data/repositories/taskRepository'
 import { statsRepository } from '@/data/repositories/statsRepository'
-import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, UpdateTagPayload, CreateActionPayload, UpdateUserTaskStatePayload, GroupStatistics, UpdateTaskPayload, HurryState } from '../types'
+import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, UpdateTagPayload, CreateActionPayload, CreateActionForMemberPayload, UpdateUserTaskStatePayload, GroupStatistics, UpdateTaskPayload, HurryState, ActionAcknowledgment } from '../types'
 import { useRoute, useRouter } from 'vue-router'
 import { useConfirmModal } from '@/shared/composables/useConfirmModal'
 
@@ -25,6 +25,11 @@ export const useTasksStore = defineStore('tasks', () => {
   const unacknowledgedTasks = ref<Task[]>([])
   const currentUnacknowledgedTaskIndex = ref(0)
   const showTaskAcknowledgmentModal = ref(false)
+
+  // État pour la gestion des actions en attente de validation
+  const pendingActionAcknowledgment = ref<ActionAcknowledgment[]>([])
+  const currentPendingAcknowledgmentIndex = ref(0)
+  const showActionAcknowledgmentModal = ref(false)
 
   // Getters
   const tasksCount = computed(() => tasks.value.length)
@@ -472,6 +477,9 @@ export const useTasksStore = defineStore('tasks', () => {
     unacknowledgedTasks.value = []
     currentUnacknowledgedTaskIndex.value = 0
     showTaskAcknowledgmentModal.value = false
+    pendingActionAcknowledgment.value = []
+    currentPendingAcknowledgmentIndex.value = 0
+    showActionAcknowledgmentModal.value = false
   }
 
   // Actions pour la gestion de reconnaissance des tâches
@@ -533,6 +541,173 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
+  // Actions pour créer une action pour un autre membre
+  const createActionForMember = async (taskId: number, memberId: number) => {
+    loadingTasks.value.add(taskId)
+    error.value = undefined
+
+    try {
+      const payload: CreateActionForMemberPayload = {
+        taskId,
+        date: new Date().toISOString(),
+        userId: memberId
+      }
+
+      const result = await taskRepository.createActionForMember(payload)
+
+      if (result.isSuccess) {
+        // Ajouter l'action à la liste locale sans recharger toute la liste
+        if (result.data.action) {
+          actions.value.unshift(result.data.action)
+          // Limiter à 50 actions pour éviter une liste trop longue
+          if (actions.value.length > 50) {
+            actions.value = actions.value.slice(0, 50)
+          }
+        }
+
+        showfeedback.value = true
+        feedbackTotalDone.value = result.data.totalDone
+
+        return { success: true, action: result.data.action, totalDone: result.data.totalDone }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors de la création de l\'action pour le membre'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      loadingTasks.value.delete(taskId)
+    }
+  }
+
+  // Actions pour la gestion des acknowledgments d'actions
+  const fetchPendingActionAcknowledgment = async () => {
+    isLoading.value = true
+    error.value = undefined
+
+    try {
+      const result = await taskRepository.getPendingActionAcknowledgment()
+
+      if (result.isSuccess) {
+        pendingActionAcknowledgment.value = result.data.acknowledgments
+        currentPendingAcknowledgmentIndex.value = 0
+
+        // Ouvrir la modale si des acknowledgments sont en attente
+        if (result.data.acknowledgments.length > 0) {
+          showActionAcknowledgmentModal.value = true
+        }
+
+        return { success: true, acknowledgments: result.data.acknowledgments }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors du chargement des actions en attente'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const currentPendingAcknowledgment = computed(() => {
+    return pendingActionAcknowledgment.value[currentPendingAcknowledgmentIndex.value] || null
+  })
+
+  const hasPendingAcknowledgment = computed(() => {
+    return pendingActionAcknowledgment.value.length > 0
+  })
+
+  const isLastPendingAcknowledgment = computed(() => {
+    return currentPendingAcknowledgmentIndex.value >= pendingActionAcknowledgment.value.length - 1
+  })
+
+  const acceptActionAcknowledgment = async (ackId: number) => {
+    try {
+      const result = await taskRepository.acceptActionAcknowledgment(ackId)
+
+      if (result.isSuccess) {
+        // Retirer l'acknowledgment de la liste
+        pendingActionAcknowledgment.value = pendingActionAcknowledgment.value.filter(
+          ack => ack.id !== ackId
+        )
+
+        // Passer à l'acknowledgment suivant ou fermer la modale
+        if (pendingActionAcknowledgment.value.length === 0) {
+          closeActionAcknowledgmentModal()
+        } else if (currentPendingAcknowledgmentIndex.value >= pendingActionAcknowledgment.value.length) {
+          currentPendingAcknowledgmentIndex.value = pendingActionAcknowledgment.value.length - 1
+        }
+
+        return { success: true }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors de l\'acceptation de l\'action'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    }
+  }
+
+  const rejectActionAcknowledgment = async (ackId: number) => {
+    try {
+      const result = await taskRepository.rejectActionAcknowledgment(ackId)
+
+      if (result.isSuccess) {
+        // Retirer l'acknowledgment de la liste
+        pendingActionAcknowledgment.value = pendingActionAcknowledgment.value.filter(
+          ack => ack.id !== ackId
+        )
+
+        // Passer à l'acknowledgment suivant ou fermer la modale
+        if (pendingActionAcknowledgment.value.length === 0) {
+          closeActionAcknowledgmentModal()
+        } else if (currentPendingAcknowledgmentIndex.value >= pendingActionAcknowledgment.value.length) {
+          currentPendingAcknowledgmentIndex.value = pendingActionAcknowledgment.value.length - 1
+        }
+
+        return { success: true }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors du refus de l\'action'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    }
+  }
+
+  const handleActionAcknowledgmentDecision = async (accept: boolean) => {
+    const currentAck = currentPendingAcknowledgment.value
+    if (!currentAck) return
+
+    if (accept) {
+      await acceptActionAcknowledgment(currentAck.id)
+    } else {
+      await rejectActionAcknowledgment(currentAck.id)
+    }
+  }
+
+  const closeActionAcknowledgmentModal = () => {
+    showActionAcknowledgmentModal.value = false
+    pendingActionAcknowledgment.value = []
+    currentPendingAcknowledgmentIndex.value = 0
+  }
+
+  const skipActionAcknowledgment = () => {
+    if (isLastPendingAcknowledgment.value) {
+      closeActionAcknowledgmentModal()
+    } else {
+      currentPendingAcknowledgmentIndex.value++
+    }
+  }
+
   return {
     // State
     tasks,
@@ -547,6 +722,9 @@ export const useTasksStore = defineStore('tasks', () => {
     unacknowledgedTasks,
     currentUnacknowledgedTaskIndex,
     showTaskAcknowledgmentModal,
+    pendingActionAcknowledgment,
+    currentPendingAcknowledgmentIndex,
+    showActionAcknowledgmentModal,
     // Getters
     tasksCount,
     tagsCount,
@@ -560,6 +738,9 @@ export const useTasksStore = defineStore('tasks', () => {
     currentUnacknowledgedTask,
     hasUnacknowledgedTasks,
     isLastUnacknowledgedTask,
+    currentPendingAcknowledgment,
+    hasPendingAcknowledgment,
+    isLastPendingAcknowledgment,
     // Actions
     setTasks,
     setTags,
@@ -571,8 +752,15 @@ export const useTasksStore = defineStore('tasks', () => {
     updateTask,
     deleteTask,
     createActionForTask,
+    createActionForMember,
     isTaskLoading,
     deleteAction,
+    fetchPendingActionAcknowledgment,
+    acceptActionAcknowledgment,
+    rejectActionAcknowledgment,
+    handleActionAcknowledgmentDecision,
+    closeActionAcknowledgmentModal,
+    skipActionAcknowledgment,
     setTagFilter,
     onCancelTagEdit,
     onModifyTag,

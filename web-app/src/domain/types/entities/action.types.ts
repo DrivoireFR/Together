@@ -66,3 +66,13 @@ export interface ActionsByCategory {
   actionsCount: number
   tasksInCategory: number
 }
+
+export interface ActionAcknowledgment {
+  id: number
+  action: Action
+  requestedBy: User  // Utilisateur qui a créé l'action
+  requestedFor: User  // Utilisateur pour qui l'action a été créée
+  status: 'pending' | 'accepted' | 'rejected'
+  createdAt: string
+  updatedAt: string
+}

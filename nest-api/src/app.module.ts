@@ -18,6 +18,7 @@ import { UserTaskState } from './user-task-states/entities/user-task-state.entit
 import { TaskBundle } from './task-bundles/entities/task-bundle.entity';
 import { Congrats } from './congrats/entities/congrats.entity';
 import { Achievement } from './achievements/entities/achievement.entity';
+import { ActionAcknowledgment } from './actions/entities/action-acknowledgment.entity';
 
 // Modules
 import { GroupsModule } from './groups/groups.module';
@@ -72,6 +73,7 @@ import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
         TaskBundle,
         Congrats,
         Achievement,
+        ActionAcknowledgment,
       ],
       synchronize: true,
       // SQLite specific timeout configuration
@@ -121,4 +123,4 @@ import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

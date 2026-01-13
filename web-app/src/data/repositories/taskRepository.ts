@@ -9,12 +9,14 @@ import type {
   CreateTagPayload,
   UpdateTagPayload,
   CreateActionPayload,
+  CreateActionForMemberPayload,
   UpdateUserTaskStatePayload,
   CreateTaskResponse,
   CreateActionResponse,
   GetRecentActionsResponse,
   UpdateTaskResponse,
-  UpdateTaskPayload
+  UpdateTaskPayload,
+  ActionAcknowledgment
 } from '@/domain/types'
 
 export class TaskRepository {
@@ -73,6 +75,10 @@ export class TaskRepository {
     return apiClient.post<CreateActionResponse>('/actions', payload)
   }
 
+  async createActionForMember(payload: CreateActionForMemberPayload): Promise<ApiResult<CreateActionResponse>> {
+    return apiClient.post<CreateActionResponse>('/actions', payload)
+  }
+
   async deleteAction(id: number): Promise<ApiResult<void>> {
     return apiClient.delete<void>(`/actions/${id}`)
   }
@@ -88,6 +94,19 @@ export class TaskRepository {
 
   async getUserTaskStates(groupId: number): Promise<ApiResult<{ userTaskStates: UserTaskState[] }>> {
     return apiClient.get<{ userTaskStates: UserTaskState[] }>(`/user-task-states/group/${groupId}`)
+  }
+
+  // ActionAcknowledgment
+  async getPendingActionAcknowledgment(): Promise<ApiResult<{ acknowledgments: ActionAcknowledgment[] }>> {
+    return apiClient.get<{ acknowledgments: ActionAcknowledgment[] }>('/actions/acknowledgments/pending')
+  }
+
+  async acceptActionAcknowledgment(ackId: number): Promise<ApiResult<{ acknowledgment: ActionAcknowledgment }>> {
+    return apiClient.post<{ acknowledgment: ActionAcknowledgment }>(`/actions/acknowledgments/${ackId}/accept`)
+  }
+
+  async rejectActionAcknowledgment(ackId: number): Promise<ApiResult<void>> {
+    return apiClient.post<void>(`/actions/acknowledgments/${ackId}/reject`)
   }
 }
 

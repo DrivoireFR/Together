@@ -1,6 +1,7 @@
 <template>
   <button
     class="tag-chip"
+    :class="{ 'small': small }"
     @click="$emit('click')"
   >
     <span class="tag-label">{{ tag.label }}</span>
@@ -12,6 +13,7 @@ import type { Tag } from '@/domain/types'
 
 interface Props {
   tag: Tag
+  small?: boolean
 }
 
 const props = defineProps<Props>()
@@ -33,10 +35,13 @@ const props = defineProps<Props>()
   outline: none;
   transition: all 0.15s ease;
   cursor: pointer;
-  
-  /* Default variant styles */
   color: v-bind('tag.color');
   border-color: v-bind('tag.color');
   background-color: transparent;
+}
+
+.tag-chip.small {
+  padding: .1rem .3rem;
+  font-size: .5rem;
 }
 </style>

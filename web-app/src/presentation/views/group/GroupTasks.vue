@@ -1,41 +1,65 @@
 <template>
     <div class="group-tasks-container">
-        <TaskList
-        :tasks="tasksStore.filteredTasks"
-        :selected-tag="tasksStore.selectedTagFilter"
-        :show-actions="true"
-        @task-delete="handleTaskDelete"
-        @task-click="handleTaskClick"
-        >
-        <!-- @task-edit="handleTaskEdit" -->
-        </TaskList>
+      <div class="task-list-header">
+        <h3 class="task-list-title">
+          Vos {{ tasksStore.filteredTasks.length }} tâches pour :
+          <TagChip
+            v-if="tasksStore.selectedTagFilter"
+            :tag="tasksStore.selectedTagFilter"
+          />
+        </h3>
+      </div>
+      
+      <div class="task-swipe-list" v-if="tasksStore.filteredTasks.length > 0">
+        <TaskSwipeCard
+          v-for="task in tasksStore.filteredTasks"
+          :key="task.id"
+          :task="task"
+          :group-members="groupMembers"
+          @delete="handleTaskDelete"
+          @declare="handleTaskDeclare"
+        />
+      </div>
+      
+      <div class="empty-state" v-else>
+        <p class="empty-message">Aucune tâche disponible</p>
+        <p class="empty-description">Créez votre première tâche pour commencer à organiser votre travail</p>
+      </div>
     </div>
   </template>
   
   <script setup lang="ts">
+  import { computed } from 'vue'
+  import { useRoute } from 'vue-router'
   import { useTasksStore } from '@/domain/stores/tasksStore'
+  import { useGroupStore } from '@/domain/stores/groupStore'
   import type { Task } from '@/domain/types'
-  import TaskList from '@/presentation/components/molecules/TaskList.vue'
+  import TaskSwipeCard from '@/presentation/components/molecules/TaskSwipeCard.vue'
+  import TagChip from '@/presentation/components/atoms/TagChip.vue'
   
-  const tasksStore = useTasksStore()  
+  const route = useRoute()
+  const tasksStore = useTasksStore()
+  const groupStore = useGroupStore()
+  
+  const groupId = computed(() => Number(route.params.id))
+  const groupMembers = computed(() => groupStore.currentGroupMembers)  
   
 //   const handleTaskEdit = (task: Task) => {
 //     openEditTaskModal(task)
 //   }
   
   const handleTaskDelete = async (task: Task) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer la tâche "${task.label}" ?`)) {
-      const result = await tasksStore.deleteTask(task.id)
-      
-      if (!result.success) {
-        console.error('Erreur lors de la suppression:', result.error)
-        // Optionnel: notification d'erreur
-      }
+    const result = await tasksStore.deleteTask(task.id)
+    
+    if (!result.success) {
+      console.error('Erreur lors de la suppression:', result.error)
+      // Optionnel: notification d'erreur
     }
   }
   
-  const handleTaskClick = async (task: Task) => {
-    tasksStore.createActionForTask(task.id)
+  const handleTaskDeclare = async (task: Task) => {
+    // Cette fonction est appelée par TaskSwipeCard lors du clic sur "Déclaration"
+    // L'action est déjà gérée dans TaskSwipeCard
   }
   
   // Navigation vers les statistiques
@@ -46,6 +70,67 @@
   </script>
   
   <style scoped>
+  .group-tasks-container {
+    padding: var(--spacing-4);
+  }
+
+  .task-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-4);
+  }
+
+  .task-list-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-gray-900);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  .tasks-count {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-normal);
+    color: var(--color-gray-500);
+  }
+
+  .task-swipe-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--spacing-8) var(--spacing-4);
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-4);
+    opacity: 0.5;
+  }
+
+  .empty-message {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-gray-700);
+    margin: 0 0 var(--spacing-2) 0;
+  }
+
+  .empty-description {
+    font-size: var(--font-size-base);
+    color: var(--color-gray-500);
+    margin: 0;
+    line-height: 1.5;
+    max-width: 32rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   .group-detail-container {
     display: flex;
     flex-direction: column;

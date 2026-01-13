@@ -20,6 +20,9 @@
     <TaskAcknowledgmentModal
       :show="tasksStore.showTaskAcknowledgmentModal"
     />
+    <ActionAcknowledgmentModal
+      :show="tasksStore.showActionAcknowledgmentModal"
+    />
   </GroupLayout>
 </template>
 
@@ -30,6 +33,7 @@ import { useGroupStore } from '@/domain/stores/groupStore'
 import { useTasksStore } from '@/domain/stores/tasksStore'
 import GroupLayout from '@/presentation/layouts/GroupLayout.vue'
 import TaskAcknowledgmentModal from '@/presentation/components/molecules/TaskAcknowledgmentModal.vue'
+import ActionAcknowledgmentModal from '@/presentation/components/molecules/ActionAcknowledgmentModal.vue'
 import LoaderWithSpinner from '@/presentation/components/atoms/LoaderWithSpinner.vue'
 
 const route = useRoute()
@@ -40,10 +44,12 @@ const groupId = computed(() => Number(route.params.id))
 const isLoading = computed(() => groupStore.isLoading || tasksStore.isLoading)
 
 // Initialisation
-onMounted(() => {
+onMounted(async () => {
   const id = groupId.value
   if (id && !isNaN(id)) {
-      groupStore.fetchGroupById(id)
+    await groupStore.fetchGroupById(id)
+    // Vérifier les actions en attente de validation
+    await tasksStore.fetchPendingActionAcknowledgment()
   }
 })
 </script>
