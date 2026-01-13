@@ -17,15 +17,15 @@
       </div>
       
       <div class="action action-center">
-        <BaseButton @click="handleDeleteClick" variant="danger" :disabled="isLoading" class="action-button">
-          Supprimer
+        <BaseButton @click="handleDeclareForMember" :disabled="isLoading" class="action-button">
+          Pour membre
         </BaseButton>
       </div>
       
       <!-- Action 3: Déclarer pour membre (droite, 1/3) -->
       <div class="action action-right">
-        <BaseButton @click="handleDeclareForMember" :disabled="isLoading" class="action-button">
-          Pour membre
+        <BaseButton @click="handleDeleteClick" variant="danger" :disabled="isLoading" class="action-button">
+          Supprimer
         </BaseButton>
       </div>
     </div>
