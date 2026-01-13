@@ -22,6 +22,7 @@ export enum FrequencyUnit {
 
 @Entity()
 @Index(['group']) // Index pour les requêtes par groupe
+@Index(['tag']) // Index pour les requêtes par tag
 export class Task {
   @PrimaryGeneratedColumn()
   id: number;

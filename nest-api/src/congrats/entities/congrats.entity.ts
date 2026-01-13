@@ -6,12 +6,14 @@ import {
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { IsNotEmpty, IsIn } from 'class-validator';
 import { Tag } from '../../tags/entities/tag.entity';
 import { Achievement } from '../../achievements/entities/achievement.entity';
 
 @Entity()
+@Index(['tag']) // Index pour les requêtes par tag
 export class Congrats {
   @PrimaryGeneratedColumn()
   id: number;

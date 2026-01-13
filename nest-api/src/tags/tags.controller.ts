@@ -14,10 +14,11 @@ import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import type { RequestWithUser } from '../auth/types';
+import { Timeout, TimeoutValues } from '../common/decorators/timeout.decorator';
 
 @Controller('tags')
 export class TagsController {
-  constructor(private readonly tagsService: TagsService) {}
+  constructor(private readonly tagsService: TagsService) { }
 
   @UseGuards(AuthGuard)
   @Post()
@@ -58,6 +59,7 @@ export class TagsController {
 
   @UseGuards(AuthGuard)
   @Delete(':id')
+  @Timeout(TimeoutValues.HEAVY)
   remove(@Param('id') id: string, @Request() req: RequestWithUser) {
     return this.tagsService.remove(+id, req.user.userId);
   }
