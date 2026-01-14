@@ -67,7 +67,6 @@ onMounted(async () => {
 .content {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
   height: calc(100vh - var(--bottom-nav-bar-height));
   background: white;
 }

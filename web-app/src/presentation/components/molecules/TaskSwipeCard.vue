@@ -68,6 +68,7 @@
 
 <script setup lang="ts">
 import { ref, computed, h, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import type { Task, User } from '@/domain/types'
 import { useConfirmModal, useConfirmModalState } from '@/shared/composables/useConfirmModal'
 import { useTasksStore } from '@/domain/stores/tasksStore'
@@ -91,6 +92,8 @@ const emit = defineEmits<{
 }>()
 
 const tasksStore = useTasksStore()
+const route = useRoute()
+const router = useRouter()
 
 // Container ref for width calculation
 const containerRef = ref<HTMLElement | null>(null)
@@ -399,36 +402,15 @@ const handleModify = (e: Event) => {
   e.preventDefault()
   e.stopPropagation()
   closeOverlay()
-  
-  const { closeModal } = useConfirmModalState()
-  
-  const createEditTaskFormComponent = () => {
-    return h(EditTaskForm, {
-      task: props.task,
-      tags: tasksStore.tags,
-      onSuccess: () => {
-        // Le formulaire gère déjà la mise à jour via tasksStore
-        closeModal()
-        resetSwipe()
-      },
-      onCancel: () => {
-        // Fermer la modal quand on annule
-        closeModal()
-      }
-    })
-  }
-  
-  useConfirmModal()
-    .title('Modifier la tâche')
-    .description('')
-    .template(createEditTaskFormComponent as any)
-    .confirmLabel('')
-    .cancelLabel('')
-    .onConfirm(async () => {
-      // La soumission est gérée par le formulaire EditTaskForm via son bouton submit
-      // On ne fait rien ici
-    })
-    .open()
+
+  const id = route.params.id
+  router.push({
+    name: 'GroupEditTask',
+    params: {
+      id,
+      taskId: props.task.id
+    }
+  })
 }
 
 const handleDelete = (e: Event) => {

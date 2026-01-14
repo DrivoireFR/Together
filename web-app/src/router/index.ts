@@ -46,20 +46,81 @@ const router = createRouter({
       },
       children: [
         {
+          // Onglet \"Tâches\" avec sous-router interne
           path: '',
-          name: 'GroupHomeCats',
           component: () => import('@/presentation/views/group/GroupHome.vue'),
           meta: {
             requiresAuth: true,
-          }
-        },
-        {
-          path: 'tasks',
-          name: 'GroupTasks',
-          component: () => import('@/presentation/views/group/GroupTasks.vue'),
-          meta: {
-            requiresAuth: true,
-          }
+          },
+          children: [
+            {
+              path: '',
+              name: 'GroupHomeCats',
+              component: () => import('@/presentation/views/group/GroupHomeCats.vue'),
+              meta: {
+                requiresAuth: true,
+              }
+            },
+            {
+              path: 'tasks',
+              name: 'GroupHomeTasks',
+              component: () => import('@/presentation/views/group/GroupTasks.vue'),
+              meta: {
+                requiresAuth: true,
+              }
+            },
+            {
+              path: 'add',
+              name: 'GroupHomeAddForm',
+              component: () => import('@/presentation/views/group/GroupAddForm.vue'),
+              redirect: { name: 'GroupAddSelection' },
+              meta: {
+                requiresAuth: true,
+              },
+              children: [
+                {
+                  path: '',
+                  name: 'GroupAddSelection',
+                  component: () => import('@/presentation/views/group/GroupAddSelection.vue'),
+                  meta: {
+                    requiresAuth: true,
+                  }
+                },
+                {
+                  path: 'task',
+                  name: 'GroupAddTask',
+                  component: () => import('@/presentation/views/group/GroupAddTask.vue'),
+                  meta: {
+                    requiresAuth: true,
+                  }
+                },
+                {
+                  path: 'tag',
+                  name: 'GroupAddTag',
+                  component: () => import('@/presentation/views/group/GroupAddTag.vue'),
+                  meta: {
+                    requiresAuth: true,
+                  }
+                }
+              ]
+            },
+            {
+              path: 'tag/edit/:tagId',
+              name: 'GroupEditTag',
+              component: () => import('@/presentation/views/group/GroupEditTag.vue'),
+              meta: {
+                requiresAuth: true,
+              }
+            },
+            {
+              path: 'task/edit/:taskId',
+              name: 'GroupEditTask',
+              component: () => import('@/presentation/views/group/GroupEditTask.vue'),
+              meta: {
+                requiresAuth: true,
+              }
+            }
+          ]
         },
         {
           path: 'history',
@@ -81,49 +142,6 @@ const router = createRouter({
           path: 'stats',
           name: 'GroupStats',
           component: () => import('@/presentation/views/group/GroupStatsView.vue'),
-          meta: {
-            requiresAuth: true,
-          }
-        },
-        {
-          path: 'add',
-          name: 'GroupAddForm',
-          component: () => import('@/presentation/views/group/GroupAddForm.vue'),
-          redirect: { name: 'GroupAddSelection' },
-          meta: {
-            requiresAuth: true,
-          },
-          children: [
-            {
-              path: '',
-              name: 'GroupAddSelection',
-              component: () => import('@/presentation/views/group/GroupAddSelection.vue'),
-              meta: {
-                requiresAuth: true,
-              }
-            },
-            {
-              path: 'task',
-              name: 'GroupAddTask',
-              component: () => import('@/presentation/views/group/GroupAddTask.vue'),
-              meta: {
-                requiresAuth: true,
-              }
-            },
-            {
-              path: 'tag',
-              name: 'GroupAddTag',
-              component: () => import('@/presentation/views/group/GroupAddTag.vue'),
-              meta: {
-                requiresAuth: true,
-              }
-            }
-          ]
-        },
-        {
-          path: 'tag/edit',
-          name: 'GroupEditTag',
-          component: () => import('@/presentation/views/group/GroupEditTag.vue'),
           meta: {
             requiresAuth: true,
           }

@@ -419,7 +419,7 @@ export const useTasksStore = defineStore('tasks', () => {
     selectedTagFilter.value = tag
     const id = route.params.id
     const tasksRoute = {
-      name: 'GroupTasks',
+      name: 'GroupHomeTasks',
       params: { id: id }
     }
     router.push(tasksRoute)
@@ -457,7 +457,7 @@ export const useTasksStore = defineStore('tasks', () => {
     sortByUrgency.value = !sortByUrgency.value
     const id = route.params.id
     const tasksRoute = {
-      name: 'GroupTasks',
+      name: 'GroupHomeTasks',
       params: { id: id }
     }
     router.push(tasksRoute)
