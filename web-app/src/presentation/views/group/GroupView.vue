@@ -9,7 +9,9 @@
           <h1 class="title">{{ groupStore.currentGroup.nom }}</h1>
         </div>
 
-        <Avatar v-if="authStore.user" :username="authStore.user?.pseudo" :avatar="authStore.user?.avatar"  />
+        <div class="group-head-avatar" @click="onAvatarClick">
+          <Avatar v-if="authStore.user" :username="authStore.user?.pseudo" :avatar="authStore.user?.avatar"  />
+        </div>
       </div>
 
       <div class="nav-view">
@@ -33,7 +35,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useGroupStore } from '@/domain/stores/groupStore'
 import { useTasksStore } from '@/domain/stores/tasksStore'
 import GroupLayout from '@/presentation/layouts/GroupLayout.vue'
@@ -45,12 +47,21 @@ import Avatar from '@/presentation/components/atoms/Avatar.vue'
 import { useAuthStore } from '@/domain/stores/authStore'
 
 const route = useRoute()
+const router = useRouter()
 const groupStore = useGroupStore()
 const tasksStore = useTasksStore()
 const authStore = useAuthStore()
 
 const groupId = computed(() => Number(route.params.id))
 const isLoading = computed(() => groupStore.isLoading || tasksStore.isLoading)
+
+function onAvatarClick() {
+  const profilRoute = {
+    name: 'Profile',
+    params: { id: groupId.value }
+  }
+  router.push(profilRoute)
+}
 
 // Initialisation
 onMounted(async () => {

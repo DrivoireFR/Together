@@ -37,4 +37,5 @@ export enum Icon {
     Parametres = 'Parametres',
     Urgent = 'Urgent',
     Add = 'Add',
+    Paw = "Patoune",
 }

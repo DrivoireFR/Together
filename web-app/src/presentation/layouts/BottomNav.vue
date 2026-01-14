@@ -1,21 +1,21 @@
 <template>
-	<div class="wrapper">
-		<RouterLink 
-			v-for="(item, index) in items"
-			:key="index"
-			class="item" 
-			:class="{ active: route.name === item.route.name }" 
-			:to="item.route"
-		>
-			<div class="icon">
-				<IconComp :icon="item.icon" />
-			</div>
+  <div class="wrapper">
+    <RouterLink 
+      v-for="(item, index) in items"
+      :key="index"
+      class="item" 
+      :class="{ active: isActive(item) }" 
+      :to="item.route"
+    >
+      <div class="icon">
+        <IconComp :icon="item.icon" />
+      </div>
 
-			<p class="text">
-				{{ item.label }}
-			</p>
-		</RouterLink>
-	</div>
+      <p class="text">
+        {{ item.label }}
+      </p>
+    </RouterLink>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -29,50 +29,62 @@ const route = useRoute()
 const groupId = computed(() => route.params.id as string)
 
 interface MenuItem {
-	route : {
-		name: string;
-		params: {
-			id: string
-		}
-	}
-	icon: Icon
-	label: string
+  route : {
+    name: string;
+    params: {
+      id: string
+    }
+  }
+  icon: Icon
+  label: string
 }
 
 const items: MenuItem[] = [
-	{
-		route: {
-			name: 'GroupCats',
-			params: { id: groupId.value }
-		},
-		icon: Icon.Tasks,
-		label: "Tâches"
-	},
-	{
-		route: {
-			name: 'GroupHistory',
-			params: { id: groupId.value }
-		},
-		icon: Icon.Historique,
-		label: "Historique"
-	},
-	{
-		route: {
-			name: 'GroupStats',
-			params: { id: groupId.value }
-		},
-		icon: Icon.Stats,
-		label: "Stats"
-	},
-	{
-		route: {
-			name: 'GroupSettings',
-			params: { id: groupId.value }
-		},
-		icon: Icon.Parametres,
-		label: "Paramètres"
-	}
+  {
+    route: {
+      name: 'GroupCats',
+      params: { id: groupId.value }
+    },
+    icon: Icon.Tasks,
+    label: 'Tâches'
+  },
+  {
+    route: {
+      name: 'GroupHistory',
+      params: { id: groupId.value }
+    },
+    icon: Icon.Historique,
+    label: 'Historique'
+  },
+  {
+    route: {
+      name: 'GroupStats',
+      params: { id: groupId.value }
+    },
+    icon: Icon.Stats,
+    label: 'Stats'
+  },
+  {
+    route: {
+      name: 'GroupSettings',
+      params: { id: groupId.value }
+    },
+    icon: Icon.Parametres,
+    label: 'Paramètres'
+  }
 ]
+
+const isActive = (item: MenuItem) => {
+  if (item.route.name === 'GroupSettingsProfile') {
+    return [
+      'GroupSettingsProfile',
+      'GroupSettingsPassword',
+      'GroupSettingsGroup',
+      'GroupSettingsAccount'
+    ].includes(route.name as string)
+  }
+  return route.name === item.route.name
+}
 </script>
 
 <style scoped>

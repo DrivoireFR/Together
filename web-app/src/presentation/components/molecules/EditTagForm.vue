@@ -1,10 +1,7 @@
 <template>
   <form @submit.prevent="handleSubmit" class="edit-tag-form">
     <div class="form-header">
-      <h2 class="form-title">Modifier le tag</h2>
-      <p class="form-description">
-        Modifiez les détails de votre tag et changez son icône.
-      </p>
+      <h2 class="form-title">Modifiez votre catégorie</h2>
     </div>
 
     <div class="form-content">

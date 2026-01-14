@@ -56,7 +56,6 @@ const router = createRouter({
     },
     {
       path: '/group/:id',
-      name: 'GroupDetail',
       component: () => import('@/presentation/views/group/GroupView.vue'),
       meta: {
         requiresAuth: true,
@@ -65,6 +64,7 @@ const router = createRouter({
       children: [
         {
           path: '',
+          name: 'GroupDetail',
           component: () => import('@/presentation/views/group/GroupHome.vue'),
           meta: {
             requiresAuth: true,
@@ -148,12 +148,52 @@ const router = createRouter({
           }
         },
         {
+          path: 'profile',
+          name: 'Profile',
+          component: () => import('@/presentation/views/group/settings/ProfileView.vue'),
+          meta: {
+            requiresAuth: true,
+          },
+        },
+        {
           path: 'settings',
           name: 'GroupSettings',
           component: () => import('@/presentation/views/group/GroupSettings.vue'),
           meta: {
             requiresAuth: true,
-          }
+          },
+          redirect: (to) => {
+            return {
+              name: 'GroupSettingsGroup',
+              params: { id: to.params.id }
+            }
+          },
+          children: [
+            {
+              path: 'password',
+              name: 'GroupSettingsPassword',
+              component: () => import('@/presentation/views/group/settings/PasswordUpdateView.vue'),
+              meta: {
+                requiresAuth: true,
+              }
+            },
+            {
+              path: '',
+              name: 'GroupSettingsGroup',
+              component: () => import('@/presentation/views/group/settings/GroupInfoView.vue'),
+              meta: {
+                requiresAuth: true,
+              }
+            },
+            {
+              path: 'account',
+              name: 'GroupSettingsAccount',
+              component: () => import('@/presentation/views/group/settings/AccountView.vue'),
+              meta: {
+                requiresAuth: true,
+              }
+            }
+          ]
         },
         {
           path: 'stats',

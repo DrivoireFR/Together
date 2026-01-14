@@ -35,12 +35,13 @@ const goToAddSelection = () => {
 .group-home {
   position: relative;
   width: 100%;
-  height: 100%;
+  padding-bottom: 4rem;
 }
 
 .fab {
-  position: absolute;
-  bottom: 1rem;
+  --fab-offset: calc(var(--bottom-nav-bar-height) + 4.5rem );
+  position: fixed;
+  top: calc(100dvh - var(--fab-offset));
   right: 1rem;
   width: 3.5rem;
   height: 3.5rem;
@@ -86,17 +87,6 @@ const goToAddSelection = () => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .fab {
-    bottom: calc(var(--bottom-nav-bar-height) + var(--spacing-3));
-    right: var(--spacing-4);
-    width: 3rem;
-    height: 3rem;
-    font-size: 1.25rem;
-  }
 }
 
 /* Accessibilité */

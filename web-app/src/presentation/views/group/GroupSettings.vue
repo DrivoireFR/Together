@@ -1,44 +1,45 @@
 <template>
-    <div class="group-settings">
-        <ProfileSection />
-        <div class="group-settings-actions">
-            <BaseButton
-                variant="danger"
-                @click="handleLogout"
-            >
-                Déconnexion
-            </BaseButton>
-        </div>
+  <div class="group-settings">
+    <div class="group-settings-header">
+      <h2 class="group-settings-title">Paramètres</h2>
+      <SettingsTabs />
     </div>
+
+    <div class="group-settings-content">
+      <RouterView />
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/domain/stores/authStore'
-import ProfileSection from '@/presentation/components/molecules/ProfileSection.vue'
-import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
-
-const router = useRouter()
-const authStore = useAuthStore()
-
-const handleLogout = () => {
-    authStore.logout()
-    router.push('/login')
-}
+import { RouterView } from 'vue-router'
+import SettingsTabs from '@/presentation/components/molecules/SettingsTabs.vue'
 </script>
 
 <style scoped>
 .group-settings {
-    max-width: 48rem;
-    margin: 0 auto;
-    padding: var(--spacing-6);
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-8);
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 0.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
 }
 
-.group-settings-actions {
-    display: flex;
-    justify-content: flex-end;
+.group-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.group-settings-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+}
+
+.group-settings-content {
+  flex: 1;
 }
 </style>

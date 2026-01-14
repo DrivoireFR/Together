@@ -430,7 +430,7 @@ export const useTasksStore = defineStore('tasks', () => {
     const id = route.params.id
     const editTagRoute = {
       name: 'GroupEditTag',
-      params: { id: id }
+      params: { id: id, tagId: tag.id }
     }
     router.push(editTagRoute)
   }

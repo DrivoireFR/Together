@@ -22,6 +22,7 @@ export enum Icon {
     Urgent = "Urgent",
     Add = "Ajouter",
     Options = "Options",
+    Paw = "Patoune",
 }
 
 /**
