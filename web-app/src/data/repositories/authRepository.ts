@@ -33,6 +33,15 @@ export class AuthRepository {
   async rememberMe(): Promise<ApiResult<AuthResponse>> {
     return apiClient.get<AuthResponse>('/auth/remember-me')
   }
+
+  async confirmEmail(token: string, email: string): Promise<ApiResult<{ message: string; user: User }>> {
+    const encodedEmail = encodeURIComponent(email)
+    return apiClient.get<{ message: string; user: User }>(`/auth/confirm-email?token=${token}&email=${encodedEmail}`)
+  }
+
+  async resendConfirmation(email: string): Promise<ApiResult<{ message: string }>> {
+    return apiClient.post<{ message: string }>('/auth/resend-confirmation', { email })
+  }
 }
 
 export const authRepository = new AuthRepository()

@@ -28,6 +28,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/confirm-email',
+      name: 'ConfirmEmail',
+      component: () => import('@/presentation/views/auth/ConfirmEmailView.vue'),
+      meta: {
+        requiresAuth: false,
+        layout: 'auth'
+      }
+    },
+    {
       path: '/groups',
       name: 'Groups',
       component: () => import('@/presentation/views/GroupSelectionView.vue'),

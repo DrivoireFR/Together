@@ -6,6 +6,7 @@ import {
   Post,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import { RegisterUserDto } from './dto/registerDto';
@@ -42,6 +43,49 @@ export class AuthController {
   async login(@Body() loginDto: LoginDto) {
     try {
       return await this.authService.login(loginDto);
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+      throw new HttpException(
+        'Un problème est survenu: ' + (err as Error).message,
+        500,
+      );
+    }
+  }
+
+  // Rate limit: 3 requests per minute for email confirmation
+  @Get('confirm-email')
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  async confirmEmail(
+    @Query('token') token: string,
+    @Query('email') email: string,
+  ) {
+    try {
+      if (!token || !email) {
+        throw new HttpException('Token et email requis', 400);
+      }
+      return await this.authService.confirmEmail(token, email);
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+      throw new HttpException(
+        'Un problème est survenu: ' + (err as Error).message,
+        500,
+      );
+    }
+  }
+
+  // Rate limit: 2 requests per minute for resending confirmation email
+  @Post('resend-confirmation')
+  @Throttle({ default: { limit: 2, ttl: 60000 } })
+  async resendConfirmation(@Body('email') email: string) {
+    try {
+      if (!email) {
+        throw new HttpException('Email requis', 400);
+      }
+      return await this.authService.resendConfirmationEmail(email);
     } catch (err) {
       if (err instanceof HttpException) {
         throw err;

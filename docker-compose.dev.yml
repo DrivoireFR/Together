@@ -16,6 +16,11 @@ services:
       - PORT=3000
       - CORS_ORIGINS=http://localhost:5173,http://localhost:80,http://localhost
       - NODE_ENV=development
+      - FRONTEND_URL=http://localhost:5173
+      - SMTP_HOST=mailpit
+      - SMTP_PORT=1025
+      - SMTP_FROM=no-reply@together.app
+      - SMTP_FROM_NAME=Together
     networks:
       - together-network
     volumes:
@@ -54,6 +59,16 @@ services:
       - /app/node_modules
     environment:
       - VITE_API_URL=http://localhost:3000/api
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: together-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - together-network
 
 volumes:
   api_database:

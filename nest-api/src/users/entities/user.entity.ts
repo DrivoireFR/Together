@@ -45,6 +45,15 @@ export class User {
   @Column({ type: 'simple-enum', enum: Avatar, nullable: true })
   avatar?: Avatar;
 
+  @Column({ default: false })
+  emailVerified: boolean;
+
+  @Column({ nullable: true })
+  emailConfirmationToken?: string;
+
+  @Column({ type: 'datetime', nullable: true })
+  emailConfirmationExpiresAt?: Date;
+
   @ManyToMany(() => Group, (group) => group.users)
   groups: Group[];
 
