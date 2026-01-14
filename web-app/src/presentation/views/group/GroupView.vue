@@ -3,9 +3,14 @@
     <LoaderWithSpinner v-if="isLoading" />
     
     <div class="content" v-else-if="groupStore.currentGroup">
-      <h1 class="title">{{ groupStore.currentGroup.nom }}</h1>
+      <div class="group-head">
+        <div class="group-head-left">
+          <UserGroupIcon class="logo-svg" />
+          <h1 class="title">{{ groupStore.currentGroup.nom }}</h1>
+        </div>
 
-      <hr>
+        <Avatar v-if="authStore.user" :username="authStore.user?.pseudo" :avatar="authStore.user?.avatar"  />
+      </div>
 
       <div class="nav-view">
         <RouterView />
@@ -35,10 +40,14 @@ import GroupLayout from '@/presentation/layouts/GroupLayout.vue'
 import TaskAcknowledgmentModal from '@/presentation/components/molecules/TaskAcknowledgmentModal.vue'
 import ActionAcknowledgmentModal from '@/presentation/components/molecules/ActionAcknowledgmentModal.vue'
 import LoaderWithSpinner from '@/presentation/components/atoms/LoaderWithSpinner.vue'
+import { UserGroupIcon } from '@heroicons/vue/24/outline'
+import Avatar from '@/presentation/components/atoms/Avatar.vue'
+import { useAuthStore } from '@/domain/stores/authStore'
 
 const route = useRoute()
 const groupStore = useGroupStore()
 const tasksStore = useTasksStore()
+const authStore = useAuthStore()
 
 const groupId = computed(() => Number(route.params.id))
 const isLoading = computed(() => groupStore.isLoading || tasksStore.isLoading)
@@ -63,11 +72,29 @@ onMounted(async () => {
   background: white;
 }
 
+.group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .5rem 1rem;
+  background: var(--color-primary);
+}
+
+.group-head-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-svg {
+  width: 2rem;
+  stroke: white;
+}
+
 .title {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
-  color: var(--color-gray-900);
-  margin: 0 0 var(--spacing-3) 0;
+  color: white;
 }
 
 .nav-view {

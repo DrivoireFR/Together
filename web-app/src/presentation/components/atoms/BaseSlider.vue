@@ -52,11 +52,6 @@
           />
         </div>
       </div>
-      
-      <!-- Description du niveau -->
-      <div v-if="showDescription" class="slider-description">
-        <span class="description-text">{{ currentDescription }}</span>
-      </div>
     </div>
     
     <span v-if="error" class="slider-error">{{ error }}</span>
