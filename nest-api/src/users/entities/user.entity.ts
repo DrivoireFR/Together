@@ -54,6 +54,12 @@ export class User {
   @Column({ type: 'datetime', nullable: true })
   emailConfirmationExpiresAt?: Date;
 
+  @Column({ nullable: true })
+  passwordResetToken?: string;
+
+  @Column({ type: 'datetime', nullable: true })
+  passwordResetExpiresAt?: Date;
+
   @ManyToMany(() => Group, (group) => group.users)
   groups: Group[];
 

@@ -2,13 +2,8 @@
   <div class="action-card">
     <div class="action-content">
       <div class="action-task">
+        <Avatar :avatar="props.action.user.avatar" :username="userDisplayName"/>
         <h4 class="task-title">{{ action.task.label }}</h4>
-                 <TagChip
-           v-if="action.task.tag"
-           :tag="action.task.tag"
-           variant="ghost"
-           size="sm"
-         />
       </div>
       <div class="action-meta">
         <span class="user-name">{{ userDisplayName }}</span>
@@ -35,7 +30,7 @@ import { computed } from 'vue'
 import type { Action } from '@/domain/types'
 import { useAuthStore } from '@/domain/stores/authStore'
 import { useTasksStore } from '@/domain/stores/tasksStore'
-import TagChip from './TagChip.vue'
+import Avatar from './Avatar.vue'
 import BaseButton from './BaseButton.vue'
 
 interface Props {

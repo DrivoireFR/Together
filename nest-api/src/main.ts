@@ -32,6 +32,10 @@ async function bootstrap() {
   // Static assets
   app.useStaticAssets(join(__dirname, '..', 'public'));
 
+  // Configure view engine for HTML templates (password reset pages)
+  app.setBaseViewsDir(join(__dirname, '..', 'views'));
+  app.setViewEngine('hbs');
+
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
   winstonLoggerService.log(`Together API running on port ${port}`, 'Bootstrap');

@@ -39,9 +39,9 @@ const goToAddSelection = () => {
 }
 
 .fab {
-  position: fixed;
-  bottom: calc(var(--bottom-nav-bar-height) + var(--spacing-4));
-  right: var(--spacing-6);
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
   width: 3.5rem;
   height: 3.5rem;
   border-radius: var(--border-radius-full);

@@ -63,6 +63,9 @@
           Modifier
         </BaseButton>
       </div>
+
+      <!-- Password change section - only visible when not editing -->
+      <PasswordChangeForm />
     </div>
 
     <form v-else class="profile-edit-form" @submit.prevent="handleSubmit">
@@ -124,6 +127,7 @@ import Vignette from '@/presentation/components/molecules/Vignette.vue'
 import AvatarSelector from '@/presentation/components/molecules/AvatarSelector.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
+import PasswordChangeForm from '@/presentation/components/molecules/PasswordChangeForm.vue'
 
 const authStore = useAuthStore()
 const user = computed(() => authStore.user)

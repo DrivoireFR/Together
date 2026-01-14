@@ -36,7 +36,7 @@ export class MailService {
       (nodeEnv === 'development' || nodeEnv === 'test' ? 'mailpit' : 'smtp.com');
     const smtpPort = Number(
       this.config.get<string>('SMTP_PORT') ||
-        (nodeEnv === 'development' || nodeEnv === 'test' ? 1025 : 587),
+      (nodeEnv === 'development' || nodeEnv === 'test' ? 1025 : 587),
     );
     const smtpAuthRaw = this.config.get<string>('SMTP_AUTH');
     const smtpAuth =
@@ -125,6 +125,26 @@ export class MailService {
       context: {
         firstName,
         confirmationUrl,
+        currentYear: new Date().getFullYear(),
+      },
+    });
+  }
+
+  /**
+   * Send password reset email with reset link
+   */
+  async sendPasswordResetEmail(
+    to: string,
+    firstName: string,
+    resetUrl: string,
+  ): Promise<void> {
+    await this.send({
+      to,
+      subject: 'Together – Réinitialisation de votre mot de passe',
+      template: 'password-reset',
+      context: {
+        firstName,
+        resetUrl,
         currentYear: new Date().getFullYear(),
       },
     });

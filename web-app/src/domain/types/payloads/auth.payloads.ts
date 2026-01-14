@@ -21,3 +21,12 @@ export interface UpdateProfilePayload {
   pseudo?: string
   avatar?: Avatar
 }
+
+export interface ForgotPasswordPayload {
+  email: string
+}
+
+export interface ChangePasswordPayload {
+  oldPassword: string
+  newPassword: string
+}

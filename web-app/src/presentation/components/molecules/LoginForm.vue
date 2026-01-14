@@ -27,7 +27,7 @@
         @blur="validatePassword"
       />
       
-      <!-- Remember Me -->
+      <!-- Remember Me & Forgot Password -->
       <div class="remember-me">
         <label class="checkbox-label">
           <input
@@ -38,6 +38,9 @@
           />
           <span class="checkbox-text">Se souvenir de moi (30 jours)</span>
         </label>
+        <router-link to="/forgot-password" class="forgot-password-link">
+          Mot de passe oublié ?
+        </router-link>
       </div>
       
       <!-- Error message -->
@@ -156,6 +159,7 @@ const handleSubmit = async () => {
 .remember-me {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin: var(--spacing-2) 0;
 }
 
@@ -182,5 +186,18 @@ const handleSubmit = async () => {
 .checkbox-input:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+.forgot-password-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: var(--transition-fast);
+}
+
+.forgot-password-link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
 }
 </style>

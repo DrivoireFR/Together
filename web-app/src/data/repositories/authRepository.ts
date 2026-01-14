@@ -4,6 +4,8 @@ import type {
   LoginPayload,
   RegisterPayload,
   UpdateProfilePayload,
+  ForgotPasswordPayload,
+  ChangePasswordPayload,
   AuthResponse,
   User,
   getProfileResponse
@@ -41,6 +43,14 @@ export class AuthRepository {
 
   async resendConfirmation(email: string): Promise<ApiResult<{ message: string }>> {
     return apiClient.post<{ message: string }>('/auth/resend-confirmation', { email })
+  }
+
+  async requestPasswordReset(payload: ForgotPasswordPayload): Promise<ApiResult<{ message: string }>> {
+    return apiClient.post<{ message: string }>('/auth/forgot-password', payload)
+  }
+
+  async changePassword(payload: ChangePasswordPayload): Promise<ApiResult<{ message: string }>> {
+    return apiClient.put<{ message: string }>('/auth/change-password', payload)
   }
 }
 

@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { authRepository } from '@/data/repositories/authRepository'
 import { StorageUtil } from '@/shared/utils/storage'
 import { STORAGE_KEYS } from '@/shared/constants'
-import type { User, LoginPayload, RegisterPayload, UpdateProfilePayload } from '../types'
+import type { User, LoginPayload, RegisterPayload, UpdateProfilePayload, ChangePasswordPayload } from '../types'
 import { useGroupStore } from './groupStore'
 import { useTasksStore } from './tasksStore'
 import { useStatsStore } from './statsStore'
@@ -245,6 +245,32 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const changePassword = async (payload: ChangePasswordPayload) => {
+    if (!token.value) {
+      return { success: false, error: 'Non authentifié' }
+    }
+
+    isLoading.value = true
+    error.value = undefined
+
+    try {
+      const result = await authRepository.changePassword(payload)
+
+      if (result.isSuccess) {
+        return { success: true, message: result.data.message }
+      } else {
+        error.value = result.message
+        return { success: false, error: result.message }
+      }
+    } catch (err) {
+      const errorMessage = 'Erreur lors du changement de mot de passe'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   const clearError = () => {
     error.value = undefined
   }
@@ -268,6 +294,7 @@ export const useAuthStore = defineStore('auth', () => {
     fetchProfile,
     updateProfile,
     resendConfirmation,
+    changePassword,
     clearError
   }
 })

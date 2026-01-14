@@ -37,6 +37,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/forgot-password',
+      name: 'ForgotPassword',
+      component: () => import('@/presentation/views/auth/ForgotPasswordView.vue'),
+      meta: {
+        requiresAuth: false,
+        layout: 'auth'
+      }
+    },
+    {
       path: '/groups',
       name: 'Groups',
       component: () => import('@/presentation/views/GroupSelectionView.vue'),
@@ -173,7 +182,7 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  if ((to.path === '/login' || to.path === '/register') && isAuthenticated) {
+  if ((to.path === '/login' || to.path === '/register' || to.path === '/forgot-password') && isAuthenticated) {
     next('/groups')
     return
   }

@@ -31,7 +31,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private mailService: MailService,
-  ) {}
+  ) { }
 
   async register(
     createUserDto: RegisterUserDto,
@@ -94,13 +94,11 @@ export class AuthService {
 
     const token = await this.generateToken(user, false);
 
-    const { password: _pass, emailConfirmationToken: _token, ...userWithoutSensitive } = user;
-
     this.logger.log(`User registered successfully: ${user.id} (${user.email})`);
 
     return {
       message: 'Utilisateur créé avec succès. Vérifiez votre email pour confirmer votre compte.',
-      user: userWithoutSensitive,
+      user: this.sanitizeUser(user),
       token,
     };
   }
@@ -240,15 +238,13 @@ export class AuthService {
 
     const token = await this.generateToken(user, loginDto.rememberMe || false);
 
-    const { password: _pass, emailConfirmationToken: _token, ...userWithoutSensitive } = user;
-
     this.logger.log(
       `User logged in successfully: ${user.id} (${user.email}) - rememberMe: ${loginDto.rememberMe}`,
     );
 
     return {
       token,
-      user: userWithoutSensitive,
+      user: this.sanitizeUser(user),
       rememberMe: loginDto.rememberMe,
     };
   }
@@ -312,9 +308,9 @@ export class AuthService {
 
     const expiresIn = rememberMe
       ? this.configService.get<string>('JWT_REMEMBER_EXPIRES_IN') ||
-        jwtConstants.rememberExpiresIn
+      jwtConstants.rememberExpiresIn
       : this.configService.get<string>('JWT_EXPIRES_IN') ||
-        jwtConstants.expiresIn;
+      jwtConstants.expiresIn;
 
     return this.jwtService.signAsync(payload, { expiresIn });
   }
@@ -327,8 +323,171 @@ export class AuthService {
     return crypto.createHash('sha256').update(token).digest('hex');
   }
 
+  async requestPasswordReset(email: string): Promise<{ message: string }> {
+    this.logger.log(`Password reset request for email: ${email}`);
+
+    const user = await this.usersRepository.findOne({
+      where: { email },
+    });
+
+    // Don't reveal if email exists (security)
+    if (!user) {
+      this.logger.warn(`Password reset requested for non-existent email: ${email}`);
+      return {
+        message:
+          'Si cette adresse email est enregistrée, un email de réinitialisation a été envoyé.',
+      };
+    }
+
+    // Generate reset token (expires in 1 hour)
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    user.passwordResetToken = await this.hashToken(resetToken);
+    user.passwordResetExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await this.usersRepository.save(user);
+
+    // Send password reset email
+    const backendUrl =
+      this.configService.get<string>('BACKEND_URL') || 'http://localhost:3000';
+    const resetUrl = `${backendUrl}/api/auth/reset-password?token=${resetToken}&email=${encodeURIComponent(user.email)}`;
+
+    try {
+      await this.mailService.sendPasswordResetEmail(
+        user.email,
+        user.prenom,
+        resetUrl,
+      );
+      this.logger.log(`Password reset email sent to: ${user.email}`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to send password reset email to ${user.email}: ${error}`,
+      );
+    }
+
+    return {
+      message:
+        'Si cette adresse email est enregistrée, un email de réinitialisation a été envoyé.',
+    };
+  }
+
+  async verifyPasswordResetToken(
+    token: string,
+    email: string,
+  ): Promise<boolean> {
+    this.logger.log(`Verifying password reset token for email: ${email}`);
+
+    const user = await this.usersRepository.findOne({
+      where: { email },
+    });
+
+    if (!user || !user.passwordResetToken || !user.passwordResetExpiresAt) {
+      this.logger.warn(
+        `Password reset token verification failed: invalid data for ${email}`,
+      );
+      return false;
+    }
+
+    if (new Date() > user.passwordResetExpiresAt) {
+      this.logger.warn(
+        `Password reset token verification failed: token expired for ${email}`,
+      );
+      return false;
+    }
+
+    const hashedToken = await this.hashToken(token);
+    if (hashedToken !== user.passwordResetToken) {
+      this.logger.warn(
+        `Password reset token verification failed: token mismatch for ${email}`,
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  async resetPassword(
+    token: string,
+    email: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    this.logger.log(`Password reset attempt for email: ${email}`);
+
+    const isValid = await this.verifyPasswordResetToken(token, email);
+    if (!isValid) {
+      this.logger.warn(`Password reset failed: invalid token for ${email}`);
+      throw new BadRequestException(
+        'Le lien de réinitialisation est invalide ou a expiré.',
+      );
+    }
+
+    const user = await this.usersRepository.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new BadRequestException(
+        'Le lien de réinitialisation est invalide ou a expiré.',
+      );
+    }
+
+    // Update password and clear reset token
+    user.password = newPassword; // Will be hashed by @BeforeUpdate hook
+    user.passwordResetToken = undefined;
+    user.passwordResetExpiresAt = undefined;
+
+    await this.usersRepository.save(user);
+
+    this.logger.log(`Password reset successfully for user: ${user.id}`);
+
+    return {
+      message: 'Votre mot de passe a été réinitialisé avec succès.',
+    };
+  }
+
+  async changePassword(
+    userId: number,
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    this.logger.log(`Password change attempt for user: ${userId}`);
+
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      this.logger.warn(`Password change failed: user not found (${userId})`);
+      throw new UnauthorizedException('Utilisateur non trouvé');
+    }
+
+    // Verify old password
+    const isValidPassword = await user.comparePassword(oldPassword);
+    if (!isValidPassword) {
+      this.logger.warn(
+        `Password change failed: invalid old password for user ${userId}`,
+      );
+      throw new BadRequestException('L\'ancien mot de passe est incorrect');
+    }
+
+    // Update password
+    user.password = newPassword; // Will be hashed by @BeforeUpdate hook
+    await this.usersRepository.save(user);
+
+    this.logger.log(`Password changed successfully for user: ${userId}`);
+
+    return {
+      message: 'Votre mot de passe a été modifié avec succès.',
+    };
+  }
+
   private sanitizeUser(user: User): Record<string, unknown> {
-    const { password: _pass, emailConfirmationToken: _token, ...sanitized } = user;
+    const {
+      password: _pass,
+      emailConfirmationToken: _token,
+      passwordResetToken: _resetToken,
+      passwordResetExpiresAt: _resetExpires,
+      ...sanitized
+    } = user;
     return sanitized;
   }
 }
