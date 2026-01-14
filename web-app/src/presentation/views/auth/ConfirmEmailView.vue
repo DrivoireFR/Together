@@ -160,7 +160,7 @@ async function confirmEmail() {
     }
   } else {
     isError.value = true
-    errorMessage.value = result.errorMessage || 'Le lien de confirmation est invalide ou a expiré.'
+    errorMessage.value = result.message || 'Le lien de confirmation est invalide ou a expiré.'
     canResend.value = true
   }
 }
@@ -173,7 +173,7 @@ async function handleResendConfirmation() {
   isResending.value = false
 
   if (result.isSuccess) {
-    errorMessage.value = result.data?.message || 'Un nouveau lien a été envoyé à votre adresse email.'
+    errorMessage.value = result.data.message || 'Un nouveau lien a été envoyé à votre adresse email.'
     canResend.value = false
   }
 }
@@ -188,7 +188,9 @@ async function handleResendManual() {
   isResending.value = false
 
   resendSuccess.value = result.isSuccess
-  resendMessage.value = result.data?.message || 'Si cette adresse est enregistrée, un email a été envoyé.'
+  resendMessage.value = result.isSuccess
+    ? result.data.message
+    : result.message || 'Si cette adresse est enregistrée, un email a été envoyé.'
 }
 </script>
 

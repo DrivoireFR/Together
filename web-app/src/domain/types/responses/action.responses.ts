@@ -1,3 +1,5 @@
+import type { Action } from '../entities/action.types'
+
 export interface CreateActionResponse {
   message: string
   action: {

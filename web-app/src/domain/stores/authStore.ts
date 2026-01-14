@@ -145,7 +145,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (result.isSuccess) {
         // On ne connecte plus automatiquement l'utilisateur ici.
         // On se contente de renvoyer le succès et le message informatif.
-        return { success: true, message: result.message }
+        return { success: true, message: 'Un email de confirmation vous a été envoyé.' }
       } else {
         error.value = result.message
         return { success: false, error: result.message }
@@ -207,10 +207,9 @@ export const useAuthStore = defineStore('auth', () => {
       const result = await authRepository.resendConfirmation(email)
       return {
         success: result.isSuccess,
-        message:
-          result.data?.message ||
-          result.message ||
-          "Si cette adresse email est enregistrée, un email de confirmation a été envoyé."
+        message: result.isSuccess
+          ? result.data.message
+          : result.message || "Si cette adresse email est enregistrée, un email de confirmation a été envoyé."
       }
     } catch {
       return {
