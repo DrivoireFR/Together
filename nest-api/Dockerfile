@@ -111,6 +111,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/public ./public
 # Copier le dossier data (starter-packs.json)
 COPY --from=builder --chown=nestjs:nodejs /app/src/data ./dist/data
 
+# Copier le dossier views (templates d'email et pages HTML)
+COPY --from=builder --chown=nestjs:nodejs /app/views ./views
+
 # Changer vers l'utilisateur non-root
 USER nestjs
 
