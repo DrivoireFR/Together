@@ -1,14 +1,14 @@
 <template>
   <div class="password-view">
     <div class="password-view-header">
+      <h2 class="password-view-title">Changer de mot de passe</h2>
       <button
         type="button"
         class="back-button"
         @click="goBackToProfile"
       >
-        ← Retour au profil
+        <ArrowLeftCircleIcon color="black" />
       </button>
-      <h2 class="password-view-title">Changer de mot de passe</h2>
     </div>
 
     <PasswordChangeForm />
@@ -17,16 +17,13 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { ArrowLeftCircleIcon } from '@heroicons/vue/24/outline'
 import PasswordChangeForm from '@/presentation/components/molecules/PasswordChangeForm.vue'
 
 const router = useRouter()
 
 const goBackToProfile = () => {
-  const { id } = router.currentRoute.value.params
-  router.push({
-    name: 'GroupSettingsProfile',
-    params: { id }
-  })
+  router.back()
 }
 </script>
 
@@ -40,16 +37,18 @@ const goBackToProfile = () => {
 
 .password-view-header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
   gap: var(--spacing-2);
   margin-bottom: var(--spacing-4);
 }
 
 .back-button {
+  width: 3rem;
   align-self: flex-start;
   border: none;
   background: transparent;
-  color: var(--color-primary);
+  color: black;
   font-size: var(--font-size-sm);
   cursor: pointer;
   padding: 0;

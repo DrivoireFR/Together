@@ -1,7 +1,5 @@
 <template>
   <div class="password-change-section">
-    <h3 class="section-title">Changer de mot de passe</h3>
-    
     <div v-if="successMessage" class="success-banner">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -11,47 +9,38 @@
 
     <form @submit.prevent="handleSubmit" class="password-form">
       <div class="form-group">
-        <label for="oldPassword">Ancien mot de passe</label>
-        <input
-          id="oldPassword"
+        <BaseInput
           v-model="formData.oldPassword"
           type="password"
+          label="Ancien mot de passe"
           placeholder="••••••••"
-          required
           :disabled="isLoading"
-        >
+          required
+        />
       </div>
 
       <div class="form-group">
-        <label for="newPassword">Nouveau mot de passe</label>
-        <input
-          id="newPassword"
+        <BaseInput
           v-model="formData.newPassword"
           type="password"
+          label="Nouveau mot de passe"
           placeholder="••••••••"
-          required
-          minlength="6"
           :disabled="isLoading"
-        >
-        <div v-if="passwordError" class="field-error">
-          {{ passwordError }}
-        </div>
+          required
+          :error="passwordError"
+        />
       </div>
 
       <div class="form-group">
-        <label for="confirmPassword">Confirmer le nouveau mot de passe</label>
-        <input
-          id="confirmPassword"
+        <BaseInput
           v-model="confirmPassword"
           type="password"
+          label="Confirmer le nouveau mot de passe"
           placeholder="••••••••"
-          required
-          minlength="6"
           :disabled="isLoading"
-        >
-        <div v-if="confirmError" class="field-error">
-          {{ confirmError }}
-        </div>
+          required
+          :error="confirmError"
+        />
       </div>
 
       <div v-if="errorMessage" class="error-message">
@@ -80,9 +69,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '@/domain/stores/authStore'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
+import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 
 const authStore = useAuthStore()
 
@@ -112,6 +102,7 @@ const validatePassword = () => {
     passwordError.value = 'Le mot de passe doit contenir au moins 6 caractères'
     return false
   }
+
   passwordError.value = ''
   return true
 }
@@ -121,9 +112,25 @@ const validateConfirm = () => {
     confirmError.value = 'Les mots de passe ne correspondent pas'
     return false
   }
+
   confirmError.value = ''
   return true
 }
+
+watch(
+  () => formData.value.newPassword,
+  () => {
+    validatePassword()
+    validateConfirm()
+  }
+)
+
+watch(
+  () => confirmPassword.value,
+  () => {
+    validateConfirm()
+  }
+)
 
 const handleSubmit = async () => {
   if (!isFormValid.value) return
@@ -164,8 +171,6 @@ const handleSubmit = async () => {
 
 <style scoped>
 .password-change-section {
-  margin-top: 2rem;
-  padding-top: 2rem;
   border-top: 1px solid var(--color-border);
 }
 

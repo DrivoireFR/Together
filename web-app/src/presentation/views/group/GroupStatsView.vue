@@ -6,55 +6,40 @@
       </div>
       
       <div v-else-if="groupStore.currentGroup && statsStore.hasOverview" class="stats-content">
-        <!-- Header -->
         <div class="stats-header">
           <div class="header-content">
-            <h1 class="stats-title">Statistiques de {{ groupStore.currentGroup.nom }}</h1>
+            <h1 class="stats-title">On en est où ce mois ?</h1>
             <p class="stats-description">Analyse des actions et performances du groupe</p>
             <span class="stat-item">{{ groupStore.currentGroup.users.length }} membre{{ groupStore.currentGroup.users.length > 1 ? 's' : '' }}</span>
             <span class="stat-item">{{ groupStore.currentGroup.tasks.length }} tâche{{ groupStore.currentGroup.tasks.length > 1 ? 's' : '' }}</span>
-          </div>
-          <BaseButton
-            variant="ghost"
-            @click="goBackToGroup"
-          >
-            ← Retour au groupe
-          </BaseButton>
-        </div>
 
-        <!-- Progression globale -->
-        <div v-if="statsStore.overview" class="global-progress">
-          <div class="progress-card">
-            <div class="progress-header-section">
-              <h2 class="progress-title">Progression mensuelle</h2>
-              <p class="progress-subtitle">Avancement des objectifs du mois</p>
-            </div>
-            
-            <div class="progress-content">
-              <ProgressBar
-                :current="statsStore.overview.totalDone"
-                :total="statsStore.overview.totalTasksVolume"
-                label="Volume mensuel réalisé"
-                variant="primary"
-                size="lg"
-                :show-details="true"
-                :precision="1"
-              />
-            </div>
-            
-            <div class="progress-stats">
-              <div class="progress-stat">
-                <span class="stat-label">Objectif mensuel</span>
-                <span class="stat-value">{{ statsStore.overview.totalTasksVolume }} pts</span>
-              </div>
-              <div class="progress-stat">
-                <span class="stat-label">Réalisé</span>
-                <span class="stat-value">{{ statsStore.overview.totalDone }} pts</span>
-              </div>
-              <div class="progress-stat">
-                <span class="stat-label">Restant</span>
-                <span class="stat-value">{{ statsStore.overview.totalTasksVolume - statsStore.overview.totalDone }} pts</span>
-              </div>
+            <div v-if="statsStore.overview" class="global-progress">
+                <!-- <div class="progress-content">
+                  <ProgressBar
+                    :current="statsStore.overview.totalDone"
+                    :total="statsStore.overview.totalTasksVolume"
+                    label="Volume mensuel réalisé"
+                    variant="primary"
+                    size="lg"
+                    :show-details="true"
+                    :precision="1"
+                  />
+                </div> -->
+                
+                <div class="progress-stats">
+                  <div class="progress-stat">
+                    <span class="stat-label">Réalisé</span>
+                    <span class="stat-value">{{ statsStore.overview.totalDone }} pts</span>
+                  </div>
+                  <div class="progress-stat">
+                    <span class="stat-label">Objectif mensuel</span>
+                    <span class="stat-value">{{ statsStore.overview.totalTasksVolume }} pts</span>
+                  </div>
+                  <div class="progress-stat">
+                    <span class="stat-label">Restant</span>
+                    <span class="stat-value">{{ statsStore.overview.totalTasksVolume - statsStore.overview.totalDone }} pts</span>
+                  </div>
+                </div>
             </div>
           </div>
         </div>
@@ -160,7 +145,8 @@ onUnmounted(() => {
 .stats-container {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: 1rem;
+  padding: 0.5rem 1rem;
   min-height: 100vh;
 }
 
@@ -187,7 +173,7 @@ onUnmounted(() => {
 .stats-content {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: 1rem;
 }
 
 .stats-header {
@@ -218,9 +204,6 @@ onUnmounted(() => {
 }
 
 /* Progression globale */
-.global-progress {
-  margin: var(--spacing-4) 0;
-}
 
 .progress-card {
   background: var(--color-white);
@@ -253,8 +236,8 @@ onUnmounted(() => {
 
 .progress-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: var(--spacing-4);
+  grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+  gap: 1rem;
   margin-top: var(--spacing-4);
   padding-top: var(--spacing-4);
   border-top: 1px solid var(--color-gray-200);
@@ -398,23 +381,14 @@ onUnmounted(() => {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .stats-container {
-    gap: var(--spacing-4);
-  }
   
   .stats-header {
     flex-direction: column;
-    gap: var(--spacing-4);
     text-align: center;
   }
   
   .progress-card {
     padding: var(--spacing-4);
-  }
-  
-  .progress-stats {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-3);
   }
   
   .goals-card {
@@ -435,12 +409,12 @@ onUnmounted(() => {
     width: 100%;
   }
   
-  .general-stats {
+  /* .general-stats {
     grid-template-columns: 1fr;
-  }
+  } */
   
   .detailed-stats {
-    grid-template-columns: 1fr;
+    /* grid-template-columns: 1fr; */
     gap: var(--spacing-4);
   }
 }
@@ -464,11 +438,6 @@ onUnmounted(() => {
   .stats-title {
     font-size: var(--font-size-xl);
   }
-  
-  .progress-stats {
-    grid-template-columns: 1fr;
-  }
-  
   
   .user-name {
     font-size: var(--font-size-sm);

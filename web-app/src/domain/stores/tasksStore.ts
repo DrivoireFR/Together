@@ -327,12 +327,13 @@ export const useTasksStore = defineStore('tasks', () => {
       const result = await taskRepository.createAction(payload)
 
       if (result.isSuccess) {
-        // Note: On n'ajoute pas l'action à la liste locale car la réponse simplifiée
-        // ne contient pas tous les champs nécessaires. Les actions seront rechargées
-        // lors du prochain fetch si nécessaire.
+        // Recharger les actions pour mettre à jour l'historique
+        const groupId = Number(route.params.id)
+        if (!isNaN(groupId)) {
+          await fetchRecentActionsByGroupId(groupId, true)
+        }
 
         // Afficher la modale de feedback avec navigation
-        const groupId = Number(route.params.id)
         if (!isNaN(groupId)) {
           useConfirmModal()
             .title('Action créée avec succès')
@@ -392,8 +393,10 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  const fetchRecentActionsByGroupId = async (groupId: number) => {
-    isLoading.value = true
+  const fetchRecentActionsByGroupId = async (groupId: number, silent = false) => {
+    if (!silent) {
+      isLoading.value = true
+    }
     error.value = undefined
 
     try {
@@ -411,7 +414,9 @@ export const useTasksStore = defineStore('tasks', () => {
       error.value = errorMessage
       return { success: false, error: errorMessage }
     } finally {
-      isLoading.value = false
+      if (!silent) {
+        isLoading.value = false
+      }
     }
   }
 
@@ -561,12 +566,13 @@ export const useTasksStore = defineStore('tasks', () => {
       const result = await taskRepository.createActionForMember(payload)
 
       if (result.isSuccess) {
-        // Note: On n'ajoute pas l'action à la liste locale car la réponse simplifiée
-        // ne contient pas tous les champs nécessaires. Les actions seront rechargées
-        // lors du prochain fetch si nécessaire.
+        // Recharger les actions pour mettre à jour l'historique
+        const groupId = Number(route.params.id)
+        if (!isNaN(groupId)) {
+          await fetchRecentActionsByGroupId(groupId, true)
+        }
 
         // Afficher la modale de feedback avec navigation
-        const groupId = Number(route.params.id)
         if (!isNaN(groupId)) {
           useConfirmModal()
             .title('Action créée avec succès')
@@ -652,6 +658,12 @@ export const useTasksStore = defineStore('tasks', () => {
           ack => ack.id !== ackId
         )
 
+        // Recharger les actions pour mettre à jour l'historique
+        const groupId = Number(route.params.id)
+        if (!isNaN(groupId)) {
+          await fetchRecentActionsByGroupId(groupId, true)
+        }
+
         // Passer à l'acknowledgment suivant ou fermer la modale
         if (pendingActionAcknowledgment.value.length === 0) {
           closeActionAcknowledgmentModal()
@@ -680,6 +692,12 @@ export const useTasksStore = defineStore('tasks', () => {
         pendingActionAcknowledgment.value = pendingActionAcknowledgment.value.filter(
           ack => ack.id !== ackId
         )
+
+        // Recharger les actions pour mettre à jour l'historique (l'action rejetée sera supprimée)
+        const groupId = Number(route.params.id)
+        if (!isNaN(groupId)) {
+          await fetchRecentActionsByGroupId(groupId, true)
+        }
 
         // Passer à l'acknowledgment suivant ou fermer la modale
         if (pendingActionAcknowledgment.value.length === 0) {

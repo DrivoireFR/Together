@@ -30,6 +30,7 @@ import { computed } from 'vue'
 import type { Action } from '@/domain/types'
 import { useAuthStore } from '@/domain/stores/authStore'
 import { useTasksStore } from '@/domain/stores/tasksStore'
+import { useConfirmModal } from '@/shared/composables/useConfirmModal'
 import trashSvg from '@/assets/icons/trash.svg?raw'
 import Avatar from './Avatar.vue'
 import BaseButton from './BaseButton.vue'
@@ -69,8 +70,26 @@ const formatTime = (dateString: string): string => {
   }
 }
 
-function onDelete() {
-  taskStore.deleteAction(props.action.id)
+async function onDelete() {
+  useConfirmModal()
+    .title('Supprimer l\'action')
+    .description('Êtes-vous sûr de vouloir supprimer cette action ? Cette action est irréversible.')
+    .confirmLabel('Supprimer')
+    .cancelLabel('Annuler')
+    .onConfirm(async () => {
+      const result = await taskStore.deleteAction(props.action.id)
+
+      if (result.success) {
+        useConfirmModal()
+          .title('Action supprimée')
+          .description('L\'action a bien été supprimée.')
+          .confirmLabel('OK')
+          .cancelLabel('')
+          .onConfirm(() => {})
+          .open()
+      }
+    })
+    .open()
 }
 </script>
 
