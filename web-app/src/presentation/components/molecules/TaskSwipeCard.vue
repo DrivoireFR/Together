@@ -5,6 +5,7 @@
     @touchstart="handleTouchStart"
     @touchmove="handleTouchMove"
     @touchend="handleTouchEnd"
+    @click="handleCardTap"
   >
   <div v-if="task.hurryState" class="hurry-badge" :class="hurryClass">
     <span class="hurry-icon">{{ hurryIcon }}</span>
