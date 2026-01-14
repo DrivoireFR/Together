@@ -3,8 +3,8 @@
 # Stage de développement
 FROM node:20-alpine AS development
 
-# Installer dumb-init pour une gestion propre des signaux
-RUN apk add --no-cache dumb-init
+# Installer dumb-init et timeout
+RUN apk add --no-cache dumb-init coreutils
 
 # Définir le répertoire de travail
 WORKDIR /app
@@ -12,8 +12,14 @@ WORKDIR /app
 # Copier les fichiers de dépendances
 COPY package*.json ./
 
-# Installer toutes les dépendances (dev + production)
-RUN npm ci && npm cache clean --force
+# Installer toutes les dépendances avec timeout et retry
+RUN npm config set fetch-timeout 300000 && \
+    npm config set fetch-retries 3 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    timeout 600 npm ci --maxsockets 1 --prefer-offline --no-audit || \
+    (echo "npm ci failed, retrying..." && sleep 10 && timeout 600 npm ci --maxsockets 1 --prefer-offline --no-audit) && \
+    npm cache clean --force
 
 # Copier le code source
 COPY . .
@@ -38,26 +44,35 @@ CMD ["npm", "run", "start:dev"]
 # Stage de builder
 FROM node:20-alpine AS builder
 
+# Installer timeout et coreutils
+RUN apk add --no-cache coreutils
+
 # Définir le répertoire de travail
 WORKDIR /app
 
 # Copier les fichiers de dépendances
 COPY package*.json ./
 
-# Installer toutes les dépendances (dev + production) pour pouvoir construire
-RUN npm ci && npm cache clean --force
+# Installer toutes les dépendances avec timeout et retry
+RUN npm config set fetch-timeout 300000 && \
+    npm config set fetch-retries 3 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    timeout 600 npm ci --maxsockets 1 --prefer-offline --no-audit || \
+    (echo "npm ci failed, retrying..." && sleep 10 && timeout 600 npm ci --maxsockets 1 --prefer-offline --no-audit) && \
+    npm cache clean --force
 
 # Copier le code source
 COPY . .
 
-# Construire l'application
-RUN npm run build
+# Construire l'application avec timeout (15 minutes)
+RUN timeout 900 npm run build || (echo "Build failed or timed out" && exit 1)
 
 # Stage de production
 FROM node:20-alpine AS production
 
-# Installer dumb-init pour une gestion propre des signaux
-RUN apk add --no-cache dumb-init
+# Installer dumb-init et timeout
+RUN apk add --no-cache dumb-init coreutils
 
 # Créer un utilisateur non-root
 RUN addgroup -g 1001 -S nodejs && \
@@ -69,8 +84,14 @@ WORKDIR /app
 # Copier les fichiers de dépendances
 COPY package*.json ./
 
-# Installer uniquement les dépendances de production
-RUN npm ci --only=production && npm cache clean --force
+# Installer uniquement les dépendances de production avec timeout
+RUN npm config set fetch-timeout 300000 && \
+    npm config set fetch-retries 3 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    timeout 600 npm ci --only=production --maxsockets 1 --prefer-offline --no-audit || \
+    (echo "npm ci failed, retrying..." && sleep 10 && timeout 600 npm ci --only=production --maxsockets 1 --prefer-offline --no-audit) && \
+    npm cache clean --force
 
 # Créer le répertoire pour la base de données avec les bonnes permissions
 RUN mkdir -p /app/data && chown nestjs:nodejs /app/data
