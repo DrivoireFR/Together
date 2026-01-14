@@ -1,16 +1,13 @@
 <template>
   <form @submit.prevent="handleSubmit" class="create-tag-form">
     <div class="form-header">
-      <h2 class="form-title">Créer un nouveau tag</h2>
-      <p class="form-description">
-        Organisez vos tâches en créant des catégories avec des couleurs distinctives.
-      </p>
+      <h2 class="form-title">Créer une nouvelle catégorie</h2>
     </div>
 
     <div class="form-content">
       <div class="form-group">
         <label for="label" class="form-label">
-          Nom du tag *
+          Nom
         </label>
         <BaseInput
           id="label"
@@ -23,7 +20,7 @@
 
       <div class="form-group">
         <label for="color" class="form-label">
-          Couleur du tag *
+          Couleur
         </label>
         <div class="color-input-container">
           <input

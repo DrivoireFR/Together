@@ -105,6 +105,7 @@ const isActive = (item: MenuItem) => {
 	width: 100%;
 	height: 100%;
 	text-decoration: none;
+  padding-bottom: 5px;
 }
 
 .item.active {

@@ -27,8 +27,4 @@ import BottomNav from './BottomNav.vue'
     height: 100%;
   }
 
-  .bottom-nav {
-    /* height: 4rem; */
-  }
-
 </style>

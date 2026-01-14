@@ -7,7 +7,7 @@
     <div class="form-content">
       <div class="form-group">
         <label for="label" class="form-label">
-          Nom de la tâche *
+          Nom *
         </label>
         <BaseInput
           id="label"
@@ -22,7 +22,7 @@
         <BaseSlider
           id="points"
           v-model="formData.points"
-          label="Niveau de difficulté"
+          label="Niveau de difficulté *"
           :min="1"
           :max="10"
           start-label="😎 Pas relou"
@@ -46,7 +46,7 @@
       <div class="form-row">
         <div class="form-group">
           <label for="frequenceEstimee" class="form-label">
-            Fréquence estimée *
+            Fréquence *
           </label>
           <BaseInput
             id="frequenceEstimee"
