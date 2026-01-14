@@ -30,9 +30,7 @@ export const useGroupStore = defineStore('group', () => {
   const showStarterPackTasksModal = ref(false)
 
   // Getters
-  const groupsCount = computed(() => groups.value.length)
   const hasGroups = computed(() => groups.value.length > 0)
-  const currentGroupName = computed(() => currentGroup.value?.nom || '')
   const currentGroupMembers = computed(() => currentGroup.value?.users || [])
 
   const tasksStore = useTasksStore()
@@ -385,14 +383,6 @@ export const useGroupStore = defineStore('group', () => {
     searchResults.value = []
   }
 
-  const clearCurrentGroup = () => {
-    currentGroup.value = null
-  }
-
-  const clearError = () => {
-    error.value = undefined
-  }
-
   const reset = () => {
     groups.value = []
     currentGroup.value = null
@@ -471,9 +461,7 @@ export const useGroupStore = defineStore('group', () => {
     showStarterPackTagsModal,
     showStarterPackTasksModal,
     // Getters
-    groupsCount,
     hasGroups,
-    currentGroupName,
     currentGroupMembers,
     // Actions
     fetchGroupById,
@@ -503,8 +491,6 @@ export const useGroupStore = defineStore('group', () => {
     onGroupClick,
     checkGroupAndRedirect,
     clearSearchResults,
-    clearCurrentGroup,
-    clearError,
     reset
   }
 })

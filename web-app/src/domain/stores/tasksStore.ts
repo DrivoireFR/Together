@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { taskRepository } from '@/data/repositories/taskRepository'
 import { statsRepository } from '@/data/repositories/statsRepository'
-import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, UpdateTagPayload, CreateActionPayload, CreateActionForMemberPayload, UpdateUserTaskStatePayload, GroupStatistics, UpdateTaskPayload, HurryState, ActionAcknowledgment } from '../types'
+import type { Task, Tag, Action, UserTaskState, CreateTaskPayload, CreateTagPayload, UpdateTagPayload, CreateActionPayload, CreateActionForMemberPayload, UpdateUserTaskStatePayload, UpdateTaskPayload, HurryState, ActionAcknowledgment } from '../types'
 import { useRoute, useRouter } from 'vue-router'
 import { useConfirmModal } from '@/shared/composables/useConfirmModal'
 
@@ -13,8 +13,6 @@ export const useTasksStore = defineStore('tasks', () => {
   const tasks = ref<Task[]>([])
   const tags = ref<Tag[]>([])
   const actions = ref<Action[]>([])
-  const statistics = ref<GroupStatistics | null>(null)
-  const currentTask = ref<Task | null>(null)
   const selectedTagFilter = ref<Tag | null>(null)
   const sortByUrgency = ref(false)
   const isLoading = ref(false)
@@ -38,7 +36,6 @@ export const useTasksStore = defineStore('tasks', () => {
   const hasTasks = computed(() => tasks.value.length > 0)
   const hasTags = computed(() => tags.value.length > 0)
   const hasActions = computed(() => actions.value.length > 0)
-  const hasStatistics = computed(() => statistics.value !== null)
 
   // Interactions (removed showfeedback and feedbackTotalDone - now using useConfirmModal)
 
@@ -233,28 +230,6 @@ export const useTasksStore = defineStore('tasks', () => {
       .open()
   }
 
-  const fetchTags = async () => {
-    isLoading.value = true
-    error.value = undefined
-
-    try {
-      const result = await taskRepository.getAllTags()
-      if (result.isSuccess) {
-        tags.value = result.data.tags
-        return { success: true, tags: result.data.tags }
-      } else {
-        error.value = result.message
-        return { success: false, error: result.message }
-      }
-    } catch (err) {
-      const errorMessage = 'Erreur lors de la récupération des tags'
-      error.value = errorMessage
-      return { success: false, error: errorMessage }
-    } finally {
-      isLoading.value = false
-    }
-  }
-
   const updateTask = async (id: number, payload: UpdateTaskPayload) => {
     isLoading.value = true
     error.value = undefined
@@ -266,10 +241,6 @@ export const useTasksStore = defineStore('tasks', () => {
         const index = tasks.value.findIndex(t => t.id === id)
         if (index !== -1) {
           tasks.value[index] = result.data.task
-        }
-
-        if (currentTask.value?.id === id) {
-          currentTask.value = result.data.task
         }
 
         return { success: true, task: result.data.task }
@@ -295,10 +266,6 @@ export const useTasksStore = defineStore('tasks', () => {
 
       if (result.isSuccess) {
         tasks.value = tasks.value.filter(t => t.id !== id)
-
-        if (currentTask.value?.id === id) {
-          currentTask.value = null
-        }
 
         return { success: true }
       } else {
@@ -468,20 +435,10 @@ export const useTasksStore = defineStore('tasks', () => {
     router.push(tasksRoute)
   }
 
-  const clearCurrentTask = () => {
-    currentTask.value = null
-  }
-
-  const clearError = () => {
-    error.value = undefined
-  }
-
   const clearData = () => {
     tasks.value = []
     tags.value = []
     actions.value = []
-    statistics.value = null
-    currentTask.value = null
     selectedTagFilter.value = null
     error.value = undefined
     unacknowledgedTasks.value = []
@@ -748,8 +705,6 @@ export const useTasksStore = defineStore('tasks', () => {
     tasks,
     tags,
     actions,
-    statistics,
-    currentTask,
     selectedTagFilter,
     sortByUrgency,
     isLoading,
@@ -767,7 +722,6 @@ export const useTasksStore = defineStore('tasks', () => {
     hasTasks,
     hasTags,
     hasActions,
-    hasStatistics,
     filteredTasks,
     tasksByTag,
     currentUnacknowledgedTask,
@@ -802,8 +756,6 @@ export const useTasksStore = defineStore('tasks', () => {
     clearTagFilter,
     setSortByUrgency,
     onUrgencyCatTap,
-    clearCurrentTask,
-    clearError,
     clearData,
     acknowledgeTask,
     handleTaskDecision,

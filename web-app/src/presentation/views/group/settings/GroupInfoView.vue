@@ -2,12 +2,12 @@
   <div class="group-info">
     <section class="group-summary" v-if="group">
       <h2 class="group-title">{{ group.nom }}</h2>
-      <p class="group-code">Inviter un autre utilisateur :</p>
+      <p class="group-code">Partagez le code du groupe :</p>
       <BaseButton
         variant="outline"
         @click="copyInvite"
       >
-        Copier dans le code dans le presse papier
+        Copier le code dans le presse papier
       </BaseButton>
       <p v-if="copied" class="copy-feedback">
         Lien d'invitation copié dans le presse-papiers.

@@ -23,8 +23,6 @@ export const useAuthStore = defineStore('auth', () => {
   // Getters
   const isAuthenticated = computed(() => !!token.value && !!user.value)
   const userName = computed(() => user.value?.nom || '')
-  const userEmail = computed(() => user.value?.email || '')
-  const isEmailVerified = computed(() => user.value?.emailVerified === true)
 
   // Actions
   const initializeAuth = async () => {
@@ -176,28 +174,6 @@ export const useAuthStore = defineStore('auth', () => {
     statsStore.clearStats()
   }
 
-  const fetchProfile = async () => {
-    if (!token.value) return
-
-    isLoading.value = true
-
-    try {
-      const result = await authRepository.getProfile()
-
-      if (result.isSuccess) {
-        user.value = result.data.user
-        StorageUtil.setItem(STORAGE_KEYS.USER, result.data.user)
-      } else {
-        // En cas d'erreur, déconnecter l'utilisateur
-        logout()
-      }
-    } catch (err) {
-      logout()
-    } finally {
-      isLoading.value = false
-    }
-  }
-
   const updateProfile = async (payload: UpdateProfilePayload) => {
     if (!token.value) {
       return { success: false, error: 'Non authentifié' }
@@ -271,10 +247,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const clearError = () => {
-    error.value = undefined
-  }
-
   return {
     // State
     user,
@@ -284,17 +256,13 @@ export const useAuthStore = defineStore('auth', () => {
     // Getters
     isAuthenticated,
     userName,
-    userEmail,
-    isEmailVerified,
     // Actions
     initializeAuth,
     login,
     register,
     logout,
-    fetchProfile,
     updateProfile,
     resendConfirmation,
-    changePassword,
-    clearError
+    changePassword
   }
 })

@@ -9,16 +9,6 @@ export const STORAGE_KEYS = {
   SELECTED_GROUP_ID: 'selectedGroupId'
 } as const
 
-export const ROUTES = {
-  HOME: '/',
-  LOGIN: '/login',
-  REGISTER: '/register',
-  GROUPS: '/groups',
-  GROUP_DETAIL: '/groups/:id',
-  TASKS: '/tasks',
-  PROFILE: '/profile'
-} as const
-
 export const HTTP_STATUS = {
   OK: 200,
   CREATED: 201,
