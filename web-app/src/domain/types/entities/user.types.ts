@@ -8,6 +8,7 @@ export interface User {
   pseudo: string
   avatar?: Avatar
   email: string
+  emailVerified?: boolean
   createdAt: string
   updatedAt: string
 }

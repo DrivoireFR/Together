@@ -24,6 +24,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value && !!user.value)
   const userName = computed(() => user.value?.nom || '')
   const userEmail = computed(() => user.value?.email || '')
+  const isEmailVerified = computed(() => user.value?.emailVerified === true)
 
   // Actions
   const initializeAuth = async () => {
@@ -140,25 +141,13 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     error.value = undefined
 
-    groupStore.reset()
-    tasksStore.clearData()
-    statsStore.clearStats()
-
     try {
       const result = await authRepository.register(payload)
 
       if (result.isSuccess) {
-        token.value = result.data.token
-        user.value = result.data.user
-
-        // Sauvegarder dans le localStorage
-        StorageUtil.setItem(STORAGE_KEYS.TOKEN, result.data.token)
-        StorageUtil.setItem(STORAGE_KEYS.USER, result.data.user)
-
-        // Charger les groupes du nouvel utilisateur
-        await setUserData(result.data.user)
-
-        return { success: true }
+        // On ne connecte plus automatiquement l'utilisateur ici.
+        // On se contente de renvoyer le succès et le message informatif.
+        return { success: true, message: result.message }
       } else {
         error.value = result.message
         return { success: false, error: result.message }
@@ -237,6 +226,25 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const resendConfirmation = async (email: string) => {
+    try {
+      const result = await authRepository.resendConfirmation(email)
+      return {
+        success: result.isSuccess,
+        message:
+          result.data?.message ||
+          result.message ||
+          "Si cette adresse email est enregistrée, un email de confirmation a été envoyé."
+      }
+    } catch {
+      return {
+        success: false,
+        message:
+          "Une erreur est survenue lors de l'envoi de l'email de confirmation."
+      }
+    }
+  }
+
   const clearError = () => {
     error.value = undefined
   }
@@ -251,6 +259,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     userName,
     userEmail,
+    isEmailVerified,
     // Actions
     initializeAuth,
     login,
@@ -258,6 +267,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     fetchProfile,
     updateProfile,
+    resendConfirmation,
     clearError
   }
 })

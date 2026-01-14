@@ -419,6 +419,12 @@ export const useGroupStore = defineStore('group', () => {
   }
 
   const checkGroupAndRedirect = async (userId?: number) => {
+    // Ne pas rediriger automatiquement depuis les pages d'auth (ex: /confirm-email)
+    const currentRoute = router.currentRoute.value
+    if (currentRoute.path === '/confirm-email') {
+      return
+    }
+
     const selectedGroupId = StorageUtil.getItem<string>(STORAGE_KEYS.SELECTED_GROUP_ID)
     if (!selectedGroupId) {
       return

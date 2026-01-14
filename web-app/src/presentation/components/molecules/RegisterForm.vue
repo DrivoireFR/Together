@@ -121,6 +121,10 @@ import AvatarSelector from '@/presentation/components/molecules/AvatarSelector.v
 import type { RegisterPayload } from '@/domain/types'
 import type { Avatar } from '@/shared/types/enums'
 
+const emit = defineEmits<{
+  (e: 'registered', email: string): void
+}>()
+
 const router = useRouter()
 const authStore = useAuthStore()
 
@@ -273,7 +277,7 @@ const handleSubmit = async () => {
     const result = await authStore.register(payload)
     
     if (result.success) {
-      router.push('/groups')
+      emit('registered', form.email.trim())
     }
   }
 }

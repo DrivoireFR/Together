@@ -13,6 +13,34 @@
         avatarSize="lg"
       />
       <div class="profile-info">
+        <div
+          v-if="user"
+          class="profile-info-item full-width"
+        >
+          <span
+            v-if="user.emailVerified"
+            class="badge badge-success"
+          >
+            Email vérifié
+          </span>
+          <div
+            v-else
+            class="email-warning"
+          >
+            <span class="email-warning-text">
+              Votre adresse email n'est pas encore validée.
+            </span>
+            <BaseButton
+              size="sm"
+              variant="outline"
+              :loading="isResending"
+              :disabled="isResending"
+              @click="handleResendConfirmation"
+            >
+              Renvoyer l'email de validation
+            </BaseButton>
+          </div>
+        </div>
         <div class="profile-info-item">
           <span class="profile-info-label">Nom</span>
           <span class="profile-info-value">{{ user?.nom }}</span>
@@ -100,6 +128,7 @@ import BaseInput from '@/presentation/components/atoms/BaseInput.vue'
 const authStore = useAuthStore()
 const user = computed(() => authStore.user)
 const isLoading = computed(() => authStore.isLoading)
+const isResending = ref(false)
 
 const isEditing = ref(false)
 
@@ -112,6 +141,7 @@ const editForm = reactive<UpdateProfilePayload>({
 
 const errors = reactive<Record<string, string>>({})
 const submitError = ref<string>('')
+const resendMessage = ref<string>('')
 
 const startEditing = () => {
   if (!user.value) {
@@ -135,6 +165,20 @@ const cancelEditing = () => {
   errors.prenom = ''
   errors.pseudo = ''
   submitError.value = ''
+}
+
+const handleResendConfirmation = async () => {
+  if (!user.value?.email) return
+  isResending.value = true
+  resendMessage.value = ''
+  try {
+    const result = await authStore.resendConfirmation(user.value.email)
+    resendMessage.value =
+      result?.message ||
+      'Si cette adresse est enregistrée, un email de confirmation a été envoyé.'
+  } finally {
+    isResending.value = false
+  }
 }
 
 const validateForm = (): boolean => {

@@ -95,8 +95,10 @@ import { useRoute } from 'vue-router'
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/vue/24/outline'
 import AuthLayout from '@/presentation/layouts/AuthLayout.vue'
 import { authRepository } from '@/data/repositories/authRepository'
+import { useAuthStore } from '@/domain/stores/authStore'
 
 const route = useRoute()
+const authStore = useAuthStore()
 
 const isLoading = ref(false)
 const isSuccess = ref(false)
@@ -146,7 +148,16 @@ async function confirmEmail() {
 
   if (result.isSuccess) {
     isSuccess.value = true
-    successMessage.value = result.data?.message || 'Votre adresse email a été confirmée avec succès.'
+    
+    // Si l'utilisateur était connecté, on le déconnecte pour forcer une reconnexion
+    // qui récupérera l'état emailVerified à jour
+    const wasAuthenticated = authStore.isAuthenticated
+    if (wasAuthenticated) {
+      authStore.logout()
+      successMessage.value = 'Votre adresse email a été confirmée avec succès. Vous pouvez maintenant vous reconnecter.'
+    } else {
+      successMessage.value = result.data?.message || 'Votre adresse email a été confirmée avec succès.'
+    }
   } else {
     isError.value = true
     errorMessage.value = result.errorMessage || 'Le lien de confirmation est invalide ou a expiré.'
