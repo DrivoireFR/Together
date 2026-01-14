@@ -46,7 +46,7 @@
           </button>
         </div>
         
-        <div class="task-content" @click="handleCardClick">
+        <div class="task-content">
           <div class="task-left">
             <h3 class="task-title">{{ task.label }}</h3>
             <p class="task-frequency">{{ frequencyText }}</p>
@@ -70,14 +70,11 @@
 import { ref, computed, h, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { Task, User } from '@/domain/types'
-import { useConfirmModal, useConfirmModalState } from '@/shared/composables/useConfirmModal'
+import { useConfirmModal } from '@/shared/composables/useConfirmModal'
 import { useTasksStore } from '@/domain/stores/tasksStore'
 import TagChip from '@/presentation/components/atoms/TagChip.vue'
 import BaseButton from '@/presentation/components/atoms/BaseButton.vue'
 import MemberSelectorModal from '@/presentation/components/molecules/MemberSelectorModal.vue'
-import IconComp from '@/presentation/components/atoms/Icon.vue'
-import { Icon } from '@/shared/types/enums'
-import EditTaskForm from '@/presentation/components/molecules/EditTaskForm.vue'
 
 interface Props {
   task: Task
@@ -101,16 +98,14 @@ const containerRef = ref<HTMLElement | null>(null)
 // Swipe state
 const touchStartX = ref(0)
 const touchStartY = ref(0)
+const touchStartTime = ref<number | null>(null)
 const translateXPercent = ref(0)
 const currentDeltaX = ref(0)
 const isSwiping = ref(false)
-const hasMoved = ref(false) // Pour distinguer tap de swipe
-const SWIPE_THRESHOLD = 30 // pixels
+const hasMoved = ref(false) 
+const SWIPE_THRESHOLD = 30 
+const TAP_MAX_DURATION_MS = 200 
 
-// États de swipe :
-// 0 = position initiale (0%)
-// 1 = swipe droite (66.67% = 2/3)
-// 2 = swipe gauche (-33.33% = -1/3)
 const swipeState = ref<0 | 1 | 2>(0)
 
 // Overlay state
@@ -165,6 +160,7 @@ const hurryClass = computed(() => {
 const handleTouchStart = (e: TouchEvent) => {
   touchStartX.value = e.touches[0].clientX
   touchStartY.value = e.touches[0].clientY
+  touchStartTime.value = performance.now()
   hasMoved.value = false
 }
 
@@ -184,37 +180,26 @@ const handleTouchMove = (e: TouchEvent) => {
     isSwiping.value = true
     currentDeltaX.value = deltaX
     
-    // Calculer le pourcentage de déplacement depuis la position de départ du touch
     const deltaPercent = (deltaX / containerWidth) * 100
     
-    // Position de base selon l'état actuel
     const basePercent = swipeState.value === 0 ? 0 : swipeState.value === 1 ? 66.67 : -33.33
     
     if (swipeState.value === 0) {
-      // État initial : on peut swiper vers la droite ou la gauche
       if (deltaX > 0) {
-        // Swipe droite
         translateXPercent.value = Math.min(basePercent + deltaPercent, 66.67) // Max 2/3
       } else {
-        // Swipe gauche depuis état initial
         translateXPercent.value = Math.max(basePercent + deltaPercent, -33.33) // Min -1/3
       }
     } else if (swipeState.value === 1) {
-      // État swipe droite : on peut swiper vers la gauche, revenir à 0, ou rester
       if (deltaX < 0) {
-        // Swipe gauche depuis état 1
         translateXPercent.value = Math.max(basePercent + deltaPercent, -33.33) // Min -1/3
       } else {
-        // Retour vers droite ou position initiale
         translateXPercent.value = Math.min(basePercent + deltaPercent, 66.67)
       }
     } else if (swipeState.value === 2) {
-      // État swipe gauche : on peut revenir vers droite ou position initiale
       if (deltaX > 0) {
-        // Retour vers droite ou position initiale
         translateXPercent.value = Math.min(basePercent + deltaPercent, 66.67)
       } else {
-        // Swipe gauche (mais pas au-delà de -1/3)
         translateXPercent.value = Math.max(basePercent + deltaPercent, -33.33)
       }
     }
@@ -227,12 +212,14 @@ const handleTouchEnd = () => {
   const deltaX = currentDeltaX.value
   const containerWidth = containerRef.value.offsetWidth
   const deltaPercent = (deltaX / containerWidth) * 100
+  const pressDuration =
+    touchStartTime.value !== null ? performance.now() - touchStartTime.value : null
   
-  // Si pas de mouvement, c'est un tap
-  if (!hasMoved.value && Math.abs(deltaX) < 5) {
+  if (!hasMoved.value && Math.abs(deltaX) < 5 && pressDuration !== null && pressDuration < TAP_MAX_DURATION_MS) {
     handleCardTap()
     touchStartX.value = 0
     touchStartY.value = 0
+    touchStartTime.value = null
     currentDeltaX.value = 0
     isSwiping.value = false
     hasMoved.value = false
@@ -240,41 +227,30 @@ const handleTouchEnd = () => {
   }
   
   if (swipeState.value === 0) {
-    // État initial
     if (deltaX > SWIPE_THRESHOLD) {
-      // Swipe droite : aller à l'état 1 (2/3)
       swipeState.value = 1
       translateXPercent.value = 66.67
     } else if (deltaX < -SWIPE_THRESHOLD) {
-      // Swipe gauche : aller à l'état 2 (-1/3)
       swipeState.value = 2
       translateXPercent.value = -33.33
     } else {
-      // Pas assez de swipe : revenir à 0
       translateXPercent.value = 0
     }
   } else if (swipeState.value === 1) {
-    // État swipe droite
     if (deltaX < -SWIPE_THRESHOLD) {
-      // Swipe gauche : aller à l'état 2 (-1/3)
       swipeState.value = 2
       translateXPercent.value = -33.33
     } else if (deltaX < -10) {
-      // Petit swipe gauche : revenir à l'état 0
       swipeState.value = 0
       translateXPercent.value = 0
     } else if (deltaX > SWIPE_THRESHOLD) {
-      // Swipe droite : rester à l'état 1
       translateXPercent.value = 66.67
     } else {
-      // Pas assez de swipe : revenir à l'état 0 (permet de revenir facilement)
       swipeState.value = 0
       translateXPercent.value = 0
     }
   } else if (swipeState.value === 2) {
-    // État swipe gauche
     if (deltaX > SWIPE_THRESHOLD) {
-      // Swipe droite : aller à l'état 1 ou 0 selon la position
       if (translateXPercent.value > 33) {
         swipeState.value = 1
         translateXPercent.value = 66.67
@@ -283,56 +259,31 @@ const handleTouchEnd = () => {
         translateXPercent.value = 0
       }
     } else if (deltaX > 10) {
-      // Petit swipe droite : revenir à l'état 0
       swipeState.value = 0
       translateXPercent.value = 0
     } else if (deltaX < -SWIPE_THRESHOLD) {
-      // Swipe gauche : rester à l'état 2
       translateXPercent.value = -33.33
     } else {
-      // Pas assez de swipe : rester à l'état 2
       translateXPercent.value = -33.33
     }
   }
   
   touchStartX.value = 0
   touchStartY.value = 0
+  touchStartTime.value = null
   currentDeltaX.value = 0
   isSwiping.value = false
   hasMoved.value = false
 }
 
-// Handle card tap (mobile) or click (desktop) to toggle swipe right
 const handleCardTap = () => {
   if (swipeState.value === 0) {
-    // Si on est en position initiale, passer à l'état swipe right
     swipeState.value = 1
     translateXPercent.value = 66.67
   } else {
-    // Sinon, revenir à la position initiale
     swipeState.value = 0
     translateXPercent.value = 0
   }
-}
-
-// Handle card click (desktop) to toggle swipe right
-const handleCardClick = (e: MouseEvent) => {
-  // Ne pas déclencher si on clique sur un bouton d'action ou un élément interactif
-  const target = e.target as HTMLElement
-  
-  // Si on clique sur un élément interactif, ne pas déclencher
-  if (target.closest('.action-button') || 
-      target.closest('.action') ||
-      target.closest('.options-overlay') ||
-      target.closest('.options-button') ||
-      target.closest('a') ||
-      target.tagName === 'BUTTON') {
-    return
-  }
-  
-  // Empêcher la propagation pour éviter les doubles déclenchements
-  e.stopPropagation()
-  handleCardTap()
 }
 
 // Overlay handlers
@@ -614,6 +565,7 @@ const handleDeclareForMember = () => {
 }
 
 .task-left {
+  pointer-events: none;
   flex: 1;
   min-width: 0;
 }
@@ -634,6 +586,7 @@ const handleDeclareForMember = () => {
 }
 
 .task-right {
+  pointer-events: none;
   display: flex;
   align-items: center;
   gap: var(--spacing-2);

@@ -21,18 +21,18 @@
             
             <div v-if="shouldShowFooter" class="modal-footer">
               <button
-                v-if="modalConfig?.cancelLabel !== ''"
-                class="modal-button modal-button--cancel"
-                @click="closeModal"
-              >
-                {{ modalConfig?.cancelLabel || 'Annuler' }}
-              </button>
-              <button
                 v-if="modalConfig?.confirmLabel !== ''"
                 class="modal-button modal-button--confirm"
                 @click="handleConfirm"
               >
                 {{ modalConfig?.confirmLabel || 'Confirmer' }}
+              </button>
+              <button
+                v-if="modalConfig?.cancelLabel !== ''"
+                class="modal-button modal-button--cancel"
+                @click="closeModal"
+              >
+                {{ modalConfig?.cancelLabel || 'Annuler' }}
               </button>
             </div>
           </div>
