@@ -2,7 +2,7 @@
   <div class="action-card">
     <div class="action-content">
       <div class="action-task">
-        <Avatar :avatar="props.action.user.avatar" :username="userDisplayName"/>
+        <Avatar size="sm" :avatar="props.action.user.avatar" :username="userDisplayName"/>
         <h4 class="task-title">{{ action.task.label }}</h4>
       </div>
       <div class="action-meta">
@@ -18,8 +18,8 @@
         @click="onDelete"
         class="delete-button"
         title="Supprimer cette action"
+        v-html="trashSvg"
       >
-        🗑️
       </BaseButton>
     </div>
   </div>
@@ -30,6 +30,7 @@ import { computed } from 'vue'
 import type { Action } from '@/domain/types'
 import { useAuthStore } from '@/domain/stores/authStore'
 import { useTasksStore } from '@/domain/stores/tasksStore'
+import trashSvg from '@/assets/icons/trash.svg?raw'
 import Avatar from './Avatar.vue'
 import BaseButton from './BaseButton.vue'
 
@@ -153,10 +154,11 @@ function onDelete() {
 }
 
 .delete-button {
+  --icon-color: white;
   transition: opacity 0.2s ease;
   padding: var(--spacing-1);
-  width: auto;
-  height: auto;
+  width: 2rem;
+  height: 2rem;
   min-width: auto;
 }
 

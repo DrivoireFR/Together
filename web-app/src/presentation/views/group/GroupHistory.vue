@@ -13,5 +13,7 @@
   </script>
   
   <style scoped>
-  
+  .group-history {
+    height: 100%;
+  }
   </style>
