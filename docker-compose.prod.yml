@@ -4,25 +4,7 @@ services:
       context: ./nest-api
       dockerfile: Dockerfile
       target: production
-      # Timeout global pour le build (30 minutes)
-      args:
-        BUILDKIT_INLINE_CACHE: 1
-        DOCKER_BUILDKIT: 1
     restart: always
-    # Limites de ressources pour éviter la surcharge
-    deploy:
-      resources:
-        limits:
-          cpus: "2"
-          memory: 2G
-        reservations:
-          cpus: "0.5"
-          memory: 512M
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
     ports:
       - 3000
     environment:
@@ -38,44 +20,14 @@ services:
     volumes:
       - api_uploads:/app/public/uploads
       - api_database:/app/data
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:3000/api/health",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 90s
 
   web-app:
     build:
       context: ./web-app
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: /api
-        BUILDKIT_INLINE_CACHE: 1
-        DOCKER_BUILDKIT: 1
+        - VITE_API_BASE_URL=/api
     restart: always
-    # Limites de ressources
-    deploy:
-      resources:
-        limits:
-          cpus: "1.5"
-          memory: 1.5G
-        reservations:
-          cpus: "0.25"
-          memory: 256M
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
     ports:
       - 80
     networks:
@@ -88,20 +40,6 @@ services:
       - "traefik.http.routers.together-webapp-secure.entrypoints=websecure"
       - "traefik.http.routers.together-webapp-secure.tls.certResolver=letsencrypt"
       - "traefik.http.services.together-webapp.loadbalancer.server.port=80"
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:80",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
 volumes:
   api_uploads:
