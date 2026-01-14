@@ -182,7 +182,7 @@ export const useTasksStore = defineStore('tasks', () => {
         }
         const groupId = route.params.id
         const groupRoute = {
-          name: 'GroupHomeCats',
+          name: 'GroupCats',
           params: { id: groupId }
         }
         router.push(groupRoute)
@@ -341,9 +341,9 @@ export const useTasksStore = defineStore('tasks', () => {
             .cancelLabel('')
             .onConfirm(async () => {
               // Naviguer vers la page d'accueil du groupe si on n'y est pas déjà
-              if (route.name !== 'GroupHomeCats') {
+              if (route.name !== 'GroupCats') {
                 await router.push({
-                  name: 'GroupHomeCats',
+                  name: 'GroupCats',
                   params: { id: groupId }
                 })
               }
@@ -439,7 +439,7 @@ export const useTasksStore = defineStore('tasks', () => {
     selectedTagFilter.value = null
     const id = route.params.id
     const GroupRoute = {
-      name: 'GroupHomeCats',
+      name: 'GroupCats',
       params: { id: id }
     }
     router.push(GroupRoute)
@@ -575,9 +575,9 @@ export const useTasksStore = defineStore('tasks', () => {
             .cancelLabel('')
             .onConfirm(async () => {
               // Naviguer vers la page d'accueil du groupe si on n'y est pas déjà
-              if (route.name !== 'GroupHomeCats') {
+              if (route.name !== 'GroupCats') {
                 await router.push({
-                  name: 'GroupHomeCats',
+                  name: 'GroupCats',
                   params: { id: groupId }
                 })
               }

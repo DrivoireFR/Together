@@ -232,7 +232,7 @@ export const useGroupStore = defineStore('group', () => {
   const navigateToGroup = (groupId: number) => {
     StorageUtil.setItem(STORAGE_KEYS.SELECTED_GROUP_ID, String(groupId))
     const groupRoute = {
-      name: 'GroupHomeCats',
+      name: 'GroupCats',
       params: { id: groupId }
     }
     router.push(groupRoute)
@@ -412,7 +412,7 @@ export const useGroupStore = defineStore('group', () => {
     StorageUtil.setItem(STORAGE_KEYS.SELECTED_GROUP_ID, String(id))
 
     const groupRoute = {
-      name: 'GroupHomeCats',
+      name: 'GroupCats',
       params: { id: id }
     }
     router.push(groupRoute)
@@ -439,7 +439,7 @@ export const useGroupStore = defineStore('group', () => {
 
     if (hasAccess) {
       const groupRoute = {
-        name: 'GroupHomeCats',
+        name: 'GroupCats',
         params: { id: Number(selectedGroupId) }
       }
 

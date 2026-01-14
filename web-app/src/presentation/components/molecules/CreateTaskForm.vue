@@ -2,9 +2,6 @@
   <form @submit.prevent="handleSubmit" class="create-task-form">
     <div class="form-header">
       <h2 class="form-title">Créer une nouvelle tâche</h2>
-      <p class="form-description">
-        Définissez les détails de votre tâche et organisez-la avec un tag.
-      </p>
     </div>
 
     <div class="form-content">

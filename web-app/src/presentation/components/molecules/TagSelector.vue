@@ -11,7 +11,7 @@
           type="button"
           :aria-label="`Sélectionner la catégorie ${tag.label}`"
         >
-          <div @click.stop.prevent>
+          <div class="tag-container">
             <TagButton
               :tag="tag"
               :is-selected="modelValue === tag.id"
@@ -112,18 +112,17 @@ const selectTag = (tagId: number | undefined) => {
 }
 
 .tag-item {
-  flex-shrink: 0;
-  border: 2px solid var(--color-gray-300);
+  width: 100px;
+  height: 100px;
+  border: 0;
   border-radius: var(--border-radius-lg);
   background: var(--color-white);
   cursor: pointer;
   transition: all 0.2s ease;
-  padding: var(--spacing-2);
   outline: none;
 }
 
 .tag-item:hover {
-  border-color: var(--color-primary);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -133,13 +132,11 @@ const selectTag = (tagId: number | undefined) => {
 }
 
 .tag-item--selected {
-  border-color: var(--color-primary);
   background: var(--color-primary-light);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .tag-item--none {
-  border-style: dashed;
   min-width: 8rem;
   display: flex;
   align-items: center;
@@ -164,9 +161,14 @@ const selectTag = (tagId: number | undefined) => {
   color: var(--color-primary);
 }
 
-@media (max-width: 640px) {
-  .tag-item {
-    padding: var(--spacing-1);
-  }
+.tag-container {
+  pointer-events: none;
+  height: 100%;
 }
+</style>
+
+<style>
+  .tag-container .tag-chip {
+    height: 100%;
+  }
 </style>

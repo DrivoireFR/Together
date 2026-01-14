@@ -42,7 +42,7 @@ interface MenuItem {
 const items: MenuItem[] = [
 	{
 		route: {
-			name: 'GroupHomeCats',
+			name: 'GroupCats',
 			params: { id: groupId.value }
 		},
 		icon: Icon.Tasks,

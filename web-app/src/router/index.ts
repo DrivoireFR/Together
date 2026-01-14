@@ -46,7 +46,6 @@ const router = createRouter({
       },
       children: [
         {
-          // Onglet \"Tâches\" avec sous-router interne
           path: '',
           component: () => import('@/presentation/views/group/GroupHome.vue'),
           meta: {
@@ -55,8 +54,8 @@ const router = createRouter({
           children: [
             {
               path: '',
-              name: 'GroupHomeCats',
-              component: () => import('@/presentation/views/group/GroupHomeCats.vue'),
+              name: 'GroupCats',
+              component: () => import('@/presentation/views/group/GroupCats.vue'),
               meta: {
                 requiresAuth: true,
               }

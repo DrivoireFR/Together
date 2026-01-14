@@ -32,7 +32,7 @@ const handleSuccess = () => {
     .confirmLabel('Retour aux tâches')
     .onConfirm(() => {
       router.push({ 
-        name: 'GroupHomeCats', 
+        name: 'GroupCats', 
         params: { id: groupId.value } 
       })
     })
