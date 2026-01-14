@@ -68,11 +68,6 @@
       </div>
 
       <div class="profile-edit-content">
-        <AvatarSelector
-          v-model="editForm.avatar"
-          label="Avatar"
-          avatarSize="md"
-        />
         <BaseInput
           v-model="editForm.nom"
           label="Nom"
@@ -90,6 +85,12 @@
           label="Pseudo"
           required
           :error="errors.pseudo"
+        />
+
+        <AvatarSelector
+          v-model="editForm.avatar"
+          label="Avatar"
+          avatarSize="md"
         />
       </div>
 
