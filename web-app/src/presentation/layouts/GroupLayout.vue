@@ -17,6 +17,8 @@ import BottomNav from './BottomNav.vue'
 
 <style scoped>
   .group-layout {
+    --status-bar-offset: env(safe-area-inset-top);
+    margin-top: var(--status-bar-offset);
     height: 100vh;
 
     display: flex;
@@ -31,8 +33,9 @@ import BottomNav from './BottomNav.vue'
 
 
 <style>
-body.iphone .group-layout {
-  --status-bar-offset: 60px;
+/* body.iphone .group-layout {
+  --status-bar-offset: env(safe-area-inset-top);
+  margin-top: var(--status-bar-offset);
   height: calc(100vh - var(--status-bar-offset));
-}  
+}   */
 </style>
