@@ -71,7 +71,9 @@
   
   <style scoped>
   .group-tasks-container {
-    padding: var(--spacing-4);
+    height: 100%;
+    overflow-y: scroll;
+    padding: var(--spacing-4) var(--spacing-4) 4rem var(--spacing-4);
   }
 
   .task-list-header {

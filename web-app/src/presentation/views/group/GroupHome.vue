@@ -36,13 +36,12 @@ const goToAddSelection = () => {
   position: relative;
   width: 100%;
   height: 100%;
-  padding-bottom: 4rem;
 }
 
 .fab {
   --fab-offset: calc(var(--bottom-nav-bar-height) + 4.5rem );
-  position: fixed;
-  top: calc(100dvh - var(--fab-offset));
+  position: absolute;
+  bottom: 1rem;
   right: 1rem;
   width: 3.5rem;
   height: 3.5rem;
