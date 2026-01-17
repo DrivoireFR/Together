@@ -1,6 +1,11 @@
 <script setup lang="ts">
-// Application principale - la logique est gérée par les stores et vues individuelles
 import ConfirmModal from '@/presentation/components/molecules/ConfirmModal.vue'
+import { onMounted } from 'vue';
+
+onMounted(() => {
+  const platform = navigator.platform;
+  document.body.classList.add(platform)
+})
 </script>
 
 <template>

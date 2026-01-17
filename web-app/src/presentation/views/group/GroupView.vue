@@ -78,7 +78,7 @@ onMounted(async () => {
 .content {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--bottom-nav-bar-height));
+  height: 100%;
   background: white;
 }
 

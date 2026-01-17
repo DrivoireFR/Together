@@ -17,7 +17,8 @@ import BottomNav from './BottomNav.vue'
 
 <style scoped>
   .group-layout {
-    height: 100dvh;
+    height: 100vh;
+
     display: flex;
     flex-direction: column;
   }
@@ -26,5 +27,12 @@ import BottomNav from './BottomNav.vue'
     flex: 1;
     height: 100%;
   }
+</style>
 
+
+<style>
+body.iphone .group-layout {
+  --status-bar-offset: 60px;
+  height: calc(100vh - var(--status-bar-offset));
+}  
 </style>
