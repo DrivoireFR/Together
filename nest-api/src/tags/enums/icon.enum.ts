@@ -38,4 +38,8 @@ export enum Icon {
     Urgent = 'Urgent',
     Add = 'Add',
     Paw = "Patoune",
+    Options = "Options",
+    Plants = "Plantes",
+    Clean = "Nettoyage",
+    Trash = "Poubelles",
 }

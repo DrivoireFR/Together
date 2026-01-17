@@ -23,6 +23,9 @@
     import addSvg from '@/assets/icons/add.svg?raw'
     import dotsSvg from '@/assets/icons/dots.svg?raw'
     import pawSvg from '@/assets/icons/paw.svg?raw'
+    import plantSvg from '@/assets/icons/plant.svg?raw'
+    import cleanSvg from '@/assets/icons/clean.svg?raw'
+    import trashSvg from '@/assets/icons/trash.svg?raw'
     import { Icon } from '@/shared/types/enums'
 
     const props = defineProps<{
@@ -45,7 +48,10 @@
         [Icon.Urgent]: urgentSvg,
         [Icon.Add]: addSvg,
         [Icon.Options]: dotsSvg,
-        [Icon.Paw]: pawSvg
+        [Icon.Paw]: pawSvg,
+        [Icon.Clean]: cleanSvg,
+        [Icon.Plants]: plantSvg,
+        [Icon.Trash]: trashSvg,
     }
 
 const svgContent = computed(() => svgMap[props.icon] || null)

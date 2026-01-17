@@ -23,6 +23,9 @@ export enum Icon {
     Add = "Ajouter",
     Options = "Options",
     Paw = "Patoune",
+    Plants = "Plantes",
+    Clean = "Nettoyage",
+    Trash = "Poubelles",
 }
 
 /**
