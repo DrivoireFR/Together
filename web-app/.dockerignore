@@ -1,0 +1,61 @@
+# Dépendances
+node_modules
+npm-debug.log*
+
+# Distribution et builds
+dist
+coverage
+
+# Environnement
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Tests
+test
+*.spec.ts
+jest.config.js
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Database locale
+database.sqlite
+
+# ESLint
+eslint.config.mjs
+.eslintrc*
+
+# TypeScript (gardons les tsconfig car nécessaires pour le build)
+# tsconfig*.json
+
+# Documentation
+README.md
+*.md

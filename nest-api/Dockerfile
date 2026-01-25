@@ -13,13 +13,9 @@ WORKDIR /app
 COPY package*.json ./
 
 # Installer toutes les dépendances avec timeout et retry
-RUN npm config set fetch-timeout 300000 && \
-    npm config set fetch-retries 3 && \
-    npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    timeout 600 npm ci --maxsockets 1 --prefer-offline --no-audit || \
-    (echo "npm ci failed, retrying..." && sleep 10 && timeout 600 npm ci --maxsockets 1 --prefer-offline --no-audit) && \
-    npm cache clean --force
+RUN npm cache clean --force
+
+RUN npm ci
 
 # Copier le code source
 COPY . .
@@ -37,15 +33,10 @@ EXPOSE 3000
 ENV NODE_ENV=development
 ENV PORT=3000
 
-# Commande de démarrage en mode développement avec hot reload
-ENTRYPOINT ["dumb-init", "--"]
 CMD ["npm", "run", "start:dev"]
 
 # Stage de builder
 FROM node:20-alpine AS builder
-
-# Installer timeout et coreutils
-RUN apk add --no-cache coreutils
 
 # Définir le répertoire de travail
 WORKDIR /app
@@ -54,25 +45,18 @@ WORKDIR /app
 COPY package*.json ./
 
 # Installer toutes les dépendances avec timeout et retry
-RUN npm config set fetch-timeout 300000 && \
-    npm config set fetch-retries 3 && \
-    npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    timeout 600 npm ci --maxsockets 1 --prefer-offline --no-audit || \
-    (echo "npm ci failed, retrying..." && sleep 10 && timeout 600 npm ci --maxsockets 1 --prefer-offline --no-audit) && \
-    npm cache clean --force
+RUN npm cache clean --force
+
+RUN npm ci
 
 # Copier le code source
 COPY . .
 
 # Construire l'application avec timeout (15 minutes)
-RUN timeout 900 npm run build || (echo "Build failed or timed out" && exit 1)
+RUN npm run build
 
 # Stage de production
 FROM node:20-alpine AS production
-
-# Installer dumb-init et timeout
-RUN apk add --no-cache dumb-init coreutils
 
 # Créer un utilisateur non-root
 RUN addgroup -g 1001 -S nodejs && \
@@ -85,13 +69,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Installer uniquement les dépendances de production avec timeout
-RUN npm config set fetch-timeout 300000 && \
-    npm config set fetch-retries 3 && \
-    npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    timeout 600 npm ci --only=production --maxsockets 1 --prefer-offline --no-audit || \
-    (echo "npm ci failed, retrying..." && sleep 10 && timeout 600 npm ci --only=production --maxsockets 1 --prefer-offline --no-audit) && \
-    npm cache clean --force
+RUN npm cache clean --force
 
 # Créer le répertoire pour la base de données avec les bonnes permissions
 RUN mkdir -p /app/data && chown nestjs:nodejs /app/data
@@ -124,6 +102,4 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Commande de démarrage avec dumb-init
-ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "dist/main.js"]
