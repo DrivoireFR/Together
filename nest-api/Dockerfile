@@ -71,6 +71,8 @@ COPY package*.json ./
 # Installer uniquement les dépendances de production avec timeout
 RUN npm cache clean --force
 
+RUN npm ci --omit=dev
+
 # Créer le répertoire pour la base de données avec les bonnes permissions
 RUN mkdir -p /app/data && chown nestjs:nodejs /app/data
 
