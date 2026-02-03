@@ -23,8 +23,6 @@ services:
       - PORT=3000
       - CORS_ORIGINS=${CORS_ORIGINS}
       - NODE_ENV=production
-    networks:
-      - dokploy-network
     volumes:
       - api_uploads:/app/public/uploads
       - api_database:/app/data
@@ -38,8 +36,6 @@ services:
     restart: always
     ports:
       - 80
-    networks:
-      - dokploy-network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.together-webapp.rule=Host(`to-get-there.creative-developer.com`)"
@@ -56,5 +52,6 @@ volumes:
     driver: local
 
 networks:
-  dokploy-network:
-    external: true
+  default:
+    name: dokploy-network
+    # external: true
