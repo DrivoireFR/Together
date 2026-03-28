@@ -2,7 +2,10 @@ import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { StatsService } from './stats.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { Timeout, TimeoutValues } from '../common/decorators/timeout.decorator';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Stats')
+@ApiBearerAuth()
 @Controller('stats')
 export class StatsController {
   constructor(private readonly statsService: StatsService) {}

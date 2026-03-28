@@ -15,7 +15,9 @@ import { UpdateTagDto } from './dto/update-tag.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import type { RequestWithUser } from '../auth/types';
 import { Timeout, TimeoutValues } from '../common/decorators/timeout.decorator';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Tags')
 @Controller('tags')
 export class TagsController {
   constructor(private readonly tagsService: TagsService) { }

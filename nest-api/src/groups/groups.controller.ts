@@ -20,7 +20,9 @@ import { AddTasksDto } from './dto/add-tasks.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import type { RequestWithUser } from '../auth/types';
 import { Timeout, TimeoutValues } from '../common/decorators/timeout.decorator';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Groups')
 @Controller('groups')
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) { }
