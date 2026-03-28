@@ -1,0 +1,39 @@
+{
+  "name": "mobile-app",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "generate:api-types": "npx openapi-typescript ../nest-api/swagger.json -o src/api/generated/schema.ts"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^3.0.2",
+    "@react-navigation/bottom-tabs": "^7.15.8",
+    "@react-navigation/native": "^7.2.1",
+    "@react-navigation/native-stack": "^7.14.9",
+    "axios": "^1.14.0",
+    "expo": "55.0.10-canary-20260328-2049187",
+    "expo-clipboard": "55.0.10-canary-20260328-2049187",
+    "expo-constants": "55.0.10-canary-20260328-2049187",
+    "expo-linking": "55.0.10-canary-20260328-2049187",
+    "expo-router": "55.0.9-canary-20260328-2049187",
+    "expo-secure-store": "55.0.10-canary-20260328-2049187",
+    "expo-status-bar": "55.0.5-canary-20260328-2049187",
+    "react": "19.2.0",
+    "react-native": "0.83.4",
+    "react-native-gesture-handler": "~2.30.0",
+    "react-native-reanimated": "4.2.1",
+    "react-native-safe-area-context": "~5.6.2",
+    "react-native-screens": "~4.23.0",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "~5.9.2"
+  },
+  "private": true
+}
