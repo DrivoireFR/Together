@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { join } from 'path';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
@@ -46,6 +47,18 @@ async function bootstrap() {
 
   // Global validation pipe
   app.useGlobalPipes(new CustomValidationPipe());
+
+  // Swagger / OpenAPI
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Together API')
+    .setDescription('Together - Manage life tasks together equally')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, document, {
+    jsonDocumentUrl: 'api/docs-json',
+  });
 
   // Static assets
   app.useStaticAssets(join(__dirname, '..', 'public'));

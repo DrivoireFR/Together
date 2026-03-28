@@ -11,7 +11,10 @@ import {
 import { AchievementsService } from './achievements.service';
 import { CreateAchievementDto } from './dto/create-achievement.dto';
 import { AuthGuard } from '../auth/auth.guard';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Achievements')
+@ApiBearerAuth()
 @Controller('achievements')
 export class AchievementsController {
   constructor(private readonly achievementsService: AchievementsService) {}

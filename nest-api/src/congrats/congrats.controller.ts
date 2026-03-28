@@ -12,7 +12,10 @@ import { CongratsService } from './congrats.service';
 import { CreateCongratsDto } from './dto/create-congrats.dto';
 import { UpdateCongratsDto } from './dto/update-congrats.dto';
 import { AuthGuard } from '../auth/auth.guard';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Congrats')
+@ApiBearerAuth()
 @Controller('congrats')
 export class CongratsController {
   constructor(private readonly congratsService: CongratsService) {}

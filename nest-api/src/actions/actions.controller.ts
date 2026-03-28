@@ -16,7 +16,9 @@ import { CreateActionDto } from './dto/create-action.dto';
 import { UpdateActionDto } from './dto/update-action.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import type { RequestWithUser } from '../auth/types';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Actions')
 @Controller('actions')
 export class ActionsController {
   constructor(private readonly actionsService: ActionsService) {}

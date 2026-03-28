@@ -9,7 +9,10 @@ import {
 import { ActionsService } from './actions.service';
 import { AuthGuard } from '../auth/auth.guard';
 import type { RequestWithUser } from '../auth/types';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Action Acknowledgments')
+@ApiBearerAuth()
 @Controller('actions/acknowledgments')
 @UseGuards(AuthGuard)
 export class ActionAcknowledgmentController {
