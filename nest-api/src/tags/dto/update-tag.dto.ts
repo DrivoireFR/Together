@@ -8,7 +8,10 @@ export class UpdateTagDto {
   @IsNotEmpty()
   label?: string;
 
-  @ApiPropertyOptional({ description: 'Couleur hexadécimale', example: '#33FF57' })
+  @ApiPropertyOptional({
+    description: 'Couleur hexadécimale',
+    example: '#33FF57',
+  })
   @IsOptional()
   @IsHexColor()
   color?: string;

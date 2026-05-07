@@ -43,7 +43,9 @@ export class ActionsService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('Utilisateur non trouvé');
     if (!user.groupId) {
-      throw new ForbiddenException('Vous devez appartenir à un groupe pour déclarer une action');
+      throw new ForbiddenException(
+        'Vous devez appartenir à un groupe pour déclarer une action',
+      );
     }
 
     const task = await this.taskRepository.findOne({
@@ -53,7 +55,9 @@ export class ActionsService {
     if (!task) throw new NotFoundException('Tâche non trouvée');
 
     if (task.group.id !== user.groupId) {
-      throw new ForbiddenException("Vous n'êtes pas membre du groupe de cette tâche");
+      throw new ForbiddenException(
+        "Vous n'êtes pas membre du groupe de cette tâche",
+      );
     }
 
     const action = new Action();
@@ -157,7 +161,11 @@ export class ActionsService {
   }
 
   async findMyActions(userId: number, options: ActionsPaginationOptions = {}) {
-    return this.findByUserId(userId, options, 'Mes actions récupérées avec succès');
+    return this.findByUserId(
+      userId,
+      options,
+      'Mes actions récupérées avec succès',
+    );
   }
 
   async findByUserId(
@@ -298,7 +306,9 @@ export class ActionsService {
     if (!action) throw new NotFoundException('Action non trouvée');
 
     if (action.user.id !== userId) {
-      throw new ForbiddenException('Vous ne pouvez modifier que vos propres actions');
+      throw new ForbiddenException(
+        'Vous ne pouvez modifier que vos propres actions',
+      );
     }
 
     if (updateActionDto.date) action.date = new Date(updateActionDto.date);
@@ -319,7 +329,9 @@ export class ActionsService {
     if (!action) throw new NotFoundException('Action non trouvée');
 
     if (action.user.id !== userId) {
-      throw new ForbiddenException('Vous ne pouvez supprimer que vos propres actions');
+      throw new ForbiddenException(
+        'Vous ne pouvez supprimer que vos propres actions',
+      );
     }
 
     await this.actionRepository.remove(action);

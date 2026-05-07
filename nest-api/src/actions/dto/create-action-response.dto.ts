@@ -71,6 +71,9 @@ export class CreateActionResponseDto {
   @ApiProperty({ type: ActionDetailDto })
   action: ActionDetailDto;
 
-  @ApiProperty({ description: 'Total des points réalisés ce mois', example: 42 })
+  @ApiProperty({
+    description: 'Total des points réalisés ce mois',
+    example: 42,
+  })
   totalDone: number;
 }

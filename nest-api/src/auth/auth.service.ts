@@ -33,7 +33,9 @@ export class AuthService {
     private mailService: MailService,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<{ message: string; email: string }> {
+  async register(
+    registerDto: RegisterDto,
+  ): Promise<{ message: string; email: string }> {
     this.logger.log(`Registration attempt for email: ${registerDto.email}`);
 
     const existingUser = await this.usersRepository.findOne({
@@ -41,7 +43,9 @@ export class AuthService {
     });
 
     if (existingUser) {
-      this.logger.warn(`Registration failed: user already exists (${registerDto.email})`);
+      this.logger.warn(
+        `Registration failed: user already exists (${registerDto.email})`,
+      );
       throw new UserAlreadyExistsException();
     }
 
@@ -55,7 +59,9 @@ export class AuthService {
 
     const otpCode = this.generateOtp();
     user.otpCode = this.hashOtp(otpCode);
-    user.otpExpiresAt = new Date(Date.now() + AuthService.OTP_EXPIRY_MINUTES * 60 * 1000);
+    user.otpExpiresAt = new Date(
+      Date.now() + AuthService.OTP_EXPIRY_MINUTES * 60 * 1000,
+    );
 
     await this.usersRepository.save(user);
 
@@ -77,13 +83,16 @@ export class AuthService {
     if (!user) {
       this.logger.warn(`OTP request for non-existent email: ${email}`);
       return {
-        message: 'Si cette adresse email est enregistrée, un code OTP a été envoyé.',
+        message:
+          'Si cette adresse email est enregistrée, un code OTP a été envoyé.',
       };
     }
 
     const otpCode = this.generateOtp();
     user.otpCode = this.hashOtp(otpCode);
-    user.otpExpiresAt = new Date(Date.now() + AuthService.OTP_EXPIRY_MINUTES * 60 * 1000);
+    user.otpExpiresAt = new Date(
+      Date.now() + AuthService.OTP_EXPIRY_MINUTES * 60 * 1000,
+    );
 
     await this.usersRepository.save(user);
 
@@ -92,14 +101,19 @@ export class AuthService {
     this.logger.log(`OTP sent to: ${user.email}`);
 
     return {
-      message: 'Si cette adresse email est enregistrée, un code OTP a été envoyé.',
+      message:
+        'Si cette adresse email est enregistrée, un code OTP a été envoyé.',
     };
   }
 
   async verifyOtp(
     email: string,
     code: string,
-  ): Promise<{ message: string; token: string; user: Record<string, unknown> }> {
+  ): Promise<{
+    message: string;
+    token: string;
+    user: Record<string, unknown>;
+  }> {
     this.logger.log(`OTP verification attempt for: ${email}`);
 
     const user = await this.usersRepository.findOne({ where: { email } });
@@ -111,12 +125,16 @@ export class AuthService {
 
     if (!user.otpCode || !user.otpExpiresAt) {
       this.logger.warn(`OTP verification failed: no OTP pending for ${email}`);
-      throw new BadRequestException('Aucun code OTP en attente. Veuillez en demander un nouveau.');
+      throw new BadRequestException(
+        'Aucun code OTP en attente. Veuillez en demander un nouveau.',
+      );
     }
 
     if (new Date() > user.otpExpiresAt) {
       this.logger.warn(`OTP verification failed: expired for ${email}`);
-      throw new BadRequestException('Le code OTP a expiré. Veuillez en demander un nouveau.');
+      throw new BadRequestException(
+        'Le code OTP a expiré. Veuillez en demander un nouveau.',
+      );
     }
 
     const hashedCode = this.hashOtp(code);
@@ -152,7 +170,9 @@ export class AuthService {
     };
   }
 
-  async getProfile(userId: number): Promise<{ message: string; user: Record<string, unknown> }> {
+  async getProfile(
+    userId: number,
+  ): Promise<{ message: string; user: Record<string, unknown> }> {
     const user = await this.usersRepository.findOne({
       where: { id: userId },
       relations: ['group'],
@@ -168,9 +188,11 @@ export class AuthService {
     };
   }
 
-  async refreshToken(
-    userId: number,
-  ): Promise<{ message: string; user: Record<string, unknown>; token: string }> {
+  async refreshToken(userId: number): Promise<{
+    message: string;
+    user: Record<string, unknown>;
+    token: string;
+  }> {
     const user = await this.usersRepository.findOne({
       where: { id: userId },
     });
@@ -205,7 +227,8 @@ export class AuthService {
     };
 
     const expiresIn =
-      this.configService.get<string>('JWT_EXPIRES_IN') || jwtConstants.expiresIn;
+      this.configService.get<string>('JWT_EXPIRES_IN') ||
+      jwtConstants.expiresIn;
 
     return this.jwtService.signAsync(payload, { expiresIn });
   }
@@ -215,11 +238,16 @@ export class AuthService {
   }
 
   private sanitizeUser(user: User): Record<string, unknown> {
-    const { otpCode: _otp, otpExpiresAt: _otpExp, ...sanitized } = user;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { otpCode, otpExpiresAt, ...sanitized } = user;
     return sanitized;
   }
 
-  private async sendOtpEmail(email: string, firstName: string, otpCode: string): Promise<void> {
+  private async sendOtpEmail(
+    email: string,
+    firstName: string,
+    otpCode: string,
+  ): Promise<void> {
     try {
       await this.mailService.sendOtpEmail(email, firstName, otpCode);
       this.logger.log(`OTP email sent to: ${email}`);

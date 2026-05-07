@@ -35,7 +35,9 @@ export class ActionsController {
 
   @Post()
   @Throttle({ default: { limit: 30, ttl: 60000 } })
-  @ApiOperation({ summary: 'Déclarer une action (toujours pour l\'utilisateur connecté)' })
+  @ApiOperation({
+    summary: "Déclarer une action (toujours pour l'utilisateur connecté)",
+  })
   @ApiResponse({ status: 201, type: CreateActionResponseDto })
   create(
     @Body() createActionDto: CreateActionDto,
@@ -86,7 +88,7 @@ export class ActionsController {
   }
 
   @Get('user/:userId')
-  @ApiOperation({ summary: 'Lister les actions d\'un utilisateur' })
+  @ApiOperation({ summary: "Lister les actions d'un utilisateur" })
   @ApiParam({ name: 'userId', type: Number })
   findByUserId(
     @Param('userId') userId: string,
@@ -106,7 +108,7 @@ export class ActionsController {
   }
 
   @Get('group/:groupId')
-  @ApiOperation({ summary: 'Lister les actions d\'un groupe' })
+  @ApiOperation({ summary: "Lister les actions d'un groupe" })
   @ApiParam({ name: 'groupId', type: Number })
   findByGroupId(
     @Param('groupId') groupId: string,

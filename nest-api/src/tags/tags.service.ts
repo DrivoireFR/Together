@@ -62,7 +62,9 @@ export class TagsService {
       where: { label: createTagDto.label, group: { id: createTagDto.groupId } },
     });
     if (existingTag) {
-      throw new BadRequestException('Un tag avec ce nom existe déjà dans ce groupe');
+      throw new BadRequestException(
+        'Un tag avec ce nom existe déjà dans ce groupe',
+      );
     }
 
     const tag = new Tag();
@@ -121,7 +123,9 @@ export class TagsService {
         where: { label: updateTagDto.label, group: { id: tag.group.id } },
       });
       if (existingTag) {
-        throw new BadRequestException('Un tag avec ce nom existe déjà dans ce groupe');
+        throw new BadRequestException(
+          'Un tag avec ce nom existe déjà dans ce groupe',
+        );
       }
     }
 
@@ -148,7 +152,9 @@ export class TagsService {
 
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
-        reject(new Error(`Transaction timeout after ${this.TRANSACTION_TIMEOUT}ms`));
+        reject(
+          new Error(`Transaction timeout after ${this.TRANSACTION_TIMEOUT}ms`),
+        );
       }, this.TRANSACTION_TIMEOUT);
     });
 

@@ -53,7 +53,12 @@ export class TasksService {
         code: task.group.code,
       },
       tag: task.tag
-        ? { id: task.tag.id, label: task.tag.label, color: task.tag.color, icon: task.tag.icon }
+        ? {
+            id: task.tag.id,
+            label: task.tag.label,
+            color: task.tag.color,
+            icon: task.tag.icon,
+          }
         : null,
       createdAt: task.createdAt,
       updatedAt: task.updatedAt,
@@ -69,10 +74,15 @@ export class TasksService {
     if (!group) throw new NotFoundException('Groupe non trouvé');
 
     const existingTask = await this.taskRepository.findOne({
-      where: { label: createTaskDto.label, group: { id: createTaskDto.groupId } },
+      where: {
+        label: createTaskDto.label,
+        group: { id: createTaskDto.groupId },
+      },
     });
     if (existingTask) {
-      throw new BadRequestException('Une tâche avec ce nom existe déjà dans ce groupe');
+      throw new BadRequestException(
+        'Une tâche avec ce nom existe déjà dans ce groupe',
+      );
     }
 
     let tag: Tag | undefined = undefined;
@@ -83,7 +93,9 @@ export class TasksService {
       });
       if (!foundTag) throw new NotFoundException('Tag non trouvé');
       if (foundTag.group.id !== createTaskDto.groupId) {
-        throw new BadRequestException('Le tag doit appartenir au même groupe que la tâche');
+        throw new BadRequestException(
+          'Le tag doit appartenir au même groupe que la tâche',
+        );
       }
       tag = foundTag;
     }
@@ -91,14 +103,17 @@ export class TasksService {
     const task = new Task();
     task.label = createTaskDto.label;
     task.frequenceEstimee = createTaskDto.frequenceEstimee;
-    task.uniteFrequence = (createTaskDto.uniteFrequence as FrequencyUnit) || FrequencyUnit.SEMAINE;
+    task.uniteFrequence =
+      (createTaskDto.uniteFrequence as FrequencyUnit) || FrequencyUnit.SEMAINE;
     task.group = group;
     task.tag = tag;
     task.points = createTaskDto.points || 1;
 
     await this.taskRepository.save(task);
 
-    this.logger.log(`Task created: ${task.id} "${task.label}" in group ${group.id}`);
+    this.logger.log(
+      `Task created: ${task.id} "${task.label}" in group ${group.id}`,
+    );
 
     const createdTask = await this.taskRepository.findOne({
       where: { id: task.id },
@@ -158,8 +173,10 @@ export class TasksService {
 
     if (currentMonthOnly) {
       queryBuilder.leftJoinAndSelect(
-        'task.actions', 'actions',
-        'actions.date >= :firstOfMonth', { firstOfMonth: this.getFirstOfMonth() },
+        'task.actions',
+        'actions',
+        'actions.date >= :firstOfMonth',
+        { firstOfMonth: this.getFirstOfMonth() },
       );
     } else {
       queryBuilder.leftJoinAndSelect('task.actions', 'actions');
@@ -188,14 +205,18 @@ export class TasksService {
       });
       if (!foundTag) throw new NotFoundException('Tag non trouvé');
       if (foundTag.group.id !== task.group.id) {
-        throw new BadRequestException('Le tag doit appartenir au même groupe que la tâche');
+        throw new BadRequestException(
+          'Le tag doit appartenir au même groupe que la tâche',
+        );
       }
       tag = foundTag;
     }
 
     if (updateTaskDto.label) task.label = updateTaskDto.label;
-    if (updateTaskDto.frequenceEstimee) task.frequenceEstimee = updateTaskDto.frequenceEstimee;
-    if (updateTaskDto.uniteFrequence) task.uniteFrequence = updateTaskDto.uniteFrequence as FrequencyUnit;
+    if (updateTaskDto.frequenceEstimee)
+      task.frequenceEstimee = updateTaskDto.frequenceEstimee;
+    if (updateTaskDto.uniteFrequence)
+      task.uniteFrequence = updateTaskDto.uniteFrequence as FrequencyUnit;
     if (updateTaskDto.tagId !== undefined) task.tag = tag;
     if (updateTaskDto.points !== undefined) task.points = updateTaskDto.points;
 
@@ -213,7 +234,8 @@ export class TasksService {
   }
 
   async remove(id: number, userId: number) {
-    const queryRunner = this.taskRepository.manager.connection.createQueryRunner();
+    const queryRunner =
+      this.taskRepository.manager.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 

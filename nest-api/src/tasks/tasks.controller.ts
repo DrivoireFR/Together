@@ -34,8 +34,14 @@ export class TasksController {
   @Post()
   @ApiOperation({ summary: 'Créer une tâche dans un groupe' })
   @ApiResponse({ status: 201, description: 'Tâche créée avec succès' })
-  @ApiResponse({ status: 400, description: 'Nom de tâche déjà existant dans le groupe' })
-  create(@Body() createTaskDto: CreateTaskDto, @Request() req: RequestWithUser) {
+  @ApiResponse({
+    status: 400,
+    description: 'Nom de tâche déjà existant dans le groupe',
+  })
+  create(
+    @Body() createTaskDto: CreateTaskDto,
+    @Request() req: RequestWithUser,
+  ) {
     return this.tasksService.create(createTaskDto, req.user.userId);
   }
 

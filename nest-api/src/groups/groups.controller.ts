@@ -38,9 +38,14 @@ export class GroupsController {
 
   @Post()
   @Throttle({ default: { limit: 3, ttl: 60000 } })
-  @ApiOperation({ summary: 'Créer un groupe (interdit si déjà dans un groupe)' })
+  @ApiOperation({
+    summary: 'Créer un groupe (interdit si déjà dans un groupe)',
+  })
   @ApiResponse({ status: 201, description: 'Groupe créé avec succès' })
-  @ApiResponse({ status: 400, description: 'Déjà dans un groupe ou nom existant' })
+  @ApiResponse({
+    status: 400,
+    description: 'Déjà dans un groupe ou nom existant',
+  })
   create(
     @Body() createGroupDto: CreateGroupDto,
     @Request() req: RequestWithUser,
@@ -95,7 +100,11 @@ export class GroupsController {
     @Body() joinGroupDto: JoinGroupDto,
     @Request() req: RequestWithUser,
   ) {
-    return this.groupsService.joinGroup(+id, req.user.userId, joinGroupDto.code);
+    return this.groupsService.joinGroup(
+      +id,
+      req.user.userId,
+      joinGroupDto.code,
+    );
   }
 
   @Post(':id/leave')

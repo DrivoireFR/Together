@@ -33,7 +33,7 @@ export class StarterPackService {
     private tagRepository: Repository<Tag>,
     @InjectRepository(Task)
     private taskRepository: Repository<Task>,
-  ) { }
+  ) {}
 
   getDefaultStarterPackData() {
     return (starterPackData as any).defaultStarterPack;

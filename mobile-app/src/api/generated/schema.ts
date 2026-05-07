@@ -29,6 +29,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Créer un compte et envoyer un code OTP par email */
         post: operations["AuthController_register"];
         delete?: never;
         options?: never;
@@ -36,7 +37,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/login": {
+    "/api/auth/request-otp": {
         parameters: {
             query?: never;
             header?: never;
@@ -45,30 +46,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["AuthController_login"];
+        /** Demander un code OTP par email (login ou renvoi) */
+        post: operations["AuthController_requestOtp"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/auth/confirm-email": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_confirmEmail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/resend-confirmation": {
+    "/api/auth/verify-otp": {
         parameters: {
             query?: never;
             header?: never;
@@ -77,7 +63,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["AuthController_resendConfirmation"];
+        /** Vérifier le code OTP et obtenir un JWT */
+        post: operations["AuthController_verifyOtp"];
         delete?: never;
         options?: never;
         head?: never;
@@ -91,23 +78,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Vérifier la validité du token JWT */
         get: operations["AuthController_verifyToken"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/remember-me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_rememberMe"];
         put?: never;
         post?: never;
         delete?: never;
@@ -123,6 +95,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Récupérer le profil de l'utilisateur connecté */
         get: operations["AuthController_getProfile"];
         put?: never;
         post?: never;
@@ -132,7 +105,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/forgot-password": {
+    "/api/auth/refresh": {
         parameters: {
             query?: never;
             header?: never;
@@ -141,55 +114,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["AuthController_forgotPassword"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/reset-password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_getResetPassword"];
-        put?: never;
-        post: operations["AuthController_postResetPassword"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/change-password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["AuthController_changePassword"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["UsersController_findAll"];
-        put?: never;
-        post?: never;
+        /** Renouveler le token JWT */
+        post: operations["AuthController_refreshToken"];
         delete?: never;
         options?: never;
         head?: never;
@@ -203,7 +129,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Récupérer son propre profil avec le groupe */
         get: operations["UsersController_getProfile"];
+        /** Mettre à jour son profil */
         put: operations["UsersController_updateProfile"];
         post?: never;
         delete?: never;
@@ -219,9 +147,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Récupérer un utilisateur par son ID */
         get: operations["UsersController_findOne"];
         put?: never;
         post?: never;
+        /** Supprimer un utilisateur */
         delete: operations["UsersController_remove"];
         options?: never;
         head?: never;
@@ -235,8 +165,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Lister tous les groupes (paginé) */
         get: operations["GroupsController_findAll"];
         put?: never;
+        /** Créer un groupe (interdit si déjà dans un groupe) */
         post: operations["GroupsController_create"];
         delete?: never;
         options?: never;
@@ -251,23 +183,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Rechercher un groupe par nom */
         get: operations["GroupsController_searchByName"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/groups/user/{userId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["GroupsController_findUserGroups"];
         put?: never;
         post?: never;
         delete?: never;
@@ -283,9 +200,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Récupérer un groupe avec ses tâches et membres */
         get: operations["GroupsController_findOne"];
+        /** Modifier un groupe */
         put: operations["GroupsController_update"];
         post?: never;
+        /** Supprimer un groupe (si aucune donnée liée) */
         delete: operations["GroupsController_remove"];
         options?: never;
         head?: never;
@@ -299,6 +219,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Récupérer les tâches urgentes du groupe */
         get: operations["GroupsController_getHotActions"];
         put?: never;
         post?: never;
@@ -317,6 +238,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Rejoindre un groupe avec un code */
         post: operations["GroupsController_joinGroup"];
         delete?: never;
         options?: never;
@@ -333,6 +255,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Quitter le groupe */
         post: operations["GroupsController_leaveGroup"];
         delete?: never;
         options?: never;
@@ -349,6 +272,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Ajouter des tags au groupe (starter pack) */
         post: operations["GroupsController_addTags"];
         delete?: never;
         options?: never;
@@ -365,6 +289,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Ajouter des tâches au groupe (starter pack) */
         post: operations["GroupsController_addTasks"];
         delete?: never;
         options?: never;
@@ -379,8 +304,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Lister toutes les tâches (paginé) */
         get: operations["TasksController_findAll"];
         put?: never;
+        /** Créer une tâche dans un groupe */
         post: operations["TasksController_create"];
         delete?: never;
         options?: never;
@@ -395,9 +322,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Récupérer une tâche par ID */
         get: operations["TasksController_findOne"];
+        /** Modifier une tâche */
         put: operations["TasksController_update"];
         post?: never;
+        /** Supprimer une tâche et ses données liées */
         delete: operations["TasksController_remove"];
         options?: never;
         head?: never;
@@ -411,8 +341,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Lister toutes les actions (paginé) */
         get: operations["ActionsController_findAll"];
         put?: never;
+        /** Déclarer une action (toujours pour l'utilisateur connecté) */
         post: operations["ActionsController_create"];
         delete?: never;
         options?: never;
@@ -427,6 +359,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Lister mes propres actions */
         get: operations["ActionsController_findMyActions"];
         put?: never;
         post?: never;
@@ -443,6 +376,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Lister les actions d'un utilisateur */
         get: operations["ActionsController_findByUserId"];
         put?: never;
         post?: never;
@@ -459,6 +393,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Lister les actions d'un groupe */
         get: operations["ActionsController_findByGroupId"];
         put?: never;
         post?: never;
@@ -475,6 +410,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Les 50 dernières actions du groupe */
         get: operations["ActionsController_findRecentByGroupId"];
         put?: never;
         post?: never;
@@ -491,6 +427,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Lister les actions par tâche */
         get: operations["ActionsController_findByTaskId"];
         put?: never;
         post?: never;
@@ -507,58 +444,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Récupérer une action par ID */
         get: operations["ActionsController_findOne"];
+        /** Modifier une action (propriétaire uniquement) */
         put: operations["ActionsController_update"];
         post?: never;
+        /** Supprimer une action (propriétaire uniquement) */
         delete: operations["ActionsController_remove"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/actions/acknowledgments/pending": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["ActionAcknowledgmentController_getPending"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/actions/acknowledgments/{id}/accept": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ActionAcknowledgmentController_accept"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/actions/acknowledgments/{id}/reject": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ActionAcknowledgmentController_reject"];
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -571,8 +463,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["TagsController_findAll"];
+        get?: never;
         put?: never;
+        /** Créer un tag dans un groupe */
         post: operations["TagsController_create"];
         delete?: never;
         options?: never;
@@ -587,6 +480,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Lister les tags d'un groupe */
         get: operations["TagsController_findByGroupId"];
         put?: never;
         post?: never;
@@ -603,9 +497,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Récupérer un tag par ID */
         get: operations["TagsController_findOne"];
+        /** Modifier un tag */
         put: operations["TagsController_update"];
         post?: never;
+        /** Supprimer un tag (détache les tâches liées) */
         delete: operations["TagsController_remove"];
         options?: never;
         head?: never;
@@ -620,6 +517,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
+        /** Marquer une tâche comme prise en connaissance */
         put: operations["UserTaskStatesController_updateTaskState"];
         post?: never;
         delete?: never;
@@ -635,6 +533,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Récupérer les états de tâches de l'utilisateur dans un groupe */
         get: operations["UserTaskStatesController_getUserTaskStates"];
         put?: never;
         post?: never;
@@ -651,6 +550,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Résumé personnel du mois pour le groupe (stats perso) */
         get: operations["StatsController_getOverview"];
         put?: never;
         post?: never;
@@ -667,8 +567,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Lister tous les congrats */
         get: operations["CongratsController_findAll"];
         put?: never;
+        /** Créer un congrats */
         post: operations["CongratsController_create"];
         delete?: never;
         options?: never;
@@ -683,6 +585,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Lister les congrats par tag */
         get: operations["CongratsController_findByTag"];
         put?: never;
         post?: never;
@@ -699,9 +602,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Récupérer un congrats par ID */
         get: operations["CongratsController_findOne"];
+        /** Modifier un congrats */
         put: operations["CongratsController_update"];
         post?: never;
+        /** Supprimer un congrats */
         delete: operations["CongratsController_remove"];
         options?: never;
         head?: never;
@@ -715,8 +621,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Lister tous les achievements */
         get: operations["AchievementsController_findAll"];
         put?: never;
+        /** Créer un achievement */
         post: operations["AchievementsController_create"];
         delete?: never;
         options?: never;
@@ -731,6 +639,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Achievements d'un utilisateur */
         get: operations["AchievementsController_findByUser"];
         put?: never;
         post?: never;
@@ -747,6 +656,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Stats des achievements d'un utilisateur */
         get: operations["AchievementsController_getStats"];
         put?: never;
         post?: never;
@@ -763,6 +673,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Achievements d'un groupe */
         get: operations["AchievementsController_findByGroup"];
         put?: never;
         post?: never;
@@ -779,9 +690,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Récupérer un achievement par ID */
         get: operations["AchievementsController_findOne"];
         put?: never;
         post?: never;
+        /** Supprimer un achievement */
         delete: operations["AchievementsController_remove"];
         options?: never;
         head?: never;
@@ -792,265 +705,384 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        RegisterUserDto: Record<string, never>;
-        LoginDto: Record<string, never>;
-        LoginResponseDto: Record<string, never>;
-        ForgotPasswordDto: {
-            /** Format: email */
+        RegisterDto: {
+            /**
+             * @description Nom de famille
+             * @example Dupont
+             */
+            nom: string;
+            /**
+             * @description Prénom
+             * @example Jean
+             */
+            prenom: string;
+            /**
+             * @description Pseudo unique
+             * @example jdupont
+             */
+            pseudo: string;
+            /**
+             * Format: email
+             * @description Adresse email
+             * @example jean@example.com
+             */
+            email: string;
+            /**
+             * @description Avatar
+             * @enum {string}
+             */
+            avatar?: "Man1" | "Man2" | "Man3" | "Man4" | "Man5" | "Man6" | "Woman1" | "Woman2" | "Woman3" | "Woman4" | "Woman5" | "Woman6";
+        };
+        RegisterResponseDto: {
+            /** @example Compte créé. Un code OTP a été envoyé à votre adresse email. */
+            message: string;
+            /** @example jean@example.com */
             email: string;
         };
-        ResetPasswordDto: {
+        RequestOtpDto: {
+            /**
+             * Format: email
+             * @description Adresse email du compte
+             * @example jean@example.com
+             */
+            email: string;
+        };
+        RequestOtpResponseDto: {
+            /** @example Un code OTP a été envoyé à votre adresse email. */
+            message: string;
+        };
+        VerifyOtpDto: {
+            /**
+             * Format: email
+             * @description Adresse email du compte
+             * @example jean@example.com
+             */
+            email: string;
+            /**
+             * @description Code OTP à 6 chiffres
+             * @example 123456
+             */
+            code: string;
+        };
+        UserResponseDto: {
+            /** @example 1 */
+            id: number;
+            /** @example Dupont */
+            nom: string;
+            /** @example Jean */
+            prenom: string;
+            /** @example jdupont */
+            pseudo: string;
+            /** @example jean@example.com */
+            email: string;
+            /** @example true */
+            emailVerified: boolean;
+            /** @example avatar1 */
+            avatar?: string | null;
+            /** @example 1 */
+            groupId?: number | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        VerifyOtpResponseDto: {
+            /** @example Connexion réussie */
+            message: string;
             token: string;
-            /** Format: email */
-            email: string;
-            newPassword: string;
-        };
-        ChangePasswordDto: {
-            oldPassword: string;
-            newPassword: string;
+            user: components["schemas"]["UserResponseDto"];
         };
         UpdateUserDto: {
+            /**
+             * @description Nom de famille
+             * @example Dupont
+             */
             nom?: string;
+            /**
+             * @description Prénom
+             * @example Jean
+             */
             prenom?: string;
+            /**
+             * @description Pseudo unique
+             * @example jdupont
+             */
             pseudo?: string;
-            /** @enum {string} */
+            /**
+             * @description Avatar
+             * @enum {string}
+             */
             avatar?: "Man1" | "Man2" | "Man3" | "Man4" | "Man5" | "Man6" | "Woman1" | "Woman2" | "Woman3" | "Woman4" | "Woman5" | "Woman6";
-        };
-        Achievement: {
-            id: number;
-            user: components["schemas"]["User"];
-            group: components["schemas"]["Group"];
-            congrats: components["schemas"]["Congrats"];
-            /** Format: date-time */
-            achievedAt: string;
-            /** Format: date-time */
-            createdAt: string;
-        };
-        Congrats: {
-            id: number;
-            /** @enum {number} */
-            level: 1 | 2;
-            message: string;
-            tag: components["schemas"]["Tag"];
-            achievements: components["schemas"]["Achievement"][];
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        Tag: {
-            id: number;
-            label: string;
-            color: string;
-            isDefault: boolean;
-            /** @enum {string} */
-            icon?: "Courses" | "Copain" | "Cuisine" | "Linge" | "Poubelle" | "Sanitaires" | "Surfaces" | "Default" | "Tasks" | "Historique" | "Stats" | "Parametres" | "Urgent" | "Add" | "Patoune" | "Options" | "Plantes" | "Nettoyage" | "Poubelles";
-            group: components["schemas"]["Group"];
-            tasks: components["schemas"]["Task"][];
-            congrats: components["schemas"]["Congrats"][];
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        UserTaskState: {
-            id: number;
-            user: components["schemas"]["User"];
-            task: components["schemas"]["Task"];
-            isAcknowledged: boolean;
-            isConcerned: boolean;
-            /** Format: date-time */
-            acknowledgedAt?: string;
-            /** Format: date-time */
-            concernedAt?: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        Task: {
-            id: number;
-            label: string;
-            frequenceEstimee: number;
-            /** @enum {string} */
-            uniteFrequence: "jour" | "semaine" | "mois";
-            points: number;
-            group: components["schemas"]["Group"];
-            tag?: components["schemas"]["Tag"];
-            actions: components["schemas"]["Action"][];
-            userStates: components["schemas"]["UserTaskState"][];
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        Action: {
-            id: number;
-            /** Format: date-time */
-            date: string;
-            isHelpingHand: boolean;
-            task: components["schemas"]["Task"];
-            user: components["schemas"]["User"];
-            group: components["schemas"]["Group"];
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        User: {
-            id: number;
-            nom: string;
-            prenom: string;
-            pseudo: string;
-            /** Format: email */
-            email: string;
-            password: string;
-            /** @enum {string} */
-            avatar?: "Man1" | "Man2" | "Man3" | "Man4" | "Man5" | "Man6" | "Woman1" | "Woman2" | "Woman3" | "Woman4" | "Woman5" | "Woman6";
-            emailVerified: boolean;
-            emailConfirmationToken?: string;
-            /** Format: date-time */
-            emailConfirmationExpiresAt?: string;
-            passwordResetToken?: string;
-            /** Format: date-time */
-            passwordResetExpiresAt?: string;
-            groups: components["schemas"]["Group"][];
-            actions: components["schemas"]["Action"][];
-            taskStates: components["schemas"]["UserTaskState"][];
-            achievements: components["schemas"]["Achievement"][];
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        Group: {
-            id: number;
-            nom: string;
-            code: string;
-            users: components["schemas"]["User"][];
-            tasks: components["schemas"]["Task"][];
-            actions: components["schemas"]["Action"][];
-            tags: components["schemas"]["Tag"][];
-            achievements: components["schemas"]["Achievement"][];
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
         };
         CreateGroupDto: {
+            /**
+             * @description Nom du groupe (unique)
+             * @example Les Colocs
+             */
             nom: string;
         };
         JoinGroupDto: {
+            /**
+             * @description Code d'accès du groupe (8 caractères)
+             * @example AB12CD34
+             */
             code: string;
         };
         StarterPackTagDto: {
+            /**
+             * @description Nom du tag
+             * @example Ménage
+             */
             label: string;
+            /**
+             * @description Couleur hexadécimale
+             * @example #FF5733
+             */
             color: string;
         };
         AddTagsDto: {
             tags: components["schemas"]["StarterPackTagDto"][];
         };
         StarterPackTaskDto: {
+            /**
+             * @description Nom de la tâche
+             * @example Passer l'aspirateur
+             */
             label: string;
+            /**
+             * @description Fréquence estimée
+             * @example 2
+             */
             frequenceEstimee: number;
-            uniteFrequence: string;
+            /**
+             * @description Unité de fréquence
+             * @example semaine
+             * @enum {string}
+             */
+            uniteFrequence: "jour" | "semaine" | "mois";
+            /**
+             * @description Points attribués
+             * @example 3
+             */
             points: number;
+            /**
+             * @description Label du tag associé
+             * @example Ménage
+             */
             tagLabel: string;
         };
         AddTasksDto: {
             tasks: components["schemas"]["StarterPackTaskDto"][];
         };
         UpdateGroupDto: {
+            /**
+             * @description Nouveau nom du groupe
+             * @example Les Colocs 2.0
+             */
             nom?: string;
         };
         CreateTaskDto: {
+            /**
+             * @description Nom de la tâche
+             * @example Passer l'aspirateur
+             */
             label: string;
+            /**
+             * @description Fréquence estimée
+             * @example 2
+             */
             frequenceEstimee: number;
-            /** @enum {string} */
+            /**
+             * @description Unité de fréquence
+             * @example semaine
+             * @enum {string}
+             */
             uniteFrequence?: "jour" | "semaine" | "mois";
+            /**
+             * @description ID du groupe
+             * @example 1
+             */
             groupId: number;
+            /**
+             * @description ID du tag associé
+             * @example 1
+             */
             tagId?: number;
+            /**
+             * @description Points attribués
+             * @example 3
+             */
             points?: number;
         };
         UpdateTaskDto: {
+            /** @description Nom de la tâche */
             label?: string;
+            /**
+             * @description Fréquence estimée
+             * @example 3
+             */
             frequenceEstimee?: number;
-            /** @enum {string} */
+            /**
+             * @description Unité de fréquence
+             * @enum {string}
+             */
             uniteFrequence?: "jour" | "semaine" | "mois";
+            /**
+             * @description ID du tag associé
+             * @example 1
+             */
             tagId?: number;
+            /**
+             * @description Points attribués
+             * @example 5
+             */
             points?: number;
         };
         CreateActionDto: {
+            /**
+             * @description ID de la tâche réalisée
+             * @example 1
+             */
             taskId: number;
+            /**
+             * @description Date de réalisation (ISO 8601)
+             * @example 2026-05-07
+             */
             date: string;
-            userId?: number;
+        };
+        ActionTagDto: {
+            id: number;
+            label: string;
+            color: string;
+        };
+        ActionTaskDto: {
+            id: number;
+            label: string;
+            points: number;
+            tag: components["schemas"]["ActionTagDto"] | null;
+        };
+        ActionUserDto: {
+            id: number;
+            pseudo: string;
+            avatar: string | null;
+        };
+        ActionGroupDto: {
+            id: number;
+            nom: string;
+            code: string;
+        };
+        ActionDetailDto: {
+            id: number;
+            /** Format: date-time */
+            date: string;
+            task: components["schemas"]["ActionTaskDto"];
+            user: components["schemas"]["ActionUserDto"];
+            group: components["schemas"]["ActionGroupDto"];
         };
         CreateActionResponseDto: {
+            /** @example Action créée avec succès */
             message: string;
-            action: {
-                id: number;
-                /** Format: date-time */
-                date: string;
-                isHelpingHand: boolean;
-                task: {
-                    id?: number;
-                    label?: string;
-                    points?: number;
-                    tag?: {
-                        id?: number;
-                        label?: string;
-                        color?: string;
-                    };
-                };
-                user: {
-                    id?: number;
-                    pseudo?: string;
-                    avatar?: string | null;
-                };
-                group: {
-                    id?: number;
-                    nom?: string;
-                    code?: string;
-                };
-            };
+            action: components["schemas"]["ActionDetailDto"];
+            /**
+             * @description Total des points réalisés ce mois
+             * @example 42
+             */
             totalDone: number;
         };
         UpdateActionDto: {
+            /**
+             * @description Nouvelle date (ISO 8601)
+             * @example 2026-05-07
+             */
             date?: string;
         };
         CreateTagDto: {
+            /**
+             * @description Nom du tag
+             * @example Ménage
+             */
             label: string;
+            /**
+             * @description Couleur hexadécimale
+             * @example #FF5733
+             */
             color: string;
+            /**
+             * @description ID du groupe
+             * @example 1
+             */
             groupId: number;
-            /** @enum {string} */
+            /**
+             * @description Icône
+             * @enum {string}
+             */
             icon?: "Courses" | "Copain" | "Cuisine" | "Linge" | "Poubelle" | "Sanitaires" | "Surfaces" | "Default" | "Tasks" | "Historique" | "Stats" | "Parametres" | "Urgent" | "Add" | "Patoune" | "Options" | "Plantes" | "Nettoyage" | "Poubelles";
         };
         UpdateTagDto: {
+            /**
+             * @description Nom du tag
+             * @example Cuisine
+             */
             label?: string;
+            /**
+             * @description Couleur hexadécimale
+             * @example #33FF57
+             */
             color?: string;
-            /** @enum {string} */
+            /**
+             * @description Icône
+             * @enum {string}
+             */
             icon?: "Courses" | "Copain" | "Cuisine" | "Linge" | "Poubelle" | "Sanitaires" | "Surfaces" | "Default" | "Tasks" | "Historique" | "Stats" | "Parametres" | "Urgent" | "Add" | "Patoune" | "Options" | "Plantes" | "Nettoyage" | "Poubelles";
         };
         UpdateUserTaskStateDto: {
-            isAcknowledged?: boolean;
-            isConcerned?: boolean;
+            /**
+             * @description Marquer la tâche comme prise en connaissance
+             * @example true
+             */
+            isAcknowledged: boolean;
         };
         CreateCongratsDto: {
-            /** @enum {number} */
-            level: 1 | 2;
+            /**
+             * @description Message de félicitation
+             * @example Bravo, tu as bien bossé !
+             */
             message: string;
-            tagId: number;
+            /**
+             * @description ID du tag associé (optionnel)
+             * @example 1
+             */
+            tagId?: number;
         };
         UpdateCongratsDto: {
-            /** @enum {number} */
-            level?: 1 | 2;
+            /** @description Message de félicitation */
             message?: string;
+            /**
+             * @description ID du tag associé
+             * @example 1
+             */
             tagId?: number;
         };
         CreateAchievementDto: {
+            /**
+             * @description ID de l'utilisateur
+             * @example 1
+             */
             userId: number;
+            /**
+             * @description ID du groupe
+             * @example 1
+             */
             groupId: number;
+            /**
+             * @description ID du congrats
+             * @example 1
+             */
             congratsId: number;
+            /**
+             * @description Date de l'achievement (ISO 8601)
+             * @example 2026-05-07
+             */
             achievedAt?: string;
         };
     };
@@ -1088,28 +1120,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RegisterUserDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_login: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginDto"];
+                "application/json": components["schemas"]["RegisterDto"];
             };
         };
         responses: {
@@ -1118,24 +1129,11 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LoginResponseDto"];
+                    "application/json": components["schemas"]["RegisterResponseDto"];
                 };
             };
-        };
-    };
-    AuthController_confirmEmail: {
-        parameters: {
-            query: {
-                token: string;
-                email: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
+            /** @description Email ou pseudo déjà utilisé */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1143,16 +1141,59 @@ export interface operations {
             };
         };
     };
-    AuthController_resendConfirmation: {
+    AuthController_requestOtp: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestOtpDto"];
+            };
+        };
         responses: {
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestOtpResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_verifyOtp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyOtpDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerifyOtpResponseDto"];
+                };
+            };
+            /** @description Code OTP invalide ou expiré */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Identifiants invalides */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1169,24 +1210,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Token valide */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-        };
-    };
-    AuthController_rememberMe: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
+            /** @description Token invalide ou expiré */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1203,6 +1235,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Profil récupéré avec succès */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1211,102 +1244,17 @@ export interface operations {
             };
         };
     };
-    AuthController_forgotPassword: {
+    AuthController_refreshToken: {
         parameters: {
             query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ForgotPasswordDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_getResetPassword: {
-        parameters: {
-            query: {
-                token: string;
-                email: string;
-            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_postResetPassword: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ResetPasswordDto"];
-            };
-        };
-        responses: {
+            /** @description Token renouvelé */
             201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AuthController_changePassword: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChangePasswordDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    UsersController_findAll: {
-        parameters: {
-            query: {
-                page: string;
-                limit: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1323,6 +1271,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Profil récupéré avec succès */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1344,6 +1293,7 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Profil mis à jour avec succès */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1357,19 +1307,25 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
+            /** @description Utilisateur récupéré */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["User"];
+                content?: never;
+            };
+            /** @description Utilisateur non trouvé */
+            404: {
+                headers: {
+                    [name: string]: unknown;
                 };
+                content?: never;
             };
         };
     };
@@ -1378,12 +1334,13 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
+            /** @description Utilisateur supprimé */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1394,9 +1351,9 @@ export interface operations {
     };
     GroupsController_findAll: {
         parameters: {
-            query: {
-                page: string;
-                limit: string;
+            query?: {
+                page?: number;
+                limit?: number;
             };
             header?: never;
             path?: never;
@@ -1425,7 +1382,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Groupe créé avec succès */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Déjà dans un groupe ou nom existant */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1437,32 +1402,10 @@ export interface operations {
         parameters: {
             query: {
                 nom: string;
-                limit: string;
+                limit?: number;
             };
             header?: never;
             path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    GroupsController_findUserGroups: {
-        parameters: {
-            query: {
-                page: string;
-                limit: string;
-            };
-            header?: never;
-            path: {
-                userId: string;
-            };
             cookie?: never;
         };
         requestBody?: never;
@@ -1480,7 +1423,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1499,7 +1442,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1522,7 +1465,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1541,7 +1484,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1560,7 +1503,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1570,7 +1513,22 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Groupe rejoint */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Déjà dans un groupe */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Code invalide */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1583,7 +1541,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1602,7 +1560,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1625,7 +1583,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1645,9 +1603,9 @@ export interface operations {
     };
     TasksController_findAll: {
         parameters: {
-            query: {
-                page: string;
-                limit: string;
+            query?: {
+                page?: number;
+                limit?: number;
             };
             header?: never;
             path?: never;
@@ -1676,7 +1634,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Tâche créée avec succès */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Nom de tâche déjà existant dans le groupe */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1686,13 +1652,13 @@ export interface operations {
     };
     TasksController_findOne: {
         parameters: {
-            query: {
-                includeActions: string;
-                currentMonthOnly: string;
+            query?: {
+                includeActions?: string;
+                currentMonthOnly?: string;
             };
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1711,7 +1677,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1734,7 +1700,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1750,10 +1716,10 @@ export interface operations {
     };
     ActionsController_findAll: {
         parameters: {
-            query: {
-                page: string;
-                limit: string;
-                currentMonthOnly: string;
+            query?: {
+                page?: number;
+                limit?: number;
+                currentMonthOnly?: string;
             };
             header?: never;
             path?: never;
@@ -1794,12 +1760,12 @@ export interface operations {
     };
     ActionsController_findMyActions: {
         parameters: {
-            query: {
-                page: string;
-                limit: string;
-                startDate: string;
-                endDate: string;
-                fullHistory: string;
+            query?: {
+                page?: number;
+                limit?: number;
+                startDate?: string;
+                endDate?: string;
+                fullHistory?: string;
             };
             header?: never;
             path?: never;
@@ -1826,7 +1792,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                userId: string;
+                userId: number;
             };
             cookie?: never;
         };
@@ -1851,7 +1817,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                groupId: string;
+                groupId: number;
             };
             cookie?: never;
         };
@@ -1870,7 +1836,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                groupId: string;
+                groupId: number;
             };
             cookie?: never;
         };
@@ -1895,7 +1861,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                taskId: string;
+                taskId: number;
             };
             cookie?: never;
         };
@@ -1914,7 +1880,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1933,7 +1899,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1956,80 +1922,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ActionAcknowledgmentController_getPending: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ActionAcknowledgmentController_accept: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ActionAcknowledgmentController_reject: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    TagsController_findAll: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -2055,7 +1949,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Tag créé avec succès */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Nom de tag déjà existant dans le groupe */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2068,7 +1970,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                groupId: string;
+                groupId: number;
             };
             cookie?: never;
         };
@@ -2087,7 +1989,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2106,7 +2008,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2129,7 +2031,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2148,7 +2050,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                taskId: string;
+                taskId: number;
             };
             cookie?: never;
         };
@@ -2158,6 +2060,7 @@ export interface operations {
             };
         };
         responses: {
+            /** @description État mis à jour */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2171,7 +2074,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                groupId: string;
+                groupId: number;
             };
             cookie?: never;
         };
@@ -2190,12 +2093,13 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                groupId: string;
+                groupId: number;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
+            /** @description Résumé récupéré */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2217,9 +2121,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["Congrats"][];
-                };
+                content?: never;
             };
         };
     };
@@ -2240,9 +2142,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["Congrats"];
-                };
+                content?: never;
             };
         };
     };
@@ -2251,7 +2151,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                tagId: string;
+                tagId: number;
             };
             cookie?: never;
         };
@@ -2261,9 +2161,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["Congrats"][];
-                };
+                content?: never;
             };
         };
     };
@@ -2272,7 +2170,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2282,9 +2180,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["Congrats"];
-                };
+                content?: never;
             };
         };
     };
@@ -2293,7 +2189,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2307,9 +2203,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["Congrats"];
-                };
+                content?: never;
             };
         };
     };
@@ -2318,7 +2212,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2345,9 +2239,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["Achievement"][];
-                };
+                content?: never;
             };
         };
     };
@@ -2368,9 +2260,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": Record<string, never>;
-                };
+                content?: never;
             };
         };
     };
@@ -2379,7 +2269,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                userId: string;
+                userId: number;
             };
             cookie?: never;
         };
@@ -2389,20 +2279,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["Achievement"][];
-                };
+                content?: never;
             };
         };
     };
     AchievementsController_getStats: {
         parameters: {
-            query: {
-                groupId: string;
+            query?: {
+                groupId?: number;
             };
             header?: never;
             path: {
-                userId: string;
+                userId: number;
             };
             cookie?: never;
         };
@@ -2421,7 +2309,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                groupId: string;
+                groupId: number;
             };
             cookie?: never;
         };
@@ -2431,9 +2319,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["Achievement"][];
-                };
+                content?: never;
             };
         };
     };
@@ -2442,7 +2328,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2452,9 +2338,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["Achievement"];
-                };
+                content?: never;
             };
         };
     };
@@ -2463,7 +2347,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };

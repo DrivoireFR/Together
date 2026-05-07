@@ -48,12 +48,12 @@ async function bootstrap() {
     .setTitle('Together API')
     .setDescription(
       'Together - Gérer les tâches du quotidien à plusieurs, équitablement.\n\n' +
-      '## Authentification\n' +
-      'L\'API utilise un flux OTP par email :\n' +
-      '1. `POST /auth/register` — Créer un compte + envoi OTP\n' +
-      '2. `POST /auth/request-otp` — Demander un OTP (login / renvoi)\n' +
-      '3. `POST /auth/verify-otp` — Vérifier le code et obtenir un JWT\n\n' +
-      'Les endpoints protégés nécessitent un header `Authorization: Bearer <token>`.',
+        '## Authentification\n' +
+        "L'API utilise un flux OTP par email :\n" +
+        '1. `POST /auth/register` — Créer un compte + envoi OTP\n' +
+        '2. `POST /auth/request-otp` — Demander un OTP (login / renvoi)\n' +
+        '3. `POST /auth/verify-otp` — Vérifier le code et obtenir un JWT\n\n' +
+        'Les endpoints protégés nécessitent un header `Authorization: Bearer <token>`.',
     )
     .setVersion('2.0')
     .addBearerAuth()

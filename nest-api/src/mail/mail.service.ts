@@ -31,10 +31,12 @@ export class MailService {
 
     const smtpHost =
       this.config.get<string>('SMTP_HOST') ||
-      (nodeEnv === 'development' || nodeEnv === 'test' ? 'mailpit' : 'smtp.com');
+      (nodeEnv === 'development' || nodeEnv === 'test'
+        ? 'mailpit'
+        : 'smtp.com');
     const smtpPort = Number(
       this.config.get<string>('SMTP_PORT') ||
-      (nodeEnv === 'development' || nodeEnv === 'test' ? 1025 : 587),
+        (nodeEnv === 'development' || nodeEnv === 'test' ? 1025 : 587),
     );
     const smtpAuthRaw = this.config.get<string>('SMTP_AUTH');
     const smtpAuth =

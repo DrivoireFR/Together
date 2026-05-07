@@ -26,7 +26,9 @@ export class RegisterDto {
 }
 
 export class RegisterResponseDto {
-  @ApiProperty({ example: 'Compte créé. Un code OTP a été envoyé à votre adresse email.' })
+  @ApiProperty({
+    example: 'Compte créé. Un code OTP a été envoyé à votre adresse email.',
+  })
   message: string;
 
   @ApiProperty({ example: 'jean@example.com' })

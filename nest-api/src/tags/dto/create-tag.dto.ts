@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsHexColor, IsNumber, IsEnum, IsOptional } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsHexColor,
+  IsNumber,
+  IsEnum,
+  IsOptional,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Icon } from '../enums/icon.enum';
 

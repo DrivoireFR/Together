@@ -33,13 +33,16 @@ export class TagsController {
   @Post()
   @ApiOperation({ summary: 'Créer un tag dans un groupe' })
   @ApiResponse({ status: 201, description: 'Tag créé avec succès' })
-  @ApiResponse({ status: 400, description: 'Nom de tag déjà existant dans le groupe' })
+  @ApiResponse({
+    status: 400,
+    description: 'Nom de tag déjà existant dans le groupe',
+  })
   create(@Body() createTagDto: CreateTagDto, @Request() req: RequestWithUser) {
     return this.tagsService.create(createTagDto, req.user.userId);
   }
 
   @Get('group/:groupId')
-  @ApiOperation({ summary: 'Lister les tags d\'un groupe' })
+  @ApiOperation({ summary: "Lister les tags d'un groupe" })
   @ApiParam({ name: 'groupId', type: Number })
   findByGroupId(
     @Param('groupId') groupId: string,

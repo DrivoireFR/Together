@@ -83,7 +83,8 @@ export class UsersService {
 
     await this.usersRepository.save(user);
 
-    const { otpCode: _, otpExpiresAt: _exp, ...userWithoutSensitive } = user;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { otpCode, otpExpiresAt, ...userWithoutSensitive } = user;
 
     return {
       message: 'Profil mis à jour avec succès',
@@ -93,7 +94,9 @@ export class UsersService {
 
   async remove(id: number, currentUserId: number) {
     if (id !== currentUserId) {
-      throw new ForbiddenException('Vous ne pouvez supprimer que votre propre compte');
+      throw new ForbiddenException(
+        'Vous ne pouvez supprimer que votre propre compte',
+      );
     }
 
     const user = await this.usersRepository.findOne({ where: { id } });

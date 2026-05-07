@@ -57,7 +57,9 @@ export class GroupsService {
     const user = await this.getUserOrFail(userId);
 
     if (user.groupId) {
-      throw new BadRequestException('Vous appartenez déjà à un groupe. Quittez-le avant d\'en créer un nouveau.');
+      throw new BadRequestException(
+        "Vous appartenez déjà à un groupe. Quittez-le avant d'en créer un nouveau.",
+      );
     }
 
     const existingGroup = await this.groupRepository.findOne({
@@ -76,7 +78,9 @@ export class GroupsService {
 
     const starterPack = this.starterPackService.getDefaultStarterPackData();
 
-    this.logger.log(`Group created: ${group.id} "${group.nom}" by user ${userId}`);
+    this.logger.log(
+      `Group created: ${group.id} "${group.nom}" by user ${userId}`,
+    );
 
     return {
       message: 'Groupe créé avec succès',
@@ -255,7 +259,9 @@ export class GroupsService {
     const user = await this.getUserOrFail(userId);
 
     if (user.groupId) {
-      throw new BadRequestException('Vous appartenez déjà à un groupe. Quittez-le avant d\'en rejoindre un autre.');
+      throw new BadRequestException(
+        "Vous appartenez déjà à un groupe. Quittez-le avant d'en rejoindre un autre.",
+      );
     }
 
     const group = await this.groupRepository.findOne({ where: { id } });
@@ -329,13 +335,19 @@ export class GroupsService {
     ]);
 
     if (tasksCount > 0) {
-      throw new BadRequestException(`Impossible de supprimer: ${tasksCount} tâche(s) présente(s)`);
+      throw new BadRequestException(
+        `Impossible de supprimer: ${tasksCount} tâche(s) présente(s)`,
+      );
     }
     if (actionsCount > 0) {
-      throw new BadRequestException(`Impossible de supprimer: ${actionsCount} action(s) présente(s)`);
+      throw new BadRequestException(
+        `Impossible de supprimer: ${actionsCount} action(s) présente(s)`,
+      );
     }
     if (tagsCount > 0) {
-      throw new BadRequestException(`Impossible de supprimer: ${tagsCount} tag(s) présent(s)`);
+      throw new BadRequestException(
+        `Impossible de supprimer: ${tagsCount} tag(s) présent(s)`,
+      );
     }
 
     // Remove groupId from all members
@@ -359,7 +371,10 @@ export class GroupsService {
     const group = await this.groupRepository.findOne({ where: { id } });
     if (!group) throw new NotFoundException('Groupe non trouvé');
 
-    const createdTags = await this.starterPackService.addTagsToGroup(group, tags);
+    const createdTags = await this.starterPackService.addTagsToGroup(
+      group,
+      tags,
+    );
 
     return {
       message: 'Tags ajoutés avec succès',
@@ -373,7 +388,10 @@ export class GroupsService {
     const group = await this.groupRepository.findOne({ where: { id } });
     if (!group) throw new NotFoundException('Groupe non trouvé');
 
-    const createdTasks = await this.starterPackService.addTasksToGroup(group, tasks);
+    const createdTasks = await this.starterPackService.addTasksToGroup(
+      group,
+      tasks,
+    );
 
     return {
       message: 'Tâches ajoutées avec succès',

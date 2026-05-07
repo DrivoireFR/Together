@@ -8,10 +8,7 @@ import { User } from '../users/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Action, Task, User]),
-    JwtModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Action, Task, User]), JwtModule],
   controllers: [ActionsController],
   providers: [ActionsService],
   exports: [ActionsService],

@@ -2,7 +2,7 @@ import { IsNumber, IsOptional, IsDateString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateAchievementDto {
-  @ApiProperty({ description: 'ID de l\'utilisateur', example: 1 })
+  @ApiProperty({ description: "ID de l'utilisateur", example: 1 })
   @IsNumber()
   userId: number;
 
@@ -14,7 +14,10 @@ export class CreateAchievementDto {
   @IsNumber()
   congratsId: number;
 
-  @ApiPropertyOptional({ description: 'Date de l\'achievement (ISO 8601)', example: '2026-05-07' })
+  @ApiPropertyOptional({
+    description: "Date de l'achievement (ISO 8601)",
+    example: '2026-05-07',
+  })
   @IsOptional()
   @IsDateString()
   achievedAt?: string;

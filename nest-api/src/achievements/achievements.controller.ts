@@ -33,25 +33,28 @@ export class AchievementsController {
   }
 
   @Get('user/:userId')
-  @ApiOperation({ summary: 'Achievements d\'un utilisateur' })
+  @ApiOperation({ summary: "Achievements d'un utilisateur" })
   @ApiParam({ name: 'userId', type: Number })
   findByUser(@Param('userId') userId: string) {
     return this.achievementsService.findByUser(+userId);
   }
 
   @Get('user/:userId/stats')
-  @ApiOperation({ summary: 'Stats des achievements d\'un utilisateur' })
+  @ApiOperation({ summary: "Stats des achievements d'un utilisateur" })
   @ApiParam({ name: 'userId', type: Number })
   @ApiQuery({ name: 'groupId', required: false, type: Number })
   getStats(
     @Param('userId') userId: string,
     @Query('groupId') groupId?: string,
   ) {
-    return this.achievementsService.getStats(+userId, groupId ? +groupId : undefined);
+    return this.achievementsService.getStats(
+      +userId,
+      groupId ? +groupId : undefined,
+    );
   }
 
   @Get('group/:groupId')
-  @ApiOperation({ summary: 'Achievements d\'un groupe' })
+  @ApiOperation({ summary: "Achievements d'un groupe" })
   @ApiParam({ name: 'groupId', type: Number })
   findByGroup(@Param('groupId') groupId: string) {
     return this.achievementsService.findByGroup(+groupId);

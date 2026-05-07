@@ -13,7 +13,7 @@ export class HotActionsService {
     private taskRepository: Repository<Task>,
     @InjectRepository(Action)
     private actionRepository: Repository<Action>,
-  ) { }
+  ) {}
 
   async getTasksWithHurryState(groupId: number): Promise<TaskWithHurry[]> {
     const now = new Date();

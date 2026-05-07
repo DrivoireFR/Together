@@ -37,7 +37,7 @@ export class AchievementsService {
       relations: ['group', 'congrats', 'congrats.tag'],
       order: { achievedAt: 'DESC' },
     });
-    return { message: 'Achievements de l\'utilisateur récupérés', achievements };
+    return { message: "Achievements de l'utilisateur récupérés", achievements };
   }
 
   async findByGroup(groupId: number) {
@@ -101,12 +101,16 @@ export class AchievementsService {
       relations: ['user', 'group', 'congrats', 'congrats.tag'],
     });
 
-    return { message: 'Achievement créé avec succès', achievement: savedAchievement };
+    return {
+      message: 'Achievement créé avec succès',
+      achievement: savedAchievement,
+    };
   }
 
   async remove(id: number) {
     const result = await this.achievementRepository.delete(id);
-    if (result.affected === 0) throw new NotFoundException('Achievement non trouvé');
+    if (result.affected === 0)
+      throw new NotFoundException('Achievement non trouvé');
     return { message: 'Achievement supprimé avec succès' };
   }
 

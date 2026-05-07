@@ -6,7 +6,10 @@ export class CreateActionDto {
   @IsNumber()
   taskId: number;
 
-  @ApiProperty({ description: 'Date de réalisation (ISO 8601)', example: '2026-05-07' })
+  @ApiProperty({
+    description: 'Date de réalisation (ISO 8601)',
+    example: '2026-05-07',
+  })
   @IsDateString()
   date: string;
 }

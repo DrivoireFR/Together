@@ -20,7 +20,9 @@ export class StatsController {
 
   @Get('group/:groupId/overview')
   @Timeout(TimeoutValues.HEAVY)
-  @ApiOperation({ summary: 'Résumé personnel du mois pour le groupe (stats perso)' })
+  @ApiOperation({
+    summary: 'Résumé personnel du mois pour le groupe (stats perso)',
+  })
   @ApiParam({ name: 'groupId', type: Number })
   @ApiResponse({ status: 200, description: 'Résumé récupéré' })
   getOverview(

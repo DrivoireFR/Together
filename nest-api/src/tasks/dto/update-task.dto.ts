@@ -18,7 +18,10 @@ export class UpdateTaskDto {
   @IsPositive()
   frequenceEstimee?: number;
 
-  @ApiPropertyOptional({ description: 'Unité de fréquence', enum: ['jour', 'semaine', 'mois'] })
+  @ApiPropertyOptional({
+    description: 'Unité de fréquence',
+    enum: ['jour', 'semaine', 'mois'],
+  })
   @IsOptional()
   @IsIn(['jour', 'semaine', 'mois'])
   uniteFrequence?: string;

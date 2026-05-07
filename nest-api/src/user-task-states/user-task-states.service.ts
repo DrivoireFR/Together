@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserTaskState } from './entities/user-task-state.entity';
@@ -43,7 +40,9 @@ export class UserTaskStatesService {
     }
 
     userTaskState.isAcknowledged = updateDto.isAcknowledged;
-    userTaskState.acknowledgedAt = updateDto.isAcknowledged ? new Date() : undefined;
+    userTaskState.acknowledgedAt = updateDto.isAcknowledged
+      ? new Date()
+      : undefined;
 
     await this.userTaskStateRepository.save(userTaskState);
 

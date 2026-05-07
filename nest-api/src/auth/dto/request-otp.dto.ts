@@ -2,7 +2,10 @@ import { IsEmail } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RequestOtpDto {
-  @ApiProperty({ description: 'Adresse email du compte', example: 'jean@example.com' })
+  @ApiProperty({
+    description: 'Adresse email du compte',
+    example: 'jean@example.com',
+  })
   @IsEmail()
   email: string;
 }

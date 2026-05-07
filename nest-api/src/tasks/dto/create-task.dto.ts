@@ -8,7 +8,10 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateTaskDto {
-  @ApiProperty({ description: 'Nom de la tâche', example: 'Passer l\'aspirateur' })
+  @ApiProperty({
+    description: 'Nom de la tâche',
+    example: "Passer l'aspirateur",
+  })
   @IsNotEmpty()
   label: string;
 
@@ -16,7 +19,11 @@ export class CreateTaskDto {
   @IsPositive()
   frequenceEstimee: number;
 
-  @ApiPropertyOptional({ description: 'Unité de fréquence', enum: ['jour', 'semaine', 'mois'], example: 'semaine' })
+  @ApiPropertyOptional({
+    description: 'Unité de fréquence',
+    enum: ['jour', 'semaine', 'mois'],
+    example: 'semaine',
+  })
   @IsOptional()
   @IsIn(['jour', 'semaine', 'mois'])
   uniteFrequence?: string;

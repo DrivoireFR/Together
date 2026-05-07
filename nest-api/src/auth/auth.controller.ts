@@ -31,12 +31,17 @@ export class AuthController {
   @ApiOperation({ summary: 'Créer un compte et envoyer un code OTP par email' })
   @ApiResponse({ status: 201, type: RegisterResponseDto })
   @ApiResponse({ status: 409, description: 'Email ou pseudo déjà utilisé' })
-  async register(@Body() registerDto: RegisterDto): Promise<RegisterResponseDto> {
+  async register(
+    @Body() registerDto: RegisterDto,
+  ): Promise<RegisterResponseDto> {
     try {
       return await this.authService.register(registerDto);
     } catch (err) {
       if (err instanceof HttpException) throw err;
-      throw new HttpException('Un problème est survenu: ' + (err as Error).message, 500);
+      throw new HttpException(
+        'Un problème est survenu: ' + (err as Error).message,
+        500,
+      );
     }
   }
 
@@ -44,12 +49,17 @@ export class AuthController {
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   @ApiOperation({ summary: 'Demander un code OTP par email (login ou renvoi)' })
   @ApiResponse({ status: 201, type: RequestOtpResponseDto })
-  async requestOtp(@Body() requestOtpDto: RequestOtpDto): Promise<RequestOtpResponseDto> {
+  async requestOtp(
+    @Body() requestOtpDto: RequestOtpDto,
+  ): Promise<RequestOtpResponseDto> {
     try {
       return await this.authService.requestOtp(requestOtpDto.email);
     } catch (err) {
       if (err instanceof HttpException) throw err;
-      throw new HttpException('Un problème est survenu: ' + (err as Error).message, 500);
+      throw new HttpException(
+        'Un problème est survenu: ' + (err as Error).message,
+        500,
+      );
     }
   }
 
@@ -67,7 +77,10 @@ export class AuthController {
       );
     } catch (err) {
       if (err instanceof HttpException) throw err;
-      throw new HttpException('Un problème est survenu: ' + (err as Error).message, 500);
+      throw new HttpException(
+        'Un problème est survenu: ' + (err as Error).message,
+        500,
+      );
     }
   }
 
@@ -86,7 +99,7 @@ export class AuthController {
   @SkipThrottle()
   @Get('profile')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Récupérer le profil de l\'utilisateur connecté' })
+  @ApiOperation({ summary: "Récupérer le profil de l'utilisateur connecté" })
   @ApiResponse({ status: 200, description: 'Profil récupéré avec succès' })
   async getProfile(@Request() req: RequestWithUser) {
     return this.authService.getProfile(req.user.userId);

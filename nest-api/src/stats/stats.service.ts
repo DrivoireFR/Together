@@ -28,7 +28,9 @@ export class StatsService {
 
   async getPersonalOverview(groupId: number, userId: number) {
     const startTime = Date.now();
-    this.logger.debug(`Getting personal overview for user ${userId} in group ${groupId}`);
+    this.logger.debug(
+      `Getting personal overview for user ${userId} in group ${groupId}`,
+    );
 
     if (!groupId) throw new BadRequestException('Group ID is required');
 
@@ -44,7 +46,11 @@ export class StatsService {
     });
 
     const totalTasksVolume = tasks.reduce((sum, task) => {
-      return sum + frequencyToMonthly(task.frequenceEstimee, task.uniteFrequence) * task.points;
+      return (
+        sum +
+        frequencyToMonthly(task.frequenceEstimee, task.uniteFrequence) *
+          task.points
+      );
     }, 0);
 
     const now = new Date();
@@ -104,9 +110,10 @@ export class StatsService {
       overview: {
         totalTasksVolume,
         myPointsDone,
-        progressPercent: totalTasksVolume > 0
-          ? Math.round((myPointsDone / totalTasksVolume) * 100)
-          : 0,
+        progressPercent:
+          totalTasksVolume > 0
+            ? Math.round((myPointsDone / totalTasksVolume) * 100)
+            : 0,
         actionsThisMonth: myActions.length,
         tasks: tasksWithStatus,
       },

@@ -43,7 +43,9 @@ export class UserTaskStatesController {
   }
 
   @Get('group/:groupId')
-  @ApiOperation({ summary: 'Récupérer les états de tâches de l\'utilisateur dans un groupe' })
+  @ApiOperation({
+    summary: "Récupérer les états de tâches de l'utilisateur dans un groupe",
+  })
   @ApiParam({ name: 'groupId', type: Number })
   getUserTaskStates(
     @Param('groupId') groupId: string,

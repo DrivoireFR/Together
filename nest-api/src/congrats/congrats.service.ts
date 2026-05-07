@@ -86,7 +86,8 @@ export class CongratsService {
 
   async remove(id: number) {
     const result = await this.congratsRepository.delete(id);
-    if (result.affected === 0) throw new NotFoundException('Congrats non trouvé');
+    if (result.affected === 0)
+      throw new NotFoundException('Congrats non trouvé');
     return { message: 'Congrats supprimé avec succès' };
   }
 }

@@ -8,7 +8,10 @@ import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class StarterPackTaskDto {
-  @ApiProperty({ description: 'Nom de la tâche', example: 'Passer l\'aspirateur' })
+  @ApiProperty({
+    description: 'Nom de la tâche',
+    example: "Passer l'aspirateur",
+  })
   @IsNotEmpty()
   label: string;
 
@@ -16,7 +19,11 @@ export class StarterPackTaskDto {
   @IsPositive()
   frequenceEstimee: number;
 
-  @ApiProperty({ description: 'Unité de fréquence', example: 'semaine', enum: ['jour', 'semaine', 'mois'] })
+  @ApiProperty({
+    description: 'Unité de fréquence',
+    example: 'semaine',
+    enum: ['jour', 'semaine', 'mois'],
+  })
   @IsNotEmpty()
   uniteFrequence: string;
 
