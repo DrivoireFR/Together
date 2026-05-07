@@ -9,8 +9,6 @@ import { Repository } from 'typeorm';
 import { Action } from './entities/action.entity';
 import { Task } from '../tasks/entities/task.entity';
 import { User } from '../users/entities/user.entity';
-import { UserTaskState } from '../user-task-states/entities/user-task-state.entity';
-import { ActionAcknowledgment } from './entities/action-acknowledgment.entity';
 import { CreateActionDto } from './dto/create-action.dto';
 import { UpdateActionDto } from './dto/update-action.dto';
 import { CreateActionResponseDto } from './dto/create-action-response.dto';
@@ -34,11 +32,7 @@ export class ActionsService {
     private taskRepository: Repository<Task>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @InjectRepository(UserTaskState)
-    private userTaskStateRepository: Repository<UserTaskState>,
-    @InjectRepository(ActionAcknowledgment)
-    private actionAcknowledgmentRepository: Repository<ActionAcknowledgment>,
-  ) { }
+  ) {}
 
   private getFirstOfMonth(): Date {
     const now = new Date();
@@ -46,155 +40,67 @@ export class ActionsService {
   }
 
   async create(createActionDto: CreateActionDto, userId: number) {
-    const targetUserId = createActionDto.userId || userId;
-    const isForOtherUser = createActionDto.userId && createActionDto.userId !== userId;
-
-    this.logger.debug(
-      `Creating action for task ${createActionDto.taskId} by user ${userId}${isForOtherUser ? ` for user ${targetUserId}` : ''}`,
-    );
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Utilisateur non trouvé');
+    if (!user.groupId) {
+      throw new ForbiddenException('Vous devez appartenir à un groupe pour déclarer une action');
+    }
 
     const task = await this.taskRepository.findOne({
       where: { id: createActionDto.taskId },
-      relations: ['group'],
+      relations: ['group', 'tag'],
     });
+    if (!task) throw new NotFoundException('Tâche non trouvée');
 
-    if (!task) {
-      throw new NotFoundException('Tâche non trouvée');
+    if (task.group.id !== user.groupId) {
+      throw new ForbiddenException("Vous n'êtes pas membre du groupe de cette tâche");
     }
-
-    const requestingUser = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['groups'],
-    });
-
-    if (!requestingUser) {
-      throw new NotFoundException('Utilisateur non trouvé');
-    }
-
-    // Vérifier que l'utilisateur qui crée l'action est membre du groupe
-    const isRequestingUserMember = requestingUser.groups.some(
-      (group) => group.id === task.group.id,
-    );
-    if (!isRequestingUserMember) {
-      throw new ForbiddenException(
-        "Vous n'êtes pas membre du groupe de cette tâche",
-      );
-    }
-
-    // Si l'action est pour un autre utilisateur, vérifier que cet utilisateur est aussi membre
-    let targetUser: User;
-    if (isForOtherUser) {
-      const foundTargetUser = await this.userRepository.findOne({
-        where: { id: targetUserId },
-        relations: ['groups'],
-      });
-
-      if (!foundTargetUser) {
-        throw new NotFoundException('Utilisateur cible non trouvé');
-      }
-
-      const isTargetUserMember = foundTargetUser.groups.some(
-        (group) => group.id === task.group.id,
-      );
-      if (!isTargetUserMember) {
-        throw new ForbiddenException(
-          "L'utilisateur cible n'est pas membre du groupe de cette tâche",
-        );
-      }
-
-      targetUser = foundTargetUser;
-    } else {
-      targetUser = requestingUser;
-    }
-
-    // Déterminer si c'est un helping hand (basé sur l'utilisateur cible, pas le créateur)
-    const userTaskState = await this.userTaskStateRepository.findOne({
-      where: {
-        user: { id: targetUserId },
-        task: { id: createActionDto.taskId },
-      },
-    });
-
-    const isUserConcerned = userTaskState?.isConcerned || false;
 
     const action = new Action();
     action.task = task;
-    action.user = targetUser;
+    action.user = user;
     action.group = task.group;
     action.date = new Date(createActionDto.date);
-    action.isHelpingHand = !isUserConcerned;
 
     await this.actionRepository.save(action);
 
-    // Si l'action est créée pour un autre utilisateur, créer un ActionAcknowledgment
-    if (isForOtherUser) {
-      const acknowledgment = new ActionAcknowledgment();
-      acknowledgment.action = action;
-      acknowledgment.requestedBy = requestingUser;
-      acknowledgment.requestedFor = targetUser;
-      acknowledgment.status = 'pending';
-      await this.actionAcknowledgmentRepository.save(acknowledgment);
-
-      this.logger.log(
-        `Action created for other user: user ${userId} created action ${action.id} for user ${targetUserId} - acknowledgment ${acknowledgment.id} created`,
-      );
-    }
-
-    // Recharger l'action avec uniquement les relations nécessaires
-    const savedAction = await this.actionRepository.findOne({
-      where: { id: action.id },
-      relations: ['task', 'task.tag', 'user', 'group'],
-    });
-
-    if (!savedAction) {
-      throw new NotFoundException('Action non trouvée après création');
-    }
-
-    // Calculer le total pour l'utilisateur cible
     const firstOfMonth = this.getFirstOfMonth();
-
     const result = await this.actionRepository
       .createQueryBuilder('action')
       .leftJoin('action.task', 'task')
       .select('SUM(task.points)', 'totalDone')
-      .where('action.userId = :userId', { userId: targetUserId })
+      .where('action.userId = :userId', { userId })
       .andWhere('action.date >= :firstOfMonth', { firstOfMonth })
       .getRawOne<{ totalDone: string | null }>();
 
     const totalDone = parseInt(result?.totalDone ?? '0', 10);
 
     this.logger.log(
-      `Action created: user ${targetUserId} completed task ${task.id} (${task.label}) - isHelpingHand: ${action.isHelpingHand}`,
+      `Action created: user ${userId} completed task ${task.id} (${task.label})`,
     );
 
-    // Mapper vers le DTO de réponse
     const response: CreateActionResponseDto = {
       message: 'Action créée avec succès',
       action: {
-        id: savedAction.id,
-        date: savedAction.date,
-        isHelpingHand: savedAction.isHelpingHand,
+        id: action.id,
+        date: action.date,
         task: {
-          id: savedAction.task.id,
-          label: savedAction.task.label,
-          points: savedAction.task.points,
-          tag: savedAction.task.tag
-            ? {
-              id: savedAction.task.tag.id,
-              label: savedAction.task.tag.label,
-              color: savedAction.task.tag.color,
-            }
+          id: task.id,
+          label: task.label,
+          points: task.points,
+          tag: task.tag
+            ? { id: task.tag.id, label: task.tag.label, color: task.tag.color }
             : null,
         },
         user: {
-          id: savedAction.user.id,
-          pseudo: savedAction.user.pseudo,
-          avatar: savedAction.user.avatar || null,
+          id: user.id,
+          pseudo: user.pseudo,
+          avatar: user.avatar || null,
         },
         group: {
-          id: savedAction.group.id,
-          nom: savedAction.group.nom,
-          code: savedAction.group.code,
+          id: task.group.id,
+          nom: task.group.nom,
+          code: task.group.code,
         },
       },
       totalDone,
@@ -204,7 +110,6 @@ export class ActionsService {
   }
 
   async findAll(page = 1, limit = 50, currentMonthOnly = true) {
-    const startTime = Date.now();
     const safePage = Math.max(1, page);
     const safeLimit = Math.min(Math.max(1, limit), 100);
 
@@ -226,9 +131,6 @@ export class ActionsService {
 
     const [actions, total] = await queryBuilder.getManyAndCount();
 
-    const duration = Date.now() - startTime;
-    this.logger.log(`findAll(): ${actions.length}/${total} actions in ${duration}ms`);
-
     return {
       message: 'Actions récupérées avec succès',
       actions,
@@ -246,10 +148,7 @@ export class ActionsService {
       where: { id },
       relations: ['task', 'user', 'group'],
     });
-
-    if (!action) {
-      throw new NotFoundException('Action non trouvée');
-    }
+    if (!action) throw new NotFoundException('Action non trouvée');
 
     return {
       message: 'Action récupérée avec succès',
@@ -257,8 +156,15 @@ export class ActionsService {
     };
   }
 
-  async findByUserId(userId: number, options: ActionsPaginationOptions = {}) {
-    const startTime = Date.now();
+  async findMyActions(userId: number, options: ActionsPaginationOptions = {}) {
+    return this.findByUserId(userId, options, 'Mes actions récupérées avec succès');
+  }
+
+  async findByUserId(
+    userId: number,
+    options: ActionsPaginationOptions = {},
+    message = "Actions de l'utilisateur récupérées avec succès",
+  ) {
     const safePage = Math.max(1, options.page || 1);
     const safeLimit = Math.min(Math.max(1, options.limit || 50), 100);
 
@@ -279,21 +185,12 @@ export class ActionsService {
       queryBuilder
         .andWhere('action.date >= :startDate', { startDate })
         .andWhere('action.date <= :endDate', { endDate });
-    } else {
-      this.logger.warn(
-        `Loading FULL HISTORY for user ${userId} - may impact performance`,
-      );
     }
 
     const [actions, total] = await queryBuilder.getManyAndCount();
 
-    const duration = Date.now() - startTime;
-    this.logger.log(
-      `findByUserId(${userId}): ${actions.length}/${total} actions in ${duration}ms`,
-    );
-
     return {
-      message: "Actions de l'utilisateur récupérées avec succès",
+      message,
       actions,
       pagination: {
         page: safePage,
@@ -305,7 +202,6 @@ export class ActionsService {
   }
 
   async findByGroupId(groupId: number, options: ActionsPaginationOptions = {}) {
-    const startTime = Date.now();
     const safePage = Math.max(1, options.page || 1);
     const safeLimit = Math.min(Math.max(1, options.limit || 50), 100);
 
@@ -320,31 +216,15 @@ export class ActionsService {
       .skip((safePage - 1) * safeLimit)
       .take(safeLimit);
 
-    // Filtre mois en cours par défaut
     if (!options.includeFullHistory) {
       const startDate = options.startDate || this.getFirstOfMonth();
       const endDate = options.endDate || new Date();
       queryBuilder
         .andWhere('action.date >= :startDate', { startDate })
         .andWhere('action.date <= :endDate', { endDate });
-    } else {
-      this.logger.warn(
-        `Loading FULL HISTORY for group ${groupId} - may impact performance`,
-      );
     }
 
     const [actions, total] = await queryBuilder.getManyAndCount();
-
-    const duration = Date.now() - startTime;
-    this.logger.log(
-      `findByGroupId(${groupId}): ${actions.length}/${total} actions in ${duration}ms`,
-    );
-
-    if (duration > 1000) {
-      this.logger.warn(
-        `Slow query: findByGroupId(${groupId}) took ${duration}ms`,
-      );
-    }
 
     return {
       message: 'Actions du groupe récupérées avec succès',
@@ -374,7 +254,6 @@ export class ActionsService {
   }
 
   async findByTaskId(taskId: number, options: ActionsPaginationOptions = {}) {
-    const startTime = Date.now();
     const safePage = Math.max(1, options.page || 1);
     const safeLimit = Math.min(Math.max(1, options.limit || 50), 100);
 
@@ -395,68 +274,12 @@ export class ActionsService {
       queryBuilder
         .andWhere('action.date >= :startDate', { startDate })
         .andWhere('action.date <= :endDate', { endDate });
-    } else {
-      this.logger.warn(
-        `Loading FULL HISTORY for task ${taskId} - may impact performance`,
-      );
     }
 
     const [actions, total] = await queryBuilder.getManyAndCount();
-
-    const duration = Date.now() - startTime;
-    this.logger.log(
-      `findByTaskId(${taskId}): ${actions.length}/${total} actions in ${duration}ms`,
-    );
 
     return {
       message: 'Actions de la tâche récupérées avec succès',
-      actions,
-      pagination: {
-        page: safePage,
-        limit: safeLimit,
-        total,
-        totalPages: Math.ceil(total / safeLimit),
-      },
-    };
-  }
-
-  async findMyActions(userId: number, options: ActionsPaginationOptions = {}) {
-    const startTime = Date.now();
-    const safePage = Math.max(1, options.page || 1);
-    const safeLimit = Math.min(Math.max(1, options.limit || 50), 100);
-
-    const queryBuilder = this.actionRepository
-      .createQueryBuilder('action')
-      .leftJoin('action.task', 'task')
-      .addSelect(['task.id', 'task.label', 'task.points'])
-      .leftJoin('action.group', 'group')
-      .addSelect(['group.id', 'group.nom'])
-      .where('action.userId = :userId', { userId })
-      .orderBy('action.date', 'DESC')
-      .skip((safePage - 1) * safeLimit)
-      .take(safeLimit);
-
-    if (!options.includeFullHistory) {
-      const startDate = options.startDate || this.getFirstOfMonth();
-      const endDate = options.endDate || new Date();
-      queryBuilder
-        .andWhere('action.date >= :startDate', { startDate })
-        .andWhere('action.date <= :endDate', { endDate });
-    } else {
-      this.logger.warn(
-        `Loading FULL HISTORY for user ${userId} (my actions) - may impact performance`,
-      );
-    }
-
-    const [actions, total] = await queryBuilder.getManyAndCount();
-
-    const duration = Date.now() - startTime;
-    this.logger.log(
-      `findMyActions(${userId}): ${actions.length}/${total} actions in ${duration}ms`,
-    );
-
-    return {
-      message: 'Mes actions récupérées avec succès',
       actions,
       pagination: {
         page: safePage,
@@ -472,15 +295,10 @@ export class ActionsService {
       where: { id },
       relations: ['task', 'user', 'group'],
     });
-
-    if (!action) {
-      throw new NotFoundException('Action non trouvée');
-    }
+    if (!action) throw new NotFoundException('Action non trouvée');
 
     if (action.user.id !== userId) {
-      throw new ForbiddenException(
-        'Vous ne pouvez modifier que vos propres actions',
-      );
+      throw new ForbiddenException('Vous ne pouvez modifier que vos propres actions');
     }
 
     if (updateActionDto.date) action.date = new Date(updateActionDto.date);
@@ -496,121 +314,18 @@ export class ActionsService {
   async remove(id: number, userId: number) {
     const action = await this.actionRepository.findOne({
       where: { id },
-      relations: ['task', 'user', 'group'],
+      relations: ['user'],
     });
-
-    if (!action) {
-      throw new NotFoundException('Action non trouvée');
-    }
+    if (!action) throw new NotFoundException('Action non trouvée');
 
     if (action.user.id !== userId) {
-      throw new ForbiddenException(
-        'Vous ne pouvez supprimer que vos propres actions',
-      );
+      throw new ForbiddenException('Vous ne pouvez supprimer que vos propres actions');
     }
 
     await this.actionRepository.remove(action);
 
     return {
       message: 'Action supprimée avec succès',
-    };
-  }
-
-  async getPendingAcknowledgment(userId: number) {
-    const acknowledgments = await this.actionAcknowledgmentRepository.find({
-      where: {
-        requestedFor: { id: userId },
-        status: 'pending',
-      },
-      relations: [
-        'action',
-        'action.task',
-        'action.user',
-        'action.group',
-        'requestedBy',
-        'requestedFor',
-      ],
-      order: {
-        createdAt: 'ASC',
-      },
-    });
-
-    return {
-      message: 'Actions en attente récupérées avec succès',
-      acknowledgments,
-    };
-  }
-
-  async acceptActionAcknowledgment(ackId: number, userId: number) {
-    const acknowledgment = await this.actionAcknowledgmentRepository.findOne({
-      where: { id: ackId },
-      relations: ['action', 'requestedFor'],
-    });
-
-    if (!acknowledgment) {
-      throw new NotFoundException('Acknowledgment non trouvé');
-    }
-
-    if (acknowledgment.requestedFor.id !== userId) {
-      throw new ForbiddenException(
-        "Vous ne pouvez accepter que les actions qui vous sont destinées",
-      );
-    }
-
-    if (acknowledgment.status !== 'pending') {
-      throw new ForbiddenException(
-        "Cette action a déjà été traitée",
-      );
-    }
-
-    acknowledgment.status = 'accepted';
-    await this.actionAcknowledgmentRepository.save(acknowledgment);
-
-    this.logger.log(
-      `Action acknowledgment ${ackId} accepted by user ${userId}`,
-    );
-
-    return {
-      message: 'Action acceptée avec succès',
-      acknowledgment,
-    };
-  }
-
-  async rejectActionAcknowledgment(ackId: number, userId: number) {
-    const acknowledgment = await this.actionAcknowledgmentRepository.findOne({
-      where: { id: ackId },
-      relations: ['action', 'requestedFor'],
-    });
-
-    if (!acknowledgment) {
-      throw new NotFoundException('Acknowledgment non trouvé');
-    }
-
-    if (acknowledgment.requestedFor.id !== userId) {
-      throw new ForbiddenException(
-        "Vous ne pouvez refuser que les actions qui vous sont destinées",
-      );
-    }
-
-    if (acknowledgment.status !== 'pending') {
-      throw new ForbiddenException(
-        "Cette action a déjà été traitée",
-      );
-    }
-
-    // Supprimer l'action associée
-    const actionId = acknowledgment.action.id;
-    await this.actionRepository.remove(acknowledgment.action);
-
-    // Supprimer l'acknowledgment
-    await this.actionAcknowledgmentRepository.remove(acknowledgment);
-
-    this.logger.log(
-      `Action acknowledgment ${ackId} rejected by user ${userId}, action ${actionId} deleted`,
-    );
-
-    return {
-      message: 'Action refusée et supprimée avec succès',
     };
   }
 }
