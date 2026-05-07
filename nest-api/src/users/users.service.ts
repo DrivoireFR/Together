@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
@@ -9,40 +13,9 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) { }
+  ) {}
 
-  async findAll(page = 1, limit = 50) {
-    const safePage = Math.max(1, page);
-    const safeLimit = Math.min(Math.max(1, limit), 100);
-
-    const [users, total] = await this.usersRepository.findAndCount({
-      select: [
-        'id',
-        'nom',
-        'prenom',
-        'pseudo',
-        'email',
-        'avatar',
-        'createdAt',
-        'updatedAt',
-      ],
-      skip: (safePage - 1) * safeLimit,
-      take: safeLimit,
-      order: { createdAt: 'DESC' },
-    });
-
-    return {
-      users,
-      pagination: {
-        page: safePage,
-        limit: safeLimit,
-        total,
-        totalPages: Math.ceil(total / safeLimit),
-      },
-    };
-  }
-
-  async findOne(id: number): Promise<User> {
+  async findOne(id: number) {
     const user = await this.usersRepository.findOne({
       where: { id },
       select: [
@@ -52,6 +25,7 @@ export class UsersService {
         'pseudo',
         'email',
         'avatar',
+        'groupId',
         'createdAt',
         'updatedAt',
       ],
@@ -59,13 +33,16 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('Utilisateur non trouvé');
     }
-    return user;
+    return {
+      message: 'Utilisateur récupéré avec succès',
+      user,
+    };
   }
 
-  async getProfile(userId: number): Promise<{ message: string; user: any }> {
+  async getProfile(userId: number) {
     const user = await this.usersRepository.findOne({
       where: { id: userId },
-      relations: ['groups'],
+      relations: ['group'],
       select: [
         'id',
         'nom',
@@ -73,6 +50,8 @@ export class UsersService {
         'pseudo',
         'email',
         'avatar',
+        'emailVerified',
+        'groupId',
         'createdAt',
         'updatedAt',
       ],
@@ -88,10 +67,7 @@ export class UsersService {
     };
   }
 
-  async updateProfile(
-    userId: number,
-    updateUserDto: UpdateUserDto,
-  ): Promise<{ message: string; user: any }> {
+  async updateProfile(userId: number, updateUserDto: UpdateUserDto) {
     const user = await this.usersRepository.findOne({
       where: { id: userId },
     });
@@ -100,33 +76,35 @@ export class UsersService {
       throw new NotFoundException('Utilisateur non trouvé');
     }
 
-    try {
-      if (updateUserDto.nom) user.nom = updateUserDto.nom.trim();
-      if (updateUserDto.prenom) user.prenom = updateUserDto.prenom.trim();
-      if (updateUserDto.pseudo) user.pseudo = updateUserDto.pseudo.trim();
-      if (updateUserDto.avatar !== undefined) user.avatar = updateUserDto.avatar;
+    if (updateUserDto.nom) user.nom = updateUserDto.nom.trim();
+    if (updateUserDto.prenom) user.prenom = updateUserDto.prenom.trim();
+    if (updateUserDto.pseudo) user.pseudo = updateUserDto.pseudo.trim();
+    if (updateUserDto.avatar !== undefined) user.avatar = updateUserDto.avatar;
 
-      await this.usersRepository.save(user);
+    await this.usersRepository.save(user);
 
-      const { password: _, ...userWithoutPassword } = user;
+    const { otpCode: _, otpExpiresAt: _exp, ...userWithoutSensitive } = user;
 
-      return {
-        message: 'Profil mis à jour avec succès',
-        user: userWithoutPassword,
-      };
-    } catch (error) {
-      // Re-throw NotFoundException pour qu'il soit géré par le filter
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      // Log les erreurs TypeORM pour debugging
-      throw new Error(
-        `Erreur lors de la mise à jour du profil: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
-      );
-    }
+    return {
+      message: 'Profil mis à jour avec succès',
+      user: userWithoutSensitive,
+    };
   }
 
-  async remove(id: number): Promise<void> {
-    await this.usersRepository.delete(id);
+  async remove(id: number, currentUserId: number) {
+    if (id !== currentUserId) {
+      throw new ForbiddenException('Vous ne pouvez supprimer que votre propre compte');
+    }
+
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Utilisateur non trouvé');
+    }
+
+    await this.usersRepository.remove(user);
+
+    return {
+      message: 'Compte supprimé avec succès',
+    };
   }
 }

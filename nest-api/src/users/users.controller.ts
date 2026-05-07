@@ -7,32 +7,36 @@ import {
   UseGuards,
   Request,
   Put,
-  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import type { RequestWithUser } from '../auth/types';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+} from '@nestjs/swagger';
 
 @ApiTags('Users')
+@ApiBearerAuth()
 @Controller('users')
+@UseGuards(AuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get()
-  findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
-    return this.usersService.findAll(page ? +page : 1, limit ? +limit : 50);
-  }
-
-  @UseGuards(AuthGuard)
   @Get('profile')
+  @ApiOperation({ summary: 'Récupérer son propre profil avec le groupe' })
+  @ApiResponse({ status: 200, description: 'Profil récupéré avec succès' })
   getProfile(@Request() req: RequestWithUser) {
     return this.usersService.getProfile(req.user.userId);
   }
 
-  @UseGuards(AuthGuard)
   @Put('profile')
+  @ApiOperation({ summary: 'Mettre à jour son profil' })
+  @ApiResponse({ status: 200, description: 'Profil mis à jour avec succès' })
   updateProfile(
     @Request() req: RequestWithUser,
     @Body() updateUserDto: UpdateUserDto,
@@ -41,13 +45,19 @@ export class UsersController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Récupérer un utilisateur par son ID' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 200, description: 'Utilisateur récupéré' })
+  @ApiResponse({ status: 404, description: 'Utilisateur non trouvé' })
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }
 
-  @UseGuards(AuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  @ApiOperation({ summary: 'Supprimer un utilisateur' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 200, description: 'Utilisateur supprimé' })
+  remove(@Param('id') id: string, @Request() req: RequestWithUser) {
+    return this.usersService.remove(+id, req.user.userId);
   }
 }
