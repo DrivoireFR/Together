@@ -4,13 +4,11 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  BeforeInsert,
-  BeforeUpdate,
-  ManyToMany,
+  ManyToOne,
   OneToMany,
+  JoinColumn,
 } from 'typeorm';
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
-import * as bcrypt from 'bcrypt';
+import { IsEmail, IsNotEmpty } from 'class-validator';
 import { Group } from '../../groups/entities/group.entity';
 import { Action } from '../../actions/entities/action.entity';
 import { UserTaskState } from '../../user-task-states/entities/user-task-state.entity';
@@ -38,10 +36,6 @@ export class User {
   @IsEmail()
   email: string;
 
-  @Column()
-  @MinLength(6)
-  password: string;
-
   @Column({ type: 'simple-enum', enum: Avatar, nullable: true })
   avatar?: Avatar;
 
@@ -49,19 +43,17 @@ export class User {
   emailVerified: boolean;
 
   @Column({ nullable: true })
-  emailConfirmationToken?: string;
+  otpCode?: string;
 
-  @Column({ type: 'datetime', nullable: true })
-  emailConfirmationExpiresAt?: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  otpExpiresAt?: Date;
+
+  @ManyToOne(() => Group, (group) => group.users, { nullable: true })
+  @JoinColumn({ name: 'groupId' })
+  group?: Group;
 
   @Column({ nullable: true })
-  passwordResetToken?: string;
-
-  @Column({ type: 'datetime', nullable: true })
-  passwordResetExpiresAt?: Date;
-
-  @ManyToMany(() => Group, (group) => group.users)
-  groups: Group[];
+  groupId?: number;
 
   @OneToMany(() => Action, (action) => action.user)
   actions: Action[];
@@ -77,16 +69,4 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
-
-  @BeforeInsert()
-  @BeforeUpdate()
-  async hashPassword() {
-    if (this.password && !this.password.startsWith('$2')) {
-      this.password = await bcrypt.hash(this.password, 10);
-    }
-  }
-
-  async comparePassword(candidatePassword: string): Promise<boolean> {
-    return bcrypt.compare(candidatePassword, this.password);
-  }
 }

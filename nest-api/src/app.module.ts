@@ -8,7 +8,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
-// Entities
 import { User } from './users/entities/user.entity';
 import { Group } from './groups/entities/group.entity';
 import { Task } from './tasks/entities/task.entity';
@@ -18,7 +17,7 @@ import { UserTaskState } from './user-task-states/entities/user-task-state.entit
 import { TaskBundle } from './task-bundles/entities/task-bundle.entity';
 import { Congrats } from './congrats/entities/congrats.entity';
 import { Achievement } from './achievements/entities/achievement.entity';
-// Modules
+
 import { GroupsModule } from './groups/groups.module';
 import { TasksModule } from './tasks/tasks.module';
 import { ActionsModule } from './actions/actions.module';
@@ -29,7 +28,6 @@ import { CongratsModule } from './congrats/congrats.module';
 import { AchievementsModule } from './achievements/achievements.module';
 import { LoggerModule } from './common/logger/logger.module';
 
-// Common
 import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
 import { CircuitBreakerInterceptor } from './common/interceptors/circuit-breaker.interceptor';
 import { QueryLoggerInterceptor } from './common/interceptors/query-logger.interceptor';
@@ -74,22 +72,21 @@ function buildTypeOrmOptions() {
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    // Rate limiting: 100 requests per minute per IP
     ThrottlerModule.forRoot([
       {
         name: 'short',
-        ttl: 1000, // 1 second
-        limit: 10, // 10 requests per second
+        ttl: 1000,
+        limit: 10,
       },
       {
         name: 'medium',
-        ttl: 60000, // 1 minute
-        limit: 100, // 100 requests per minute
+        ttl: 60000,
+        limit: 100,
       },
       {
         name: 'long',
-        ttl: 3600000, // 1 hour
-        limit: 1000, // 1000 requests per hour
+        ttl: 3600000,
+        limit: 1000,
       },
     ]),
     TypeOrmModule.forRoot(buildTypeOrmOptions()),
@@ -108,31 +105,26 @@ function buildTypeOrmOptions() {
   controllers: [AppController],
   providers: [
     AppService,
-    // Global rate limiting guard
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
-    // Global timeout interceptor
     {
       provide: APP_INTERCEPTOR,
       useClass: TimeoutInterceptor,
     },
-    // Global circuit breaker interceptor
     {
       provide: APP_INTERCEPTOR,
       useClass: CircuitBreakerInterceptor,
     },
-    // Global query logger interceptor
     {
       provide: APP_INTERCEPTOR,
       useClass: QueryLoggerInterceptor,
     },
-    // Global exception filter
     {
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

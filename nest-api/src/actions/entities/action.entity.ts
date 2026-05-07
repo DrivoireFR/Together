@@ -13,9 +13,9 @@ import { User } from '../../users/entities/user.entity';
 import { Group } from '../../groups/entities/group.entity';
 
 @Entity()
-@Index(['date', 'group']) // Index pour les requêtes par groupe avec filtre date
-@Index(['date', 'user']) // Index pour les requêtes par utilisateur avec filtre date
-@Index(['date', 'task']) // Index pour les requêtes par tâche avec filtre date
+@Index(['date', 'group'])
+@Index(['date', 'user'])
+@Index(['date', 'task'])
 export class Action {
   @PrimaryGeneratedColumn()
   id: number;
@@ -23,9 +23,6 @@ export class Action {
   @Column()
   @IsDate()
   date: Date;
-
-  @Column({ type: 'boolean', default: false })
-  isHelpingHand: boolean;
 
   @ManyToOne(() => Task, (task) => task.actions, {
     onDelete: 'CASCADE',

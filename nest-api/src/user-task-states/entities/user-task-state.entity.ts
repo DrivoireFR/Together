@@ -13,7 +13,7 @@ import { Task } from '../../tasks/entities/task.entity';
 
 @Entity()
 @Unique(['user', 'task'])
-@Index(['user', 'task']) // Index pour les requêtes par utilisateur et tâche
+@Index(['user', 'task'])
 export class UserTaskState {
   @PrimaryGeneratedColumn()
   id: number;
@@ -29,14 +29,8 @@ export class UserTaskState {
   @Column({ type: 'boolean', default: false })
   isAcknowledged: boolean;
 
-  @Column({ type: 'boolean', default: false })
-  isConcerned: boolean;
-
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   acknowledgedAt?: Date;
-
-  @Column({ type: 'datetime', nullable: true })
-  concernedAt?: Date;
 
   @CreateDateColumn()
   createdAt: Date;

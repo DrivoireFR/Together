@@ -4,8 +4,6 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToMany,
-  JoinTable,
   OneToMany,
   BeforeInsert,
   Index,
@@ -18,7 +16,7 @@ import { Tag } from '../../tags/entities/tag.entity';
 import { Achievement } from '../../achievements/entities/achievement.entity';
 
 @Entity()
-@Index(['nom']) // Index pour searchByName
+@Index(['nom'])
 export class Group {
   @PrimaryGeneratedColumn()
   id: number;
@@ -30,8 +28,7 @@ export class Group {
   @Column({ unique: true, length: 8 })
   code: string;
 
-  @ManyToMany(() => User, (user) => user.groups)
-  @JoinTable()
+  @OneToMany(() => User, (user) => user.group)
   users: User[];
 
   @OneToMany(() => Task, (task) => task.group)
