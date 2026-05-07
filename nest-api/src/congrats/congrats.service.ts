@@ -16,9 +16,10 @@ export class CongratsService {
   ) {}
 
   async findAll() {
-    return this.congratsRepository.find({
+    const congrats = await this.congratsRepository.find({
       relations: ['tag'],
     });
+    return { message: 'Congrats récupérés avec succès', congrats };
   }
 
   async findOne(id: number) {
@@ -26,71 +27,66 @@ export class CongratsService {
       where: { id },
       relations: ['tag'],
     });
-
-    if (!congrats) {
-      throw new NotFoundException('Congrats non trouvé');
-    }
-
-    return congrats;
+    if (!congrats) throw new NotFoundException('Congrats non trouvé');
+    return { message: 'Congrats récupéré avec succès', congrats };
   }
 
   async findByTag(tagId: number) {
-    return this.congratsRepository.find({
+    const congrats = await this.congratsRepository.find({
       where: { tag: { id: tagId } },
       relations: ['tag'],
     });
+    return { message: 'Congrats du tag récupérés avec succès', congrats };
   }
 
   async create(createCongratsDto: CreateCongratsDto) {
-    const tag = await this.tagRepository.findOne({
-      where: { id: createCongratsDto.tagId },
-    });
-
-    if (!tag) {
-      throw new NotFoundException('Tag non trouvé');
+    let tag: Tag | undefined = undefined;
+    if (createCongratsDto.tagId) {
+      const foundTag = await this.tagRepository.findOne({
+        where: { id: createCongratsDto.tagId },
+      });
+      if (!foundTag) throw new NotFoundException('Tag non trouvé');
+      tag = foundTag;
     }
 
     const congrats = this.congratsRepository.create({
-      level: createCongratsDto.level,
       message: createCongratsDto.message,
       tag,
     });
 
-    return this.congratsRepository.save(congrats);
+    await this.congratsRepository.save(congrats);
+
+    return { message: 'Congrats créé avec succès', congrats };
   }
 
   async update(id: number, updateCongratsDto: UpdateCongratsDto) {
     const congrats = await this.congratsRepository.findOne({
       where: { id },
     });
+    if (!congrats) throw new NotFoundException('Congrats non trouvé');
 
-    if (!congrats) {
-      throw new NotFoundException('Congrats non trouvé');
-    }
-
-    if (updateCongratsDto.tagId) {
-      const tag = await this.tagRepository.findOne({
-        where: { id: updateCongratsDto.tagId },
-      });
-      if (!tag) {
-        throw new NotFoundException('Tag non trouvé');
+    if (updateCongratsDto.tagId !== undefined) {
+      if (updateCongratsDto.tagId) {
+        const tag = await this.tagRepository.findOne({
+          where: { id: updateCongratsDto.tagId },
+        });
+        if (!tag) throw new NotFoundException('Tag non trouvé');
+        congrats.tag = tag;
+      } else {
+        congrats.tag = undefined;
       }
-      congrats.tag = tag;
     }
 
-    if (updateCongratsDto.level) congrats.level = updateCongratsDto.level;
     if (updateCongratsDto.message) congrats.message = updateCongratsDto.message;
 
-    return this.congratsRepository.save(congrats);
+    await this.congratsRepository.save(congrats);
+
+    return { message: 'Congrats mis à jour avec succès', congrats };
   }
 
   async remove(id: number) {
     const result = await this.congratsRepository.delete(id);
-
-    if (result.affected === 0) {
-      throw new NotFoundException('Congrats non trouvé');
-    }
-
+    if (result.affected === 0) throw new NotFoundException('Congrats non trouvé');
     return { message: 'Congrats supprimé avec succès' };
   }
 }

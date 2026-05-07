@@ -25,25 +25,28 @@ export class AchievementsService {
   ) {}
 
   async findAll() {
-    return this.achievementRepository.find({
+    const achievements = await this.achievementRepository.find({
       relations: ['user', 'group', 'congrats', 'congrats.tag'],
     });
+    return { message: 'Achievements récupérés avec succès', achievements };
   }
 
   async findByUser(userId: number) {
-    return this.achievementRepository.find({
+    const achievements = await this.achievementRepository.find({
       where: { user: { id: userId } },
       relations: ['group', 'congrats', 'congrats.tag'],
       order: { achievedAt: 'DESC' },
     });
+    return { message: 'Achievements de l\'utilisateur récupérés', achievements };
   }
 
   async findByGroup(groupId: number) {
-    return this.achievementRepository.find({
+    const achievements = await this.achievementRepository.find({
       where: { group: { id: groupId } },
       relations: ['user', 'congrats', 'congrats.tag'],
       order: { achievedAt: 'DESC' },
     });
+    return { message: 'Achievements du groupe récupérés', achievements };
   }
 
   async findOne(id: number) {
@@ -51,38 +54,25 @@ export class AchievementsService {
       where: { id },
       relations: ['user', 'group', 'congrats', 'congrats.tag'],
     });
-
-    if (!achievement) {
-      throw new NotFoundException('Achievement non trouvé');
-    }
-
-    return achievement;
+    if (!achievement) throw new NotFoundException('Achievement non trouvé');
+    return { message: 'Achievement récupéré avec succès', achievement };
   }
 
   async create(createAchievementDto: CreateAchievementDto) {
     const user = await this.userRepository.findOne({
       where: { id: createAchievementDto.userId },
     });
-
-    if (!user) {
-      throw new NotFoundException('Utilisateur non trouvé');
-    }
+    if (!user) throw new NotFoundException('Utilisateur non trouvé');
 
     const group = await this.groupRepository.findOne({
       where: { id: createAchievementDto.groupId },
     });
-
-    if (!group) {
-      throw new NotFoundException('Groupe non trouvé');
-    }
+    if (!group) throw new NotFoundException('Groupe non trouvé');
 
     const congrats = await this.congratsRepository.findOne({
       where: { id: createAchievementDto.congratsId },
     });
-
-    if (!congrats) {
-      throw new NotFoundException('Congrats non trouvé');
-    }
+    if (!congrats) throw new NotFoundException('Congrats non trouvé');
 
     const existingAchievement = await this.achievementRepository.findOne({
       where: {
@@ -91,11 +81,8 @@ export class AchievementsService {
         congrats: { id: createAchievementDto.congratsId },
       },
     });
-
     if (existingAchievement) {
-      throw new BadRequestException(
-        'Achievement déjà attribué à cet utilisateur pour ce groupe',
-      );
+      throw new BadRequestException('Achievement déjà attribué');
     }
 
     const achievement = this.achievementRepository.create({
@@ -107,29 +94,25 @@ export class AchievementsService {
         : new Date(),
     });
 
-    const savedAchievement = await this.achievementRepository.save(achievement);
+    await this.achievementRepository.save(achievement);
 
-    return this.achievementRepository.findOne({
-      where: { id: savedAchievement.id },
+    const savedAchievement = await this.achievementRepository.findOne({
+      where: { id: achievement.id },
       relations: ['user', 'group', 'congrats', 'congrats.tag'],
     });
+
+    return { message: 'Achievement créé avec succès', achievement: savedAchievement };
   }
 
   async remove(id: number) {
     const result = await this.achievementRepository.delete(id);
-
-    if (result.affected === 0) {
-      throw new NotFoundException('Achievement non trouvé');
-    }
-
+    if (result.affected === 0) throw new NotFoundException('Achievement non trouvé');
     return { message: 'Achievement supprimé avec succès' };
   }
 
   async getStats(userId: number, groupId?: number) {
     const whereCondition: any = { user: { id: userId } };
-    if (groupId) {
-      whereCondition.group = { id: groupId };
-    }
+    if (groupId) whereCondition.group = { id: groupId };
 
     const achievements = await this.achievementRepository.find({
       where: whereCondition,
@@ -138,42 +121,20 @@ export class AchievementsService {
 
     const statsByTag = achievements.reduce(
       (acc, achievement) => {
-        const tagLabel = achievement.congrats.tag.label;
-        if (!acc[tagLabel]) {
-          acc[tagLabel] = { level1: 0, level2: 0, total: 0 };
-        }
-        if (achievement.congrats.level === 1) {
-          acc[tagLabel].level1++;
-        } else if (achievement.congrats.level === 2) {
-          acc[tagLabel].level2++;
-        }
+        const tagLabel = achievement.congrats?.tag?.label || 'Sans tag';
+        if (!acc[tagLabel]) acc[tagLabel] = { total: 0 };
         acc[tagLabel].total++;
         return acc;
       },
-      {} as Record<string, { level1: number; level2: number; total: number }>,
-    );
-
-    const statsByGroup = achievements.reduce(
-      (acc, achievement) => {
-        const groupName = achievement.group.nom;
-        if (!acc[groupName]) {
-          acc[groupName] = { level1: 0, level2: 0, total: 0 };
-        }
-        if (achievement.congrats.level === 1) {
-          acc[groupName].level1++;
-        } else if (achievement.congrats.level === 2) {
-          acc[groupName].level2++;
-        }
-        acc[groupName].total++;
-        return acc;
-      },
-      {} as Record<string, { level1: number; level2: number; total: number }>,
+      {} as Record<string, { total: number }>,
     );
 
     return {
-      totalAchievements: achievements.length,
-      statsByTag,
-      statsByGroup,
+      message: 'Stats des achievements récupérées',
+      stats: {
+        totalAchievements: achievements.length,
+        statsByTag,
+      },
     };
   }
 }
