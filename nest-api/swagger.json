@@ -1940,7 +1940,7 @@
   },
   "info": {
     "title": "Together API",
-    "description": "Together - Gérer les tâches du quotidien à plusieurs, équitablement.\n\n## Authentification\nL'API utilise un flux OTP par email :\n1. POST /auth/register — Créer un compte + envoi OTP\n2. POST /auth/request-otp — Demander un OTP (login / renvoi)\n3. POST /auth/verify-otp — Vérifier le code et obtenir un JWT\n\nLes endpoints protégés nécessitent un header Authorization: Bearer <token>.",
+    "description": "Together - Gérer les tâches du quotidien à plusieurs, équitablement.\n\n## Authentification\nL'API utilise un flux OTP par email :\n1. `POST /auth/register` — Créer un compte + envoi OTP\n2. `POST /auth/request-otp` — Demander un OTP (login / renvoi)\n3. `POST /auth/verify-otp` — Vérifier le code et obtenir un JWT\n\nLes endpoints protégés nécessitent un header `Authorization: Bearer <token>`.",
     "version": "2.0",
     "contact": {}
   },
