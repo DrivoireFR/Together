@@ -59,12 +59,12 @@ export class AuthController {
   @ApiResponse({ status: 201, type: VerifyOtpResponseDto })
   @ApiResponse({ status: 400, description: 'Code OTP invalide ou expiré' })
   @ApiResponse({ status: 401, description: 'Identifiants invalides' })
-  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto): Promise<VerifyOtpResponseDto> {
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
     try {
       return await this.authService.verifyOtp(
         verifyOtpDto.email,
         verifyOtpDto.code,
-      ) as VerifyOtpResponseDto;
+      );
     } catch (err) {
       if (err instanceof HttpException) throw err;
       throw new HttpException('Un problème est survenu: ' + (err as Error).message, 500);

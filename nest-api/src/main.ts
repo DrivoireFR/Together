@@ -7,13 +7,13 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { CustomValidationPipe } from './common/validation.pipe';
 import { winstonLoggerService } from './common/logger/winston.logger';
+import * as fs from 'fs';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: winstonLoggerService,
   });
 
-  // Security headers with Helmet
   app.use(
     helmet({
       frameguard: { action: 'deny' },
@@ -21,23 +21,20 @@ async function bootstrap() {
       xssFilter: true,
       hidePoweredBy: true,
       hsts: {
-        maxAge: 31536000, // 1 year
+        maxAge: 31536000,
         includeSubDomains: true,
       },
       contentSecurityPolicy: false,
-      // Referrer Policy
       referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     }),
   );
 
-  // Configure global prefix for all routes
   app.setGlobalPrefix('api');
 
-  // Enable CORS
   app.enableCors({
     origin: process.env.CORS_ORIGINS?.split(',') || [
       'http://localhost:5173',
-      'http://localhost:80',
+      'http://localhost:8081',
       'http://localhost',
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -45,27 +42,36 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Global validation pipe
   app.useGlobalPipes(new CustomValidationPipe());
 
-  // Swagger / OpenAPI
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Together API')
-    .setDescription('Together - Manage life tasks together equally')
-    .setVersion('1.0')
+    .setDescription(
+      'Together - Gérer les tâches du quotidien à plusieurs, équitablement.\n\n' +
+      '## Authentification\n' +
+      'L\'API utilise un flux OTP par email :\n' +
+      '1. `POST /auth/register` — Créer un compte + envoi OTP\n' +
+      '2. `POST /auth/request-otp` — Demander un OTP (login / renvoi)\n' +
+      '3. `POST /auth/verify-otp` — Vérifier le code et obtenir un JWT\n\n' +
+      'Les endpoints protégés nécessitent un header `Authorization: Bearer <token>`.',
+    )
+    .setVersion('2.0')
     .addBearerAuth()
     .build();
+
   const document = SwaggerModule.createDocument(app, swaggerConfig);
+
+  fs.writeFileSync(
+    join(process.cwd(), 'swagger.json'),
+    JSON.stringify(document, null, 2),
+  );
+  winstonLoggerService.log('swagger.json generated', 'Swagger');
+
   SwaggerModule.setup('docs', app, document, {
     jsonDocumentUrl: 'docs-json',
   });
 
-  // Static assets
   app.useStaticAssets(join(__dirname, '..', 'public'));
-
-  // Configure view engine for HTML templates (password reset pages)
-  app.setBaseViewsDir(join(__dirname, '..', 'views'));
-  app.setViewEngine('hbs');
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);

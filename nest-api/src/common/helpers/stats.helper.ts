@@ -11,7 +11,7 @@ export function frequencyToMonthly(
       return frequenceEstimee * 30;
     case 'semaine':
     case FrequencyUnit.SEMAINE:
-      return frequenceEstimee * 4;
+      return frequenceEstimee * 4.33;
     case 'mois':
     case FrequencyUnit.MOIS:
       return frequenceEstimee;
