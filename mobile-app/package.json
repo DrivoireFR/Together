@@ -4,9 +4,12 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "dev": "APP_VARIANT=development npx expo start",
+    "reset-project": "node ./scripts/reset-project.js",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
+    "lint": "expo lint",
     "generate:api-types": "npx openapi-typescript ../nest-api/swagger.json -o src/api/generated/schema.ts"
   },
   "dependencies": {
@@ -19,6 +22,7 @@
     "expo": "55.0.10-canary-20260328-2049187",
     "expo-clipboard": "55.0.10-canary-20260328-2049187",
     "expo-constants": "55.0.10-canary-20260328-2049187",
+    "expo-dev-client": "55.0.20-canary-20260328-2049187",
     "expo-linking": "55.0.10-canary-20260328-2049187",
     "expo-router": "55.0.9-canary-20260328-2049187",
     "expo-secure-store": "55.0.10-canary-20260328-2049187",
