@@ -11,9 +11,3 @@ export class UserDoesntExistsException extends HttpException {
     super('Identifiants invalides', 401);
   }
 }
-
-export class SessionExpiredException extends HttpException {
-  constructor() {
-    super('Votre session a expiré, merci de vous reconnecter', 401);
-  }
-}

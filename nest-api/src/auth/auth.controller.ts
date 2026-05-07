@@ -4,246 +4,101 @@ import {
   Get,
   HttpException,
   Post,
-  Put,
   UseGuards,
   Request,
-  Query,
-  Res,
 } from '@nestjs/common';
-import type { Response } from 'express';
 import { Throttle, SkipThrottle } from '@nestjs/throttler';
-import { RegisterUserDto } from './dto/registerDto';
+import { RegisterDto, RegisterResponseDto } from './dto/register.dto';
+import { RequestOtpDto, RequestOtpResponseDto } from './dto/request-otp.dto';
+import { VerifyOtpDto, VerifyOtpResponseDto } from './dto/verify-otp.dto';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/loginDto';
 import { AuthGuard } from './auth.guard';
-import { RememberMeGuard } from './remember-me.guard';
 import type { RequestWithUser } from './types';
-import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
-import { ChangePasswordDto } from './dto/change-password.dto';
-import { ConfigService } from '@nestjs/config';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly configService: ConfigService,
-  ) { }
+  constructor(private readonly authService: AuthService) {}
 
-  // Rate limit: 5 requests per minute for registration
   @Post('register')
   @Throttle({ default: { limit: 5, ttl: 60000 } })
-  async register(@Body() createUserDto: RegisterUserDto) {
+  @ApiOperation({ summary: 'Créer un compte et envoyer un code OTP par email' })
+  @ApiResponse({ status: 201, type: RegisterResponseDto })
+  @ApiResponse({ status: 409, description: 'Email ou pseudo déjà utilisé' })
+  async register(@Body() registerDto: RegisterDto): Promise<RegisterResponseDto> {
     try {
-      return await this.authService.register(createUserDto);
+      return await this.authService.register(registerDto);
     } catch (err) {
-      if (err instanceof HttpException) {
-        throw err;
-      }
-      throw new HttpException(
-        'Un problème est survenu: ' + (err as Error).message,
-        500,
-      );
+      if (err instanceof HttpException) throw err;
+      throw new HttpException('Un problème est survenu: ' + (err as Error).message, 500);
     }
   }
 
-  // Rate limit: 5 requests per minute for login
-  @Post('login')
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
-  async login(@Body() loginDto: LoginDto) {
-    try {
-      return await this.authService.login(loginDto);
-    } catch (err) {
-      if (err instanceof HttpException) {
-        throw err;
-      }
-      throw new HttpException(
-        'Un problème est survenu: ' + (err as Error).message,
-        500,
-      );
-    }
-  }
-
-  // Rate limit: 3 requests per minute for email confirmation
-  @Get('confirm-email')
+  @Post('request-otp')
   @Throttle({ default: { limit: 3, ttl: 60000 } })
-  async confirmEmail(
-    @Query('token') token: string,
-    @Query('email') email: string,
-  ) {
+  @ApiOperation({ summary: 'Demander un code OTP par email (login ou renvoi)' })
+  @ApiResponse({ status: 201, type: RequestOtpResponseDto })
+  async requestOtp(@Body() requestOtpDto: RequestOtpDto): Promise<RequestOtpResponseDto> {
     try {
-      if (!token || !email) {
-        throw new HttpException('Token et email requis', 400);
-      }
-      return await this.authService.confirmEmail(token, email);
+      return await this.authService.requestOtp(requestOtpDto.email);
     } catch (err) {
-      if (err instanceof HttpException) {
-        throw err;
-      }
-      throw new HttpException(
-        'Un problème est survenu: ' + (err as Error).message,
-        500,
-      );
+      if (err instanceof HttpException) throw err;
+      throw new HttpException('Un problème est survenu: ' + (err as Error).message, 500);
     }
   }
 
-  // Rate limit: 2 requests per minute for resending confirmation email
-  @Post('resend-confirmation')
-  @Throttle({ default: { limit: 2, ttl: 60000 } })
-  async resendConfirmation(@Body('email') email: string) {
+  @Post('verify-otp')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @ApiOperation({ summary: 'Vérifier le code OTP et obtenir un JWT' })
+  @ApiResponse({ status: 201, type: VerifyOtpResponseDto })
+  @ApiResponse({ status: 400, description: 'Code OTP invalide ou expiré' })
+  @ApiResponse({ status: 401, description: 'Identifiants invalides' })
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto): Promise<VerifyOtpResponseDto> {
     try {
-      if (!email) {
-        throw new HttpException('Email requis', 400);
-      }
-      return await this.authService.resendConfirmationEmail(email);
+      return await this.authService.verifyOtp(
+        verifyOtpDto.email,
+        verifyOtpDto.code,
+      ) as VerifyOtpResponseDto;
     } catch (err) {
-      if (err instanceof HttpException) {
-        throw err;
-      }
-      throw new HttpException(
-        'Un problème est survenu: ' + (err as Error).message,
-        500,
-      );
+      if (err instanceof HttpException) throw err;
+      throw new HttpException('Un problème est survenu: ' + (err as Error).message, 500);
     }
   }
 
   @UseGuards(AuthGuard)
   @SkipThrottle()
   @Get('verify')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Vérifier la validité du token JWT' })
+  @ApiResponse({ status: 200, description: 'Token valide' })
+  @ApiResponse({ status: 401, description: 'Token invalide ou expiré' })
   verifyToken(@Request() req: RequestWithUser) {
     return this.authService.verifyToken(req.user);
-  }
-
-  @UseGuards(RememberMeGuard)
-  @SkipThrottle()
-  @Get('remember-me')
-  async rememberMe(@Request() req: RequestWithUser) {
-    return this.authService.rememberMeVerify(req.user.userId);
   }
 
   @UseGuards(AuthGuard)
   @SkipThrottle()
   @Get('profile')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Récupérer le profil de l\'utilisateur connecté' })
+  @ApiResponse({ status: 200, description: 'Profil récupéré avec succès' })
   async getProfile(@Request() req: RequestWithUser) {
     return this.authService.getProfile(req.user.userId);
   }
 
-  // Rate limit: 3 requests per minute for forgot password
-  @Post('forgot-password')
-  @Throttle({ default: { limit: 3, ttl: 60000 } })
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-    try {
-      return await this.authService.requestPasswordReset(
-        forgotPasswordDto.email,
-      );
-    } catch (err) {
-      if (err instanceof HttpException) {
-        throw err;
-      }
-      throw new HttpException(
-        'Un problème est survenu: ' + (err as Error).message,
-        500,
-      );
-    }
-  }
-
-  // Rate limit: 5 requests per minute for reset password GET
-  @Get('reset-password')
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
-  async getResetPassword(
-    @Query('token') token: string,
-    @Query('email') email: string,
-    @Res() res: Response,
-  ) {
-    const frontendUrl =
-      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
-
-    try {
-      if (!token || !email) {
-        return res.render('reset-password-error', {
-          error: 'Lien de réinitialisation invalide',
-          frontendUrl,
-        });
-      }
-
-      const isValid = await this.authService.verifyPasswordResetToken(
-        token,
-        email,
-      );
-
-      if (!isValid) {
-        return res.render('reset-password-error', {
-          error: 'Le lien de réinitialisation est invalide ou a expiré.',
-          frontendUrl,
-        });
-      }
-
-      return res.render('reset-password', {
-        token,
-        email,
-      });
-    } catch (err) {
-      return res.render('reset-password-error', {
-        error:
-          'Un problème est survenu. Veuillez réessayer ou demander un nouveau lien.',
-        frontendUrl,
-      });
-    }
-  }
-
-  // Rate limit: 5 requests per minute for reset password POST
-  @Post('reset-password')
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
-  async postResetPassword(
-    @Body() resetPasswordDto: ResetPasswordDto,
-    @Res() res: Response,
-  ) {
-    const frontendUrl =
-      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
-
-    try {
-      await this.authService.resetPassword(
-        resetPasswordDto.token,
-        resetPasswordDto.email,
-        resetPasswordDto.newPassword,
-      );
-
-      return res.redirect(`${frontendUrl}/login?reset=success`);
-    } catch (err) {
-      return res.render('reset-password-error', {
-        error:
-          err instanceof HttpException
-            ? err.message
-            : 'Un problème est survenu. Veuillez réessayer.',
-        frontendUrl,
-      });
-    }
-  }
-
-  // Rate limit: 5 requests per minute for change password
   @UseGuards(AuthGuard)
-  @Put('change-password')
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
-  async changePassword(
-    @Request() req: RequestWithUser,
-    @Body() changePasswordDto: ChangePasswordDto,
-  ) {
-    try {
-      return await this.authService.changePassword(
-        req.user.userId,
-        changePasswordDto.oldPassword,
-        changePasswordDto.newPassword,
-      );
-    } catch (err) {
-      if (err instanceof HttpException) {
-        throw err;
-      }
-      throw new HttpException(
-        'Un problème est survenu: ' + (err as Error).message,
-        500,
-      );
-    }
+  @SkipThrottle()
+  @Post('refresh')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Renouveler le token JWT' })
+  @ApiResponse({ status: 201, description: 'Token renouvelé' })
+  async refreshToken(@Request() req: RequestWithUser) {
+    return this.authService.refreshToken(req.user.userId);
   }
 }

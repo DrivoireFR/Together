@@ -1,5 +1,4 @@
 import {
-  HttpException,
   Injectable,
   Logger,
   UnauthorizedException,
@@ -8,22 +7,23 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { Repository } from 'typeorm';
-import { RegisterUserDto } from './dto/registerDto';
-import { validate } from 'class-validator';
-import {
-  UserAlreadyExistsException,
-  UserDoesntExistsException,
-} from './auth.exceptions';
-import { LoginDto, LoginResponseDto } from './dto/loginDto';
+import { RegisterDto } from './dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { jwtConstants } from './constants';
 import { MailService } from '../mail/mail.service';
+import {
+  UserAlreadyExistsException,
+  UserDoesntExistsException,
+} from './auth.exceptions';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+
+  private static readonly OTP_LENGTH = 6;
+  private static readonly OTP_EXPIRY_MINUTES = 10;
 
   constructor(
     @InjectRepository(User)
@@ -31,237 +31,131 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private mailService: MailService,
-  ) { }
+  ) {}
 
-  async register(
-    createUserDto: RegisterUserDto,
-  ): Promise<{ message: string; user: unknown; token: string }> {
-    this.logger.log(`Registration attempt for email: ${createUserDto.email}`);
+  async register(registerDto: RegisterDto): Promise<{ message: string; email: string }> {
+    this.logger.log(`Registration attempt for email: ${registerDto.email}`);
 
     const existingUser = await this.usersRepository.findOne({
-      where: [{ email: createUserDto.email }, { pseudo: createUserDto.pseudo }],
+      where: [{ email: registerDto.email }, { pseudo: registerDto.pseudo }],
     });
 
     if (existingUser) {
-      this.logger.warn(
-        `Registration failed: user already exists (${createUserDto.email})`,
-      );
+      this.logger.warn(`Registration failed: user already exists (${registerDto.email})`);
       throw new UserAlreadyExistsException();
     }
 
     const user = new User();
-    user.nom = createUserDto.nom;
-    user.prenom = createUserDto.prenom;
-    user.pseudo = createUserDto.pseudo;
-    user.email = createUserDto.email;
-    user.password = createUserDto.password;
-    user.avatar = createUserDto.avatar;
+    user.nom = registerDto.nom;
+    user.prenom = registerDto.prenom;
+    user.pseudo = registerDto.pseudo;
+    user.email = registerDto.email;
+    user.avatar = registerDto.avatar;
     user.emailVerified = false;
 
-    // Generate confirmation token (expires in 24h)
-    const confirmationToken = crypto.randomBytes(32).toString('hex');
-    user.emailConfirmationToken = await this.hashToken(confirmationToken);
-    user.emailConfirmationExpiresAt = new Date(
-      Date.now() + 24 * 60 * 60 * 1000,
-    );
-
-    const errors = await validate(user);
-    if (errors.length > 0) {
-      this.logger.warn(`Registration failed: validation errors`);
-      throw new HttpException('Erreurs de validation', 400);
-    }
+    const otpCode = this.generateOtp();
+    user.otpCode = this.hashOtp(otpCode);
+    user.otpExpiresAt = new Date(Date.now() + AuthService.OTP_EXPIRY_MINUTES * 60 * 1000);
 
     await this.usersRepository.save(user);
 
-    // Send welcome confirmation email
-    const frontendUrl =
-      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
-    const confirmationUrl = `${frontendUrl}/confirm-email?token=${confirmationToken}&email=${encodeURIComponent(user.email)}`;
-
-    try {
-      await this.mailService.sendWelcomeConfirmationEmail(
-        user.email,
-        user.prenom,
-        confirmationUrl,
-      );
-      this.logger.log(`Welcome email sent to: ${user.email}`);
-    } catch (error) {
-      this.logger.error(
-        `Failed to send welcome email to ${user.email}: ${error}`,
-      );
-      // Don't fail registration if email fails
-    }
-
-    const token = await this.generateToken(user, false);
+    await this.sendOtpEmail(user.email, user.prenom, otpCode);
 
     this.logger.log(`User registered successfully: ${user.id} (${user.email})`);
 
     return {
-      message: 'Utilisateur créé avec succès. Vérifiez votre email pour confirmer votre compte.',
-      user: this.sanitizeUser(user),
-      token,
+      message: 'Compte créé. Un code OTP a été envoyé à votre adresse email.',
+      email: user.email,
     };
   }
 
-  async confirmEmail(
-    token: string,
+  async requestOtp(email: string): Promise<{ message: string }> {
+    this.logger.log(`OTP request for email: ${email}`);
+
+    const user = await this.usersRepository.findOne({ where: { email } });
+
+    if (!user) {
+      this.logger.warn(`OTP request for non-existent email: ${email}`);
+      return {
+        message: 'Si cette adresse email est enregistrée, un code OTP a été envoyé.',
+      };
+    }
+
+    const otpCode = this.generateOtp();
+    user.otpCode = this.hashOtp(otpCode);
+    user.otpExpiresAt = new Date(Date.now() + AuthService.OTP_EXPIRY_MINUTES * 60 * 1000);
+
+    await this.usersRepository.save(user);
+
+    await this.sendOtpEmail(user.email, user.prenom, otpCode);
+
+    this.logger.log(`OTP sent to: ${user.email}`);
+
+    return {
+      message: 'Si cette adresse email est enregistrée, un code OTP a été envoyé.',
+    };
+  }
+
+  async verifyOtp(
     email: string,
-  ): Promise<{ message: string; user: unknown }> {
-    this.logger.log(`Email confirmation attempt for: ${email}`);
+    code: string,
+  ): Promise<{ message: string; token: string; user: Record<string, unknown> }> {
+    this.logger.log(`OTP verification attempt for: ${email}`);
 
-    const user = await this.usersRepository.findOne({
-      where: { email },
-    });
-
-    if (!user) {
-      this.logger.warn(`Email confirmation failed: user not found (${email})`);
-      throw new BadRequestException('Lien de confirmation invalide');
-    }
-
-    if (user.emailVerified) {
-      return {
-        message: 'Adresse email déjà confirmée',
-        user: this.sanitizeUser(user),
-      };
-    }
-
-    if (!user.emailConfirmationToken || !user.emailConfirmationExpiresAt) {
-      this.logger.warn(
-        `Email confirmation failed: no token stored for ${email}`,
-      );
-      throw new BadRequestException('Lien de confirmation invalide');
-    }
-
-    if (new Date() > user.emailConfirmationExpiresAt) {
-      this.logger.warn(`Email confirmation failed: token expired for ${email}`);
-      throw new BadRequestException(
-        'Le lien de confirmation a expiré. Veuillez demander un nouveau lien.',
-      );
-    }
-
-    const hashedToken = await this.hashToken(token);
-    if (hashedToken !== user.emailConfirmationToken) {
-      this.logger.warn(
-        `Email confirmation failed: token mismatch for ${email}`,
-      );
-      throw new BadRequestException('Lien de confirmation invalide');
-    }
-
-    // Mark email as verified and clear token
-    user.emailVerified = true;
-    user.emailConfirmationToken = undefined;
-    user.emailConfirmationExpiresAt = undefined;
-
-    await this.usersRepository.save(user);
-
-    this.logger.log(`Email confirmed successfully for user: ${user.id}`);
-
-    return {
-      message: 'Adresse email confirmée avec succès',
-      user: this.sanitizeUser(user),
-    };
-  }
-
-  async resendConfirmationEmail(email: string): Promise<{ message: string }> {
-    this.logger.log(`Resend confirmation email request for: ${email}`);
-
-    const user = await this.usersRepository.findOne({
-      where: { email },
-    });
+    const user = await this.usersRepository.findOne({ where: { email } });
 
     if (!user) {
-      // Don't reveal if email exists
-      return {
-        message:
-          'Si cette adresse email est enregistrée, un email de confirmation a été envoyé.',
-      };
-    }
-
-    if (user.emailVerified) {
-      return {
-        message: 'Cette adresse email est déjà confirmée.',
-      };
-    }
-
-    // Generate new confirmation token
-    const confirmationToken = crypto.randomBytes(32).toString('hex');
-    user.emailConfirmationToken = await this.hashToken(confirmationToken);
-    user.emailConfirmationExpiresAt = new Date(
-      Date.now() + 24 * 60 * 60 * 1000,
-    );
-
-    await this.usersRepository.save(user);
-
-    const frontendUrl =
-      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
-    const confirmationUrl = `${frontendUrl}/confirm-email?token=${confirmationToken}&email=${encodeURIComponent(user.email)}`;
-
-    try {
-      await this.mailService.sendWelcomeConfirmationEmail(
-        user.email,
-        user.prenom,
-        confirmationUrl,
-      );
-      this.logger.log(`Confirmation email resent to: ${user.email}`);
-    } catch (error) {
-      this.logger.error(
-        `Failed to resend confirmation email to ${user.email}: ${error}`,
-      );
-    }
-
-    return {
-      message:
-        'Si cette adresse email est enregistrée, un email de confirmation a été envoyé.',
-    };
-  }
-
-  async login(loginDto: LoginDto): Promise<LoginResponseDto> {
-    this.logger.log(`Login attempt for email: ${loginDto.email}`);
-
-    const user = await this.usersRepository.findOne({
-      where: [{ email: loginDto.email }],
-    });
-
-    if (!user) {
-      this.logger.warn(`Login failed: user not found (${loginDto.email})`);
+      this.logger.warn(`OTP verification failed: user not found (${email})`);
       throw new UserDoesntExistsException();
     }
 
-    const isValidPassword = await user.comparePassword(loginDto.password);
-
-    if (!isValidPassword) {
-      this.logger.warn(
-        `Login failed: invalid password for user ${user.id} (${loginDto.email})`,
-      );
-      throw new UnauthorizedException('Identifiants invalides');
+    if (!user.otpCode || !user.otpExpiresAt) {
+      this.logger.warn(`OTP verification failed: no OTP pending for ${email}`);
+      throw new BadRequestException('Aucun code OTP en attente. Veuillez en demander un nouveau.');
     }
 
-    const token = await this.generateToken(user, loginDto.rememberMe || false);
+    if (new Date() > user.otpExpiresAt) {
+      this.logger.warn(`OTP verification failed: expired for ${email}`);
+      throw new BadRequestException('Le code OTP a expiré. Veuillez en demander un nouveau.');
+    }
 
-    this.logger.log(
-      `User logged in successfully: ${user.id} (${user.email}) - rememberMe: ${loginDto.rememberMe}`,
-    );
+    const hashedCode = this.hashOtp(code);
+    if (hashedCode !== user.otpCode) {
+      this.logger.warn(`OTP verification failed: invalid code for ${email}`);
+      throw new UnauthorizedException('Code OTP invalide.');
+    }
+
+    user.otpCode = undefined;
+    user.otpExpiresAt = undefined;
+    user.emailVerified = true;
+
+    await this.usersRepository.save(user);
+
+    const token = await this.generateToken(user);
+
+    this.logger.log(`User authenticated via OTP: ${user.id} (${user.email})`);
 
     return {
+      message: 'Connexion réussie',
       token,
       user: this.sanitizeUser(user),
-      rememberMe: loginDto.rememberMe,
     };
   }
 
-  verifyToken(user: { userId: number; email: string }): {
+  verifyToken(payload: { userId: number; email: string }): {
     message: string;
     user: { userId: number; email: string };
   } {
     return {
       message: 'Token valide',
-      user,
+      user: payload,
     };
   }
 
-  async getProfile(userId: number): Promise<{ message: string; user: unknown }> {
+  async getProfile(userId: number): Promise<{ message: string; user: Record<string, unknown> }> {
     const user = await this.usersRepository.findOne({
       where: { id: userId },
+      relations: ['group'],
     });
 
     if (!user) {
@@ -274,9 +168,9 @@ export class AuthService {
     };
   }
 
-  async rememberMeVerify(
+  async refreshToken(
     userId: number,
-  ): Promise<{ message: string; user: unknown; token: string }> {
+  ): Promise<{ message: string; user: Record<string, unknown>; token: string }> {
     const user = await this.usersRepository.findOne({
       where: { id: userId },
     });
@@ -285,32 +179,33 @@ export class AuthService {
       throw new UnauthorizedException('Utilisateur non trouvé');
     }
 
-    // IMPORTANT: Générer un nouveau token remember-me (30 jours) pour prolonger la session
-    const token = await this.generateToken(user, true);
+    const token = await this.generateToken(user);
 
     return {
-      message: 'Remember me vérifié avec succès',
+      message: 'Token renouvelé avec succès',
       user: this.sanitizeUser(user),
       token,
     };
   }
 
-  private async generateToken(
-    user: User,
-    rememberMe: boolean,
-  ): Promise<string> {
+  private generateOtp(): string {
+    const digits = crypto.randomInt(0, 10 ** AuthService.OTP_LENGTH);
+    return digits.toString().padStart(AuthService.OTP_LENGTH, '0');
+  }
+
+  private hashOtp(otp: string): string {
+    return crypto.createHash('sha256').update(otp).digest('hex');
+  }
+
+  private async generateToken(user: User): Promise<string> {
     const payload = {
       sub: user.id,
       userId: user.id,
       email: user.email,
-      rememberMe,
     };
 
-    const expiresIn = rememberMe
-      ? this.configService.get<string>('JWT_REMEMBER_EXPIRES_IN') ||
-      jwtConstants.rememberExpiresIn
-      : this.configService.get<string>('JWT_EXPIRES_IN') ||
-      jwtConstants.expiresIn;
+    const expiresIn =
+      this.configService.get<string>('JWT_EXPIRES_IN') || jwtConstants.expiresIn;
 
     return this.jwtService.signAsync(payload, { expiresIn });
   }
@@ -319,175 +214,17 @@ export class AuthService {
     return this.usersRepository.findOne({ where: { id } });
   }
 
-  private async hashToken(token: string): Promise<string> {
-    return crypto.createHash('sha256').update(token).digest('hex');
-  }
-
-  async requestPasswordReset(email: string): Promise<{ message: string }> {
-    this.logger.log(`Password reset request for email: ${email}`);
-
-    const user = await this.usersRepository.findOne({
-      where: { email },
-    });
-
-    // Don't reveal if email exists (security)
-    if (!user) {
-      this.logger.warn(`Password reset requested for non-existent email: ${email}`);
-      return {
-        message:
-          'Si cette adresse email est enregistrée, un email de réinitialisation a été envoyé.',
-      };
-    }
-
-    // Generate reset token (expires in 1 hour)
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    user.passwordResetToken = await this.hashToken(resetToken);
-    user.passwordResetExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-
-    await this.usersRepository.save(user);
-
-    // Send password reset email
-    const backendUrl =
-      this.configService.get<string>('BACKEND_URL') || 'http://localhost:3000';
-    const resetUrl = `${backendUrl}/api/auth/reset-password?token=${resetToken}&email=${encodeURIComponent(user.email)}`;
-
-    try {
-      await this.mailService.sendPasswordResetEmail(
-        user.email,
-        user.prenom,
-        resetUrl,
-      );
-      this.logger.log(`Password reset email sent to: ${user.email}`);
-    } catch (error) {
-      this.logger.error(
-        `Failed to send password reset email to ${user.email}: ${error}`,
-      );
-    }
-
-    return {
-      message:
-        'Si cette adresse email est enregistrée, un email de réinitialisation a été envoyé.',
-    };
-  }
-
-  async verifyPasswordResetToken(
-    token: string,
-    email: string,
-  ): Promise<boolean> {
-    this.logger.log(`Verifying password reset token for email: ${email}`);
-
-    const user = await this.usersRepository.findOne({
-      where: { email },
-    });
-
-    if (!user || !user.passwordResetToken || !user.passwordResetExpiresAt) {
-      this.logger.warn(
-        `Password reset token verification failed: invalid data for ${email}`,
-      );
-      return false;
-    }
-
-    if (new Date() > user.passwordResetExpiresAt) {
-      this.logger.warn(
-        `Password reset token verification failed: token expired for ${email}`,
-      );
-      return false;
-    }
-
-    const hashedToken = await this.hashToken(token);
-    if (hashedToken !== user.passwordResetToken) {
-      this.logger.warn(
-        `Password reset token verification failed: token mismatch for ${email}`,
-      );
-      return false;
-    }
-
-    return true;
-  }
-
-  async resetPassword(
-    token: string,
-    email: string,
-    newPassword: string,
-  ): Promise<{ message: string }> {
-    this.logger.log(`Password reset attempt for email: ${email}`);
-
-    const isValid = await this.verifyPasswordResetToken(token, email);
-    if (!isValid) {
-      this.logger.warn(`Password reset failed: invalid token for ${email}`);
-      throw new BadRequestException(
-        'Le lien de réinitialisation est invalide ou a expiré.',
-      );
-    }
-
-    const user = await this.usersRepository.findOne({
-      where: { email },
-    });
-
-    if (!user) {
-      throw new BadRequestException(
-        'Le lien de réinitialisation est invalide ou a expiré.',
-      );
-    }
-
-    // Update password and clear reset token
-    user.password = newPassword; // Will be hashed by @BeforeUpdate hook
-    user.passwordResetToken = undefined;
-    user.passwordResetExpiresAt = undefined;
-
-    await this.usersRepository.save(user);
-
-    this.logger.log(`Password reset successfully for user: ${user.id}`);
-
-    return {
-      message: 'Votre mot de passe a été réinitialisé avec succès.',
-    };
-  }
-
-  async changePassword(
-    userId: number,
-    oldPassword: string,
-    newPassword: string,
-  ): Promise<{ message: string }> {
-    this.logger.log(`Password change attempt for user: ${userId}`);
-
-    const user = await this.usersRepository.findOne({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      this.logger.warn(`Password change failed: user not found (${userId})`);
-      throw new UnauthorizedException('Utilisateur non trouvé');
-    }
-
-    // Verify old password
-    const isValidPassword = await user.comparePassword(oldPassword);
-    if (!isValidPassword) {
-      this.logger.warn(
-        `Password change failed: invalid old password for user ${userId}`,
-      );
-      throw new BadRequestException('L\'ancien mot de passe est incorrect');
-    }
-
-    // Update password
-    user.password = newPassword; // Will be hashed by @BeforeUpdate hook
-    await this.usersRepository.save(user);
-
-    this.logger.log(`Password changed successfully for user: ${userId}`);
-
-    return {
-      message: 'Votre mot de passe a été modifié avec succès.',
-    };
-  }
-
   private sanitizeUser(user: User): Record<string, unknown> {
-    const {
-      password: _pass,
-      emailConfirmationToken: _token,
-      passwordResetToken: _resetToken,
-      passwordResetExpiresAt: _resetExpires,
-      ...sanitized
-    } = user;
+    const { otpCode: _otp, otpExpiresAt: _otpExp, ...sanitized } = user;
     return sanitized;
+  }
+
+  private async sendOtpEmail(email: string, firstName: string, otpCode: string): Promise<void> {
+    try {
+      await this.mailService.sendOtpEmail(email, firstName, otpCode);
+      this.logger.log(`OTP email sent to: ${email}`);
+    } catch (error) {
+      this.logger.error(`Failed to send OTP email to ${email}: ${error}`);
+    }
   }
 }
