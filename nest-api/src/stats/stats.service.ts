@@ -1,9 +1,17 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from '../tasks/entities/task.entity';
+import { Action } from '../actions/entities/action.entity';
 import { User } from '../users/entities/user.entity';
 import { frequencyToMonthly } from '../common/helpers/stats.helper';
+import { calculateTaskHurryState } from '../common/helpers/hurry-calculation.helper';
 
 @Injectable()
 export class StatsService {
@@ -12,92 +20,95 @@ export class StatsService {
   constructor(
     @InjectRepository(Task)
     private taskRepository: Repository<Task>,
+    @InjectRepository(Action)
+    private actionRepository: Repository<Action>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-  ) { }
+  ) {}
 
-  async getOverview(groupId: number) {
+  async getPersonalOverview(groupId: number, userId: number) {
     const startTime = Date.now();
-    this.logger.debug(`Getting overview for group ${groupId}`);
+    this.logger.debug(`Getting personal overview for user ${userId} in group ${groupId}`);
 
-    if (!groupId) {
-      throw new BadRequestException('Group ID is required');
+    if (!groupId) throw new BadRequestException('Group ID is required');
+
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Utilisateur non trouvé');
+    if (user.groupId !== groupId) {
+      throw new ForbiddenException('Vous devez être membre du groupe');
     }
 
-    // Optimized: select only needed fields
     const tasks = await this.taskRepository.find({
       where: { group: { id: groupId } },
       select: ['id', 'label', 'frequenceEstimee', 'uniteFrequence', 'points'],
     });
 
-    const monthlyVolume = tasks.map((task) => {
-      const monthlyFrequency = frequencyToMonthly(
-        task.frequenceEstimee,
-        task.uniteFrequence,
-      );
-      return {
-        taskId: task.id,
-        taskLabel: task.label,
-        monthlyFrequency,
-        points: task.points,
-        monthlyPoints: monthlyFrequency * task.points,
-      };
-    });
-
-    const totalTasksVolume = monthlyVolume.reduce(
-      (sum, task) => sum + task.monthlyPoints,
-      0,
-    );
+    const totalTasksVolume = tasks.reduce((sum, task) => {
+      return sum + frequencyToMonthly(task.frequenceEstimee, task.uniteFrequence) * task.points;
+    }, 0);
 
     const now = new Date();
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Optimized: select only needed user fields
-    const users = await this.userRepository
-      .createQueryBuilder('user')
-      .select([
-        'user.id',
-        'user.nom',
-        'user.prenom',
-        'user.pseudo',
-        'user.avatar',
-      ])
-      .leftJoinAndSelect(
-        'user.actions',
-        'action',
-        'action.groupId = :groupId AND action.date >= :firstOfMonth',
-        { groupId, firstOfMonth },
-      )
+    const myActions = await this.actionRepository
+      .createQueryBuilder('action')
       .leftJoinAndSelect('action.task', 'task')
       .leftJoinAndSelect('task.tag', 'tag')
-      .innerJoin('user.groups', 'group', 'group.id = :groupId', { groupId })
+      .where('action.userId = :userId', { userId })
+      .andWhere('action.groupId = :groupId', { groupId })
+      .andWhere('action.date >= :firstOfMonth', { firstOfMonth })
+      .orderBy('action.date', 'DESC')
       .getMany();
 
-    const allActions = users.flatMap((user) => user.actions);
-
-    const totalDone = allActions.reduce((acc, action) => {
+    const myPointsDone = myActions.reduce((acc, action) => {
       return acc + (action.task?.points || 0);
     }, 0);
 
-    const duration = Date.now() - startTime;
-    this.logger.log(
-      `Overview for group ${groupId}: ${tasks.length} tasks, ${users.length} users, ${allActions.length} actions in ${duration}ms`,
-    );
-
-    if (duration > 2000) {
-      this.logger.warn(
-        `Slow query detected: getOverview(group ${groupId}) took ${duration}ms`,
-      );
+    const actionCountByTask = new Map<number, number>();
+    for (const action of myActions) {
+      const taskId = action.task?.id;
+      if (taskId) {
+        actionCountByTask.set(taskId, (actionCountByTask.get(taskId) || 0) + 1);
+      }
     }
 
+    const tasksWithStatus = tasks.map((task) => {
+      const actualActions = actionCountByTask.get(task.id) || 0;
+      const hurry = calculateTaskHurryState(
+        task.id,
+        task.frequenceEstimee,
+        task.uniteFrequence,
+        actualActions,
+        now,
+      );
+      return {
+        id: task.id,
+        label: task.label,
+        points: task.points,
+        frequenceEstimee: task.frequenceEstimee,
+        uniteFrequence: task.uniteFrequence,
+        status: hurry.hurryState,
+        expectedActionsAtDate: hurry.expectedActionsAtDate,
+        actualActionsThisMonth: hurry.actualActionsThisMonth,
+        actionsLate: hurry.actionsLate,
+      };
+    });
+
+    const duration = Date.now() - startTime;
+    this.logger.log(
+      `Personal overview for user ${userId} in group ${groupId}: ${tasks.length} tasks, ${myActions.length} actions in ${duration}ms`,
+    );
+
     return {
-      message: 'Overview récupéré avec succès',
+      message: 'Résumé personnel récupéré avec succès',
       overview: {
         totalTasksVolume,
-        totalDone,
-        actions: allActions,
-        users,
-        tasks,
+        myPointsDone,
+        progressPercent: totalTasksVolume > 0
+          ? Math.round((myPointsDone / totalTasksVolume) * 100)
+          : 0,
+        actionsThisMonth: myActions.length,
+        tasks: tasksWithStatus,
       },
     };
   }
