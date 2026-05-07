@@ -23,8 +23,8 @@ npm install
 Créez un fichier `.env` à la racine du projet :
 
 ```env
-# Database
-DATABASE_PATH=./data/database.sqlite
+# Database (PostgreSQL)
+DATABASE_URL=postgresql://together:together@localhost:5433/together
 
 # JWT Configuration
 JWT_SECRET=your-secret-key-change-in-production

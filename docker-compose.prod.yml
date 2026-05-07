@@ -1,14 +1,34 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-together}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in env}
+      POSTGRES_DB: ${POSTGRES_DB:-together}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+
   api:
     build:
       context: ./nest-api
       dockerfile: Dockerfile
       target: production
     restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - 3000
     environment:
-      - DATABASE_PATH=/app/data/database.sqlite
+      - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
       - JWT_REMEMBER_EXPIRES_IN=${JWT_REMEMBER_EXPIRES_IN:-30d}
@@ -25,7 +45,6 @@ services:
       - NODE_ENV=production
     volumes:
       - api_uploads:/app/public/uploads
-      - api_database:/app/data
 
   web-app:
     build:
@@ -48,7 +67,7 @@ services:
 volumes:
   api_uploads:
     driver: local
-  api_database:
+  postgres_data:
     driver: local
 
 networks:

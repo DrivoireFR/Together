@@ -18,8 +18,6 @@ import { UserTaskState } from './user-task-states/entities/user-task-state.entit
 import { TaskBundle } from './task-bundles/entities/task-bundle.entity';
 import { Congrats } from './congrats/entities/congrats.entity';
 import { Achievement } from './achievements/entities/achievement.entity';
-import { ActionAcknowledgment } from './actions/entities/action-acknowledgment.entity';
-
 // Modules
 import { GroupsModule } from './groups/groups.module';
 import { TasksModule } from './tasks/tasks.module';
@@ -36,6 +34,40 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
 import { CircuitBreakerInterceptor } from './common/interceptors/circuit-breaker.interceptor';
 import { QueryLoggerInterceptor } from './common/interceptors/query-logger.interceptor';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
+
+function buildTypeOrmOptions() {
+  const entities = [
+    User,
+    Group,
+    Task,
+    Action,
+    Tag,
+    UserTaskState,
+    TaskBundle,
+    Congrats,
+    Achievement,
+  ];
+  const synchronize = true;
+  const databaseUrl = process.env.DATABASE_URL;
+  if (databaseUrl) {
+    return {
+      type: 'postgres' as const,
+      url: databaseUrl,
+      entities,
+      synchronize,
+    };
+  }
+  return {
+    type: 'postgres' as const,
+    host: process.env.PGHOST || 'localhost',
+    port: parseInt(process.env.PGPORT || '5432', 10),
+    username: process.env.PGUSER || 'together',
+    password: process.env.PGPASSWORD || 'together',
+    database: process.env.PGDATABASE || 'together',
+    entities,
+    synchronize,
+  };
+}
 
 @Module({
   imports: [
@@ -60,27 +92,7 @@ import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
         limit: 1000, // 1000 requests per hour
       },
     ]),
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: process.env.DATABASE_PATH || './database.sqlite',
-      entities: [
-        User,
-        Group,
-        Task,
-        Action,
-        Tag,
-        UserTaskState,
-        TaskBundle,
-        Congrats,
-        Achievement,
-        ActionAcknowledgment,
-      ],
-      synchronize: true,
-      // SQLite specific timeout configuration
-      extra: {
-        busyTimeout: 10000, // 10 seconds timeout for SQLite
-      },
-    }),
+    TypeOrmModule.forRoot(buildTypeOrmOptions()),
     LoggerModule,
     AuthModule,
     UsersModule,

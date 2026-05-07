@@ -1,4 +1,24 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: together-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: together
+      POSTGRES_PASSWORD: together
+      POSTGRES_DB: together
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U together -d together"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - together-network
+
   api:
     build:
       context: ./nest-api
@@ -6,10 +26,13 @@ services:
       target: development
     container_name: together-api-dev
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_PATH=/app/data/database.sqlite
+      - DATABASE_URL=postgresql://together:together@postgres:5432/together
       - JWT_SECRET=${JWT_SECRET:-together-dev-secret-key}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
       - JWT_REMEMBER_EXPIRES_IN=${JWT_REMEMBER_EXPIRES_IN:-30d}
@@ -26,7 +49,6 @@ services:
     volumes:
       - ./nest-api:/app
       - /app/node_modules
-      - api_database:/app/data
     command: npm run start:dev
     healthcheck:
       test:
@@ -71,7 +93,7 @@ services:
       - together-network
 
 volumes:
-  api_database:
+  postgres_data:
     driver: local
 
 networks:

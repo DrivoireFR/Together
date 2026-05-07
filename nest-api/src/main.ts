@@ -56,8 +56,8 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document, {
-    jsonDocumentUrl: 'api/docs-json',
+  SwaggerModule.setup('docs', app, document, {
+    jsonDocumentUrl: 'docs-json',
   });
 
   // Static assets
