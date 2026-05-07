@@ -1,11 +1,8 @@
-import { IsOptional, IsBoolean } from 'class-validator';
+import { IsBoolean } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateUserTaskStateDto {
-  @IsOptional()
+  @ApiProperty({ description: 'Marquer la tâche comme prise en connaissance', example: true })
   @IsBoolean()
-  isAcknowledged?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  isConcerned?: boolean;
+  isAcknowledged: boolean;
 }

@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -26,24 +25,11 @@ export class UserTaskStatesService {
     userId: number,
     updateDto: UpdateUserTaskStateDto,
   ) {
-    if (
-      updateDto.isAcknowledged === undefined &&
-      updateDto.isConcerned === undefined
-    ) {
-      throw new BadRequestException(
-        'Au moins un des champs isAcknowledged ou isConcerned doit être fourni',
-      );
-    }
-
     const task = await this.taskRepository.findOne({ where: { id: taskId } });
-    if (!task) {
-      throw new NotFoundException('Tâche non trouvée');
-    }
+    if (!task) throw new NotFoundException('Tâche non trouvée');
 
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('Utilisateur non trouvé');
-    }
+    if (!user) throw new NotFoundException('Utilisateur non trouvé');
 
     let userTaskState = await this.userTaskStateRepository.findOne({
       where: { user: { id: userId }, task: { id: taskId } },
@@ -56,19 +42,8 @@ export class UserTaskStatesService {
       userTaskState.task = task;
     }
 
-    if (updateDto.isAcknowledged !== undefined) {
-      userTaskState.isAcknowledged = updateDto.isAcknowledged;
-      userTaskState.acknowledgedAt = updateDto.isAcknowledged
-        ? new Date()
-        : undefined;
-    }
-
-    if (updateDto.isConcerned !== undefined) {
-      userTaskState.isConcerned = updateDto.isConcerned;
-      userTaskState.concernedAt = updateDto.isConcerned
-        ? new Date()
-        : undefined;
-    }
+    userTaskState.isAcknowledged = updateDto.isAcknowledged;
+    userTaskState.acknowledgedAt = updateDto.isAcknowledged ? new Date() : undefined;
 
     await this.userTaskStateRepository.save(userTaskState);
 
@@ -79,9 +54,7 @@ export class UserTaskStatesService {
         taskId: userTaskState.task.id,
         userId: userTaskState.user.id,
         isAcknowledged: userTaskState.isAcknowledged,
-        isConcerned: userTaskState.isConcerned,
         acknowledgedAt: userTaskState.acknowledgedAt,
-        concernedAt: userTaskState.concernedAt,
         createdAt: userTaskState.createdAt,
         updatedAt: userTaskState.updatedAt,
       },
@@ -104,9 +77,7 @@ export class UserTaskStatesService {
         taskId: state.task.id,
         userId: state.user.id,
         isAcknowledged: state.isAcknowledged,
-        isConcerned: state.isConcerned,
         acknowledgedAt: state.acknowledgedAt,
-        concernedAt: state.concernedAt,
         createdAt: state.createdAt,
         updatedAt: state.updatedAt,
       })),
