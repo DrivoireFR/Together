@@ -37,77 +37,74 @@ export class GroupsService {
     private userTaskStateRepository: Repository<UserTaskState>,
     private starterPackService: StarterPackService,
     private hotActionsService: HotActionsService,
-  ) { }
+  ) {}
+
+  private async getUserOrFail(userId: number): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Utilisateur non trouvé');
+    return user;
+  }
+
+  private async assertMember(userId: number, groupId: number): Promise<User> {
+    const user = await this.getUserOrFail(userId);
+    if (user.groupId !== groupId) {
+      throw new ForbiddenException('Vous devez être membre du groupe');
+    }
+    return user;
+  }
 
   async create(createGroupDto: CreateGroupDto, userId: number) {
-    const queryRunner =
-      this.groupRepository.manager.connection.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const user = await this.getUserOrFail(userId);
 
-    try {
-      const existingGroup = await queryRunner.manager.findOne(Group, {
-        where: { nom: createGroupDto.nom },
-      });
-
-      if (existingGroup) {
-        throw new BadRequestException('Un groupe avec ce nom existe déjà');
-      }
-
-      const group = new Group();
-      group.nom = createGroupDto.nom;
-      await queryRunner.manager.save(group);
-
-      const user = await queryRunner.manager.findOne(User, {
-        where: { id: userId },
-      });
-
-      if (user) {
-        group.users = [user];
-        await queryRunner.manager.save(group);
-      }
-
-      await queryRunner.commitTransaction();
-
-      const starterPack = this.starterPackService.getDefaultStarterPackData();
-
-      this.logger.log(
-        `Group created: ${group.id} "${group.nom}" by user ${userId}`,
-      );
-
-      return {
-        message: 'Groupe créé avec succès',
-        group,
-        starterPack,
-      };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw err;
-    } finally {
-      await queryRunner.release();
+    if (user.groupId) {
+      throw new BadRequestException('Vous appartenez déjà à un groupe. Quittez-le avant d\'en créer un nouveau.');
     }
+
+    const existingGroup = await this.groupRepository.findOne({
+      where: { nom: createGroupDto.nom },
+    });
+    if (existingGroup) {
+      throw new BadRequestException('Un groupe avec ce nom existe déjà');
+    }
+
+    const group = new Group();
+    group.nom = createGroupDto.nom;
+    await this.groupRepository.save(group);
+
+    user.groupId = group.id;
+    await this.userRepository.save(user);
+
+    const starterPack = this.starterPackService.getDefaultStarterPackData();
+
+    this.logger.log(`Group created: ${group.id} "${group.nom}" by user ${userId}`);
+
+    return {
+      message: 'Groupe créé avec succès',
+      group,
+      starterPack,
+    };
   }
 
   async findAll(page = 1, limit = 20) {
-    const startTime = Date.now();
-    this.logger.debug(`Finding all groups - page: ${page}, limit: ${limit}`);
-
-    // Validate and cap pagination
     const safePage = Math.max(1, page);
-    const safeLimit = Math.min(Math.max(1, limit), 50); // Max 50 items per page
+    const safeLimit = Math.min(Math.max(1, limit), 50);
     const skip = (safePage - 1) * safeLimit;
 
     const [groups, total] = await this.groupRepository.findAndCount({
       relations: ['users', 'tags'],
+      select: {
+        users: {
+          id: true,
+          nom: true,
+          prenom: true,
+          pseudo: true,
+          avatar: true,
+        },
+      },
       skip,
       take: safeLimit,
       order: { createdAt: 'DESC' },
     });
-
-    const duration = Date.now() - startTime;
-    this.logger.log(
-      `Found ${groups.length}/${total} groups in ${duration}ms (page ${safePage})`,
-    );
 
     return {
       message: 'Groupes récupérés avec succès',
@@ -121,103 +118,9 @@ export class GroupsService {
     };
   }
 
-  async findUserGroups(userId: number, page = 1, limit = 20) {
-    const startTime = Date.now();
-    this.logger.debug(`Finding groups for user ${userId} - page: ${page}`);
-
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new NotFoundException('Utilisateur non trouvé');
-    }
-
-    // Validate and cap pagination
-    const safePage = Math.max(1, page);
-    const safeLimit = Math.min(Math.max(1, limit), 50);
-    const skip = (safePage - 1) * safeLimit;
-
-    // Optimized query: use subquery for pagination, then load relations
-    const groupIdsQuery = this.groupRepository
-      .createQueryBuilder('group')
-      .leftJoin('group.users', 'users')
-      .where('users.id = :userId', { userId })
-      .select(['group.id', 'group.createdAt'])
-      .skip(skip)
-      .take(safeLimit)
-      .orderBy('group.createdAt', 'DESC');
-
-    const groupIds = await groupIdsQuery.getMany();
-
-    if (groupIds.length === 0) {
-      return {
-        message: "Groupes de l'utilisateur récupérés avec succès",
-        groups: [],
-        pagination: {
-          page: safePage,
-          limit: safeLimit,
-          total: 0,
-          totalPages: 0,
-        },
-      };
-    }
-
-    // Load groups with relations
-    const groups = await this.groupRepository
-      .createQueryBuilder('group')
-      .leftJoinAndSelect('group.tasks', 'tasks')
-      .leftJoin('group.users', 'users')
-      .addSelect([
-        'users.id',
-        'users.nom',
-        'users.prenom',
-        'users.pseudo',
-        'users.email',
-        'users.avatar',
-        'users.createdAt',
-        'users.updatedAt',
-      ])
-      .leftJoinAndSelect('group.tags', 'tags')
-      .whereInIds(groupIds.map((g) => g.id))
-      .orderBy('group.createdAt', 'DESC')
-      .getMany();
-
-    // Get total count
-    const total = await this.groupRepository
-      .createQueryBuilder('group')
-      .leftJoin('group.users', 'users')
-      .where('users.id = :userId', { userId })
-      .getCount();
-
-    const duration = Date.now() - startTime;
-    this.logger.log(
-      `Found ${groups.length}/${total} groups for user ${userId} in ${duration}ms`,
-    );
-
-    if (duration > 2000) {
-      this.logger.warn(
-        `Slow query detected: findUserGroups took ${duration}ms for user ${userId}`,
-      );
-    }
-
-    return {
-      message: "Groupes de l'utilisateur récupérés avec succès",
-      groups,
-      pagination: {
-        page: safePage,
-        limit: safeLimit,
-        total,
-        totalPages: Math.ceil(total / safeLimit),
-      },
-    };
-  }
-
   async findOne(id: number, userId: number) {
-    const startTime = Date.now();
-    this.logger.debug(`Finding group ${id} for user ${userId}`);
+    await this.assertMember(userId, id);
 
-    // Optimisation: Ne charge PAS tasks.userStates (chargeait TOUS les états de TOUS les utilisateurs)
     const group = await this.groupRepository.findOne({
       where: { id },
       relations: ['users', 'tasks', 'tasks.tag', 'tags'],
@@ -239,14 +142,6 @@ export class GroupsService {
       throw new NotFoundException('Groupe non trouvé');
     }
 
-    // Vérifier que l'utilisateur fait partie du groupe
-    const isMember = group.users.some(user => user.id === userId);
-    if (!isMember) {
-      this.logger.warn(`User ${userId} attempted to access group ${id} without permission`);
-      throw new NotFoundException('Groupe non trouvé');
-    }
-
-    // Optimisation: Charger uniquement les userStates de l'utilisateur connecté
     const userTaskStates = await this.userTaskStateRepository.find({
       where: {
         user: { id: userId },
@@ -255,7 +150,6 @@ export class GroupsService {
       relations: ['task'],
     });
 
-    // O(1) lookup au lieu de array.find() pour chaque tâche
     const userStateByTaskId = new Map(
       userTaskStates.map((state) => [state.task.id, state]),
     );
@@ -278,7 +172,6 @@ export class GroupsService {
 
     if (group.tasks) {
       group.tasks = group.tasks.map((task: any) => {
-        // Utilise le Map pour O(1) lookup
         const userTaskState = userStateByTaskId.get(task.id);
         const hurryInfo = hurryStateByTask[task.id];
 
@@ -286,14 +179,12 @@ export class GroupsService {
           ...task,
           userTaskState: userTaskState
             ? {
-              id: userTaskState.id,
-              isAcknowledged: userTaskState.isAcknowledged,
-              isConcerned: userTaskState.isConcerned,
-              acknowledgedAt: userTaskState.acknowledgedAt,
-              concernedAt: userTaskState.concernedAt,
-              createdAt: userTaskState.createdAt,
-              updatedAt: userTaskState.updatedAt,
-            }
+                id: userTaskState.id,
+                isAcknowledged: userTaskState.isAcknowledged,
+                acknowledgedAt: userTaskState.acknowledgedAt,
+                createdAt: userTaskState.createdAt,
+                updatedAt: userTaskState.updatedAt,
+              }
             : null,
           hurryState: hurryInfo?.hurryState || 'nope',
           expectedActionsAtDate: hurryInfo?.expectedActionsAtDate || 0,
@@ -307,17 +198,6 @@ export class GroupsService {
       (task) => task.hurryState === 'maybe' || task.hurryState === 'yes',
     );
 
-    const duration = Date.now() - startTime;
-    this.logger.log(
-      `Loaded group ${id} with ${group.tasks?.length || 0} tasks in ${duration}ms`,
-    );
-
-    if (duration > 2000) {
-      this.logger.warn(
-        `Slow query detected: findOne(group ${id}) took ${duration}ms`,
-      );
-    }
-
     return {
       message: 'Groupe récupéré avec succès',
       group,
@@ -329,20 +209,11 @@ export class GroupsService {
   }
 
   async getHotActions(id: number, userId: number) {
-    const group = await this.groupRepository.findOne({
-      where: { id },
-      relations: ['users'],
-    });
+    await this.assertMember(userId, id);
 
+    const group = await this.groupRepository.findOne({ where: { id } });
     if (!group) {
       throw new NotFoundException('Groupe non trouvé');
-    }
-
-    const isMember = group.users.some((user) => user.id === userId);
-    if (!isMember) {
-      throw new ForbiddenException(
-        'Vous devez être membre du groupe pour voir les Hot Actions',
-      );
     }
 
     const hotTasks = await this.hotActionsService.getHotTasks(id);
@@ -367,10 +238,9 @@ export class GroupsService {
 
     const groups = await this.groupRepository
       .createQueryBuilder('group')
-      .where('group.nom LIKE :nom', { nom: `%${nom}%` })
+      .where('group.nom ILIKE :nom', { nom: `%${nom}%` })
       .leftJoin('group.users', 'users')
       .addSelect(['users.id', 'users.pseudo', 'users.avatar'])
-      // NE PAS charger 'tasks' et 'tags' (trop lourd)
       .take(safeLimit)
       .orderBy('group.createdAt', 'DESC')
       .getMany();
@@ -382,11 +252,13 @@ export class GroupsService {
   }
 
   async joinGroup(id: number, userId: number, code: string) {
-    const group = await this.groupRepository.findOne({
-      where: { id },
-      relations: ['users'],
-    });
+    const user = await this.getUserOrFail(userId);
 
+    if (user.groupId) {
+      throw new BadRequestException('Vous appartenez déjà à un groupe. Quittez-le avant d\'en rejoindre un autre.');
+    }
+
+    const group = await this.groupRepository.findOne({ where: { id } });
     if (!group) {
       throw new NotFoundException('Groupe non trouvé');
     }
@@ -395,21 +267,10 @@ export class GroupsService {
       throw new ForbiddenException('Code invalide pour ce groupe');
     }
 
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-    });
+    user.groupId = group.id;
+    await this.userRepository.save(user);
 
-    if (!user) {
-      throw new NotFoundException('Utilisateur non trouvé');
-    }
-
-    const isAlreadyMember = group.users.some((u) => u.id === userId);
-    if (isAlreadyMember) {
-      throw new BadRequestException('Vous êtes déjà membre de ce groupe');
-    }
-
-    group.users.push(user);
-    await this.groupRepository.save(group);
+    this.logger.log(`User ${userId} joined group ${id}`);
 
     return {
       message: 'Vous avez rejoint le groupe avec succès',
@@ -418,45 +279,25 @@ export class GroupsService {
   }
 
   async leaveGroup(id: number, userId: number) {
-    const group = await this.groupRepository.findOne({
-      where: { id },
-      relations: ['users'],
-    });
+    await this.assertMember(userId, id);
 
-    if (!group) {
-      throw new NotFoundException('Groupe non trouvé');
-    }
+    const user = await this.getUserOrFail(userId);
+    user.groupId = undefined;
+    await this.userRepository.save(user);
 
-    const userIndex = group.users.findIndex((u) => u.id === userId);
-    if (userIndex === -1) {
-      throw new BadRequestException('Utilisateur non membre du groupe');
-    }
-
-    group.users.splice(userIndex, 1);
-    await this.groupRepository.save(group);
+    this.logger.log(`User ${userId} left group ${id}`);
 
     return {
-      message: 'Utilisateur retiré du groupe avec succès',
+      message: 'Vous avez quitté le groupe avec succès',
     };
   }
 
-  async update(id: number, updateGroupDto: UpdateGroupDto, userId?: number) {
-    const group = await this.groupRepository.findOne({
-      where: { id },
-      relations: ['users'],
-    });
+  async update(id: number, updateGroupDto: UpdateGroupDto, userId: number) {
+    await this.assertMember(userId, id);
 
+    const group = await this.groupRepository.findOne({ where: { id } });
     if (!group) {
       throw new NotFoundException('Groupe non trouvé');
-    }
-
-    // Vérifier que l'utilisateur fait partie du groupe
-    if (userId) {
-      const isMember = group.users.some(user => user.id === userId);
-      if (!isMember) {
-        this.logger.warn(`User ${userId} attempted to update group ${id} without permission`);
-        throw new ForbiddenException('Vous devez être membre du groupe pour le modifier');
-      }
     }
 
     if (updateGroupDto.nom && updateGroupDto.nom !== group.nom) {
@@ -478,29 +319,9 @@ export class GroupsService {
     };
   }
 
-  async remove(id: number, userId?: number) {
-    const startTime = Date.now();
+  async remove(id: number, userId: number) {
+    await this.assertMember(userId, id);
 
-    // Charger le groupe avec les users pour vérifier l'accès
-    const group = await this.groupRepository.findOne({
-      where: { id },
-      relations: ['users'],
-    });
-
-    if (!group) {
-      throw new NotFoundException('Groupe non trouvé');
-    }
-
-    // Vérifier que l'utilisateur fait partie du groupe
-    if (userId) {
-      const isMember = group.users.some(user => user.id === userId);
-      if (!isMember) {
-        this.logger.warn(`User ${userId} attempted to delete group ${id} without permission`);
-        throw new ForbiddenException('Vous devez être membre du groupe pour le supprimer');
-      }
-    }
-
-    // Utiliser count() au lieu de charger toutes les entités
     const [tasksCount, actionsCount, tagsCount] = await Promise.all([
       this.taskRepository.count({ where: { group: { id } } }),
       this.actionRepository.count({ where: { group: { id } } }),
@@ -508,27 +329,24 @@ export class GroupsService {
     ]);
 
     if (tasksCount > 0) {
-      throw new BadRequestException(
-        `Impossible de supprimer: ${tasksCount} tâche(s) présente(s)`,
-      );
+      throw new BadRequestException(`Impossible de supprimer: ${tasksCount} tâche(s) présente(s)`);
     }
-
     if (actionsCount > 0) {
-      throw new BadRequestException(
-        `Impossible de supprimer: ${actionsCount} action(s) présente(s)`,
-      );
+      throw new BadRequestException(`Impossible de supprimer: ${actionsCount} action(s) présente(s)`);
+    }
+    if (tagsCount > 0) {
+      throw new BadRequestException(`Impossible de supprimer: ${tagsCount} tag(s) présent(s)`);
     }
 
-    if (tagsCount > 0) {
-      throw new BadRequestException(
-        `Impossible de supprimer: ${tagsCount} tag(s) présent(s)`,
-      );
-    }
+    // Remove groupId from all members
+    await this.userRepository.update({ groupId: id }, { groupId: undefined });
+
+    const group = await this.groupRepository.findOne({ where: { id } });
+    if (!group) throw new NotFoundException('Groupe non trouvé');
 
     await this.groupRepository.remove(group);
 
-    const duration = Date.now() - startTime;
-    this.logger.log(`Removed group ${id} in ${duration}ms`);
+    this.logger.log(`Group ${id} removed by user ${userId}`);
 
     return {
       message: 'Groupe supprimé avec succès',
@@ -536,26 +354,12 @@ export class GroupsService {
   }
 
   async addTags(id: number, userId: number, tags: any[]) {
-    const group = await this.groupRepository.findOne({
-      where: { id },
-      relations: ['users'],
-    });
+    await this.assertMember(userId, id);
 
-    if (!group) {
-      throw new NotFoundException('Groupe non trouvé');
-    }
+    const group = await this.groupRepository.findOne({ where: { id } });
+    if (!group) throw new NotFoundException('Groupe non trouvé');
 
-    const isMember = group.users.some((user) => user.id === userId);
-    if (!isMember) {
-      throw new ForbiddenException(
-        'Vous devez être membre du groupe pour ajouter des tags',
-      );
-    }
-
-    const createdTags = await this.starterPackService.addTagsToGroup(
-      group,
-      tags,
-    );
+    const createdTags = await this.starterPackService.addTagsToGroup(group, tags);
 
     return {
       message: 'Tags ajoutés avec succès',
@@ -564,26 +368,12 @@ export class GroupsService {
   }
 
   async addTasks(id: number, userId: number, tasks: any[]) {
-    const group = await this.groupRepository.findOne({
-      where: { id },
-      relations: ['users'],
-    });
+    await this.assertMember(userId, id);
 
-    if (!group) {
-      throw new NotFoundException('Groupe non trouvé');
-    }
+    const group = await this.groupRepository.findOne({ where: { id } });
+    if (!group) throw new NotFoundException('Groupe non trouvé');
 
-    const isMember = group.users.some((user) => user.id === userId);
-    if (!isMember) {
-      throw new ForbiddenException(
-        'Vous devez être membre du groupe pour ajouter des tâches',
-      );
-    }
-
-    const createdTasks = await this.starterPackService.addTasksToGroup(
-      group,
-      tasks,
-    );
+    const createdTasks = await this.starterPackService.addTasksToGroup(group, tasks);
 
     return {
       message: 'Tâches ajoutées avec succès',
