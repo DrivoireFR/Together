@@ -16,9 +16,11 @@ import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
+  ApiOkResponse,
   ApiResponse,
   ApiParam,
 } from '@nestjs/swagger';
+import { UserProfileEnvelopeDto } from './dto/user-profile-envelope.dto';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -29,14 +31,20 @@ export class UsersController {
 
   @Get('profile')
   @ApiOperation({ summary: 'Récupérer son propre profil avec le groupe' })
-  @ApiResponse({ status: 200, description: 'Profil récupéré avec succès' })
+  @ApiOkResponse({
+    description: 'Profil récupéré avec succès',
+    type: UserProfileEnvelopeDto,
+  })
   getProfile(@Request() req: RequestWithUser) {
     return this.usersService.getProfile(req.user.userId);
   }
 
   @Put('profile')
   @ApiOperation({ summary: 'Mettre à jour son profil' })
-  @ApiResponse({ status: 200, description: 'Profil mis à jour avec succès' })
+  @ApiOkResponse({
+    description: 'Profil mis à jour avec succès',
+    type: UserProfileEnvelopeDto,
+  })
   updateProfile(
     @Request() req: RequestWithUser,
     @Body() updateUserDto: UpdateUserDto,

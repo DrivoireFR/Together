@@ -189,7 +189,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Profil récupéré avec succès"
+            "description": "Profil récupéré avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileEnvelopeDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -217,7 +224,14 @@
         },
         "responses": {
           "200": {
-            "description": "Profil mis à jour avec succès"
+            "description": "Profil mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileEnvelopeDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2144,6 +2158,22 @@
         "required": [
           "message",
           "token",
+          "user"
+        ]
+      },
+      "UserProfileEnvelopeDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Profil récupéré avec succès"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponseDto"
+          }
+        },
+        "required": [
+          "message",
           "user"
         ]
       },
