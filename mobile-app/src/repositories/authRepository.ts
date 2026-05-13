@@ -1,5 +1,7 @@
 import { apiClient } from '../api/apiClient';
 import type { ApiResult } from '../utils/DataResult';
+import { DataSuccess } from '../utils/DataResult';
+import { unwrapUserFromProfileResponse } from '../utils/userProfileResponse';
 import type { IAuthRepository } from '../core/interfaces/IAuthRepository';
 import type {
   RegisterDto,
@@ -30,7 +32,11 @@ class AuthRepository implements IAuthRepository {
   }
 
   async getProfile(): Promise<ApiResult<UserResponseDto>> {
-    return apiClient.get<UserResponseDto>('/users/profile');
+    const result = await apiClient.get<unknown>('/users/profile');
+    if (result instanceof DataSuccess) {
+      return new DataSuccess(unwrapUserFromProfileResponse(result.data));
+    }
+    return result;
   }
 
   async refreshToken(): Promise<ApiResult<{ token: string }>> {
@@ -38,7 +44,11 @@ class AuthRepository implements IAuthRepository {
   }
 
   async updateProfile(payload: UpdateUserDto): Promise<ApiResult<UserResponseDto>> {
-    return apiClient.put<UserResponseDto>('/users/profile', payload);
+    const result = await apiClient.put<unknown>('/users/profile', payload);
+    if (result instanceof DataSuccess) {
+      return new DataSuccess(unwrapUserFromProfileResponse(result.data));
+    }
+    return result;
   }
 }
 

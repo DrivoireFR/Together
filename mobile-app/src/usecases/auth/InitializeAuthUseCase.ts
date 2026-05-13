@@ -4,6 +4,7 @@ import type { UserResponseDto } from '../../api/dto';
 import { DataSuccess } from '../../utils/DataResult';
 import { StorageUtil } from '../../utils/storage';
 import { STORAGE_KEYS } from '../../constants';
+import { unwrapUserFromProfileResponse } from '../../utils/userProfileResponse';
 
 export interface InitAuthOutput {
   user: UserResponseDto | null;
@@ -18,7 +19,8 @@ export class InitializeAuthUseCase extends UseCase<NoInput, InitAuthOutput> {
 
   async execute(): Promise<UseCaseResult<InitAuthOutput>> {
     const token = await StorageUtil.getItem<string>(STORAGE_KEYS.TOKEN);
-    const user = await StorageUtil.getItem<UserResponseDto>(STORAGE_KEYS.USER);
+    const rawUser = await StorageUtil.getItem<unknown>(STORAGE_KEYS.USER);
+    const user = rawUser ? unwrapUserFromProfileResponse(rawUser) : null;
 
     if (!token || !user) {
       return { success: true, data: { user: null, token: null, isAuthenticated: false } };

@@ -792,6 +792,11 @@ export interface components {
             token: string;
             user: components["schemas"]["UserResponseDto"];
         };
+        UserProfileEnvelopeDto: {
+            /** @example Profil récupéré avec succès */
+            message: string;
+            user: components["schemas"]["UserResponseDto"];
+        };
         UpdateUserDto: {
             /**
              * @description Nom de famille
@@ -1276,7 +1281,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserProfileEnvelopeDto"];
+                };
             };
         };
     };
@@ -1298,7 +1305,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserProfileEnvelopeDto"];
+                };
             };
         };
     };
