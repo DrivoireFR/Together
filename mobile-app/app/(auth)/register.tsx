@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BaseInput } from '../../src/components/atoms/BaseInput';
 import { BaseButton } from '../../src/components/atoms/BaseButton';
 import { useAuthStore } from '../../src/stores/authStore';
+import { getPostAuthAppHref } from '../../src/utils/postAuthNavigation';
 import { colors, spacing, fontSize, borderRadius } from '../../src/theme';
 
 export default function RegisterScreen() {
@@ -34,7 +35,8 @@ export default function RegisterScreen() {
     clearError();
     const success = await verifyOtp({ email, code });
     if (success) {
-      router.replace('/(app)/groups');
+      const { user } = useAuthStore.getState();
+      router.replace(getPostAuthAppHref(user?.groupId));
     }
   };
 

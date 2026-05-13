@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { router } from 'expo-router';
 import type { CreateGroupDto, JoinGroupDto, AddTagsDto, AddTasksDto } from '../api/dto';
+import { useAuthStore } from './authStore';
 import {
   createGroupUseCase,
   getGroupUseCase,
@@ -85,6 +86,7 @@ export const useGroupStore = create<GroupState>((set, get) => ({
         showGroupCreatedModal: true,
         isLoading: false,
       });
+      await useAuthStore.getState().initializeAuth();
       return true;
     }
     set({ error: result.error, isLoading: false });
@@ -112,6 +114,7 @@ export const useGroupStore = create<GroupState>((set, get) => ({
     const result = await joinGroupUseCase.execute({ groupId, payload });
     if (result.success) {
       set({ isLoading: false });
+      await useAuthStore.getState().initializeAuth();
       return true;
     }
     set({ error: result.error, isLoading: false });
