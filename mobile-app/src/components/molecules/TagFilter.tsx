@@ -6,20 +6,18 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import type { Tag } from '../../types';
 import { useTasksStore } from '../../stores/tasksStore';
 import { colors, borderRadius, spacing, fontSize } from '../../theme';
 
 interface TagFilterProps {
-  tags: Tag[];
-  onTagPress?: (tag: Tag) => void;
+  tags: { id: number; label: string; color: string }[];
+  onTagPress?: (tag: { id: number; label: string; color: string }) => void;
 }
 
 export function TagFilter({ tags, onTagPress }: TagFilterProps) {
-  const { selectedTagFilter, setTagFilter, showUrgentOnly, toggleUrgentFilter } =
-    useTasksStore();
+  const { selectedTagFilter, setTagFilter } = useTasksStore();
 
-  const handleTagPress = (tag: Tag) => {
+  const handleTagPress = (tag: { id: number; label: string; color: string }) => {
     if (selectedTagFilter?.id === tag.id) {
       setTagFilter(null);
     } else {
@@ -75,24 +73,6 @@ export function TagFilter({ tags, onTagPress }: TagFilterProps) {
             </Text>
           </TouchableOpacity>
         ))}
-
-        <TouchableOpacity
-          style={[
-            styles.filterChip,
-            styles.urgentChip,
-            showUrgentOnly && styles.urgentChipActive,
-          ]}
-          onPress={toggleUrgentFilter}
-        >
-          <Text
-            style={[
-              styles.filterText,
-              showUrgentOnly && { color: colors.white },
-            ]}
-          >
-            🔥 Urgent
-          </Text>
-        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -122,11 +102,4 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   filterTextActive: { color: colors.white },
-  urgentChip: {
-    borderColor: colors.error,
-  },
-  urgentChipActive: {
-    backgroundColor: colors.error,
-    borderColor: colors.error,
-  },
 });

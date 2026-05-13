@@ -4,16 +4,13 @@ import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStatsStore } from '../../../../../src/stores/statsStore';
 import { useGroupStore } from '../../../../../src/stores/groupStore';
-import { AvatarDisplay } from '../../../../../src/components/atoms/AvatarDisplay';
-import { ProgressBar } from '../../../../../src/components/atoms/ProgressBar';
 import { LoadingSpinner } from '../../../../../src/components/atoms/LoadingSpinner';
 import { BaseCard } from '../../../../../src/components/atoms/BaseCard';
 import { colors, spacing, fontSize } from '../../../../../src/theme';
 
 export default function StatsTab() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { overview, isLoading, fetchOverview, personalGoals, completionPercentage, totalMonthlyPoints } =
-    useStatsStore();
+  const { overview, isLoading, fetchOverview } = useStatsStore();
   const { currentGroup } = useGroupStore();
 
   useEffect(() => {
@@ -34,9 +31,9 @@ export default function StatsTab() {
     );
   }
 
-  const goals = personalGoals();
-  const completion = completionPercentage();
-  const monthlyPts = totalMonthlyPoints();
+  const totalDone = (overview.totalDone as number) ?? 0;
+  const totalVolume = (overview.totalTasksVolume as number) ?? 0;
+  const completion = totalVolume > 0 ? Math.round((totalDone / totalVolume) * 100) : 0;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -50,58 +47,15 @@ export default function StatsTab() {
               <Text style={styles.statLabel}>Membres</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{overview.tasks?.length ?? 0}</Text>
-              <Text style={styles.statLabel}>Tâches</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{overview.totalDone ?? 0}</Text>
+              <Text style={styles.statValue}>{totalDone}</Text>
               <Text style={styles.statLabel}>Réalisé</Text>
             </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{completion}%</Text>
+              <Text style={styles.statLabel}>Progression</Text>
+            </View>
           </View>
-
-          <ProgressBar
-            progress={completion}
-            label="Progression globale"
-            detail={`${completion}%`}
-            color={colors.primary}
-          />
         </BaseCard>
-
-        <Text style={styles.sectionTitle}>Objectifs individuels</Text>
-
-        {goals.map((goal) => {
-          const userShare =
-            overview.users.length > 0
-              ? monthlyPts / overview.users.length
-              : 0;
-          const userProgress =
-            userShare > 0
-              ? Math.round((goal.doneThisMonth / userShare) * 100)
-              : 0;
-
-          return (
-            <BaseCard key={goal.user.id} style={styles.goalCard}>
-              <View style={styles.goalHeader}>
-                <AvatarDisplay
-                  avatar={goal.user.avatar}
-                  name={goal.user.pseudo}
-                  size={36}
-                />
-                <View style={styles.goalInfo}>
-                  <Text style={styles.goalName}>{goal.user.pseudo}</Text>
-                  <Text style={styles.goalDetail}>
-                    {goal.doneThisMonth} action{goal.doneThisMonth > 1 ? 's' : ''}
-                  </Text>
-                </View>
-              </View>
-              <ProgressBar
-                progress={Math.min(userProgress, 100)}
-                detail={`${userProgress}%`}
-                color={colors.secondary}
-              />
-            </BaseCard>
-          );
-        })}
       </ScrollView>
     </SafeAreaView>
   );
@@ -132,29 +86,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     color: colors.textSecondary,
     marginTop: 2,
-  },
-  sectionTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: spacing.md,
-  },
-  goalCard: { marginBottom: spacing.md },
-  goalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-    gap: spacing.md,
-  },
-  goalInfo: { flex: 1 },
-  goalName: {
-    fontSize: fontSize.md,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  goalDetail: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
   },
   emptyContainer: {
     alignItems: 'center',

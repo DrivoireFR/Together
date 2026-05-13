@@ -1,29 +1,27 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import type { Task } from '../../types';
-import { HurryState } from '../../types';
 import { TagChip } from '../atoms/TagChip';
 import { colors, borderRadius, spacing, fontSize } from '../../theme';
 
 interface TaskCardProps {
-  task: Task;
+  task: {
+    id: number;
+    label: string;
+    points: number;
+    frequenceEstimee: number;
+    uniteFrequence: string;
+    tag?: { id: number; label: string; color: string } | null;
+    [key: string]: unknown;
+  };
   onPress?: () => void;
   onAction?: () => void;
   loading?: boolean;
 }
 
-const hurryColors: Record<string, string> = {
-  [HurryState.YES]: colors.hurryYes,
-  [HurryState.MAYBE]: colors.hurryMaybe,
-  [HurryState.NO]: colors.hurryNo,
-};
-
 export function TaskCard({ task, onPress, onAction, loading }: TaskCardProps) {
-  const hurryColor = hurryColors[task.hurryState || HurryState.NO];
-
   return (
     <TouchableOpacity
-      style={[styles.card, { borderLeftColor: hurryColor }]}
+      style={styles.card}
       onPress={onPress}
       activeOpacity={0.7}
     >
@@ -39,9 +37,7 @@ export function TaskCard({ task, onPress, onAction, loading }: TaskCardProps) {
           <Text style={styles.frequency}>
             {task.frequenceEstimee}x / {task.uniteFrequence}
           </Text>
-          {task.tag && (
-            <TagChip tag={task.tag} />
-          )}
+          {task.tag && <TagChip tag={task.tag} />}
         </View>
       </View>
 
@@ -66,7 +62,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     borderLeftWidth: 4,
-    borderLeftColor: colors.hurryNo,
+    borderLeftColor: colors.primary,
     padding: spacing.lg,
     marginBottom: spacing.sm,
     shadowColor: colors.black,

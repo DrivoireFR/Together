@@ -1,12 +1,17 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import type { Group, User } from '../../types';
 import { AvatarDisplay } from '../atoms/AvatarDisplay';
 import { colors, borderRadius, spacing, fontSize } from '../../theme';
 
 interface GroupCardProps {
-  group: Group;
-  currentUser?: User | null;
+  group: {
+    id: number;
+    nom: string;
+    users?: { id: number; pseudo: string; avatar?: string | null }[];
+    tasks?: unknown[];
+    [key: string]: unknown;
+  };
+  currentUser?: { id: number; groupId?: number | null } | null;
   onPress?: () => void;
 }
 
@@ -36,7 +41,7 @@ export function GroupCard({ group, currentUser, onPress }: GroupCardProps) {
         </Text>
         <Text style={styles.statSeparator}>·</Text>
         <Text style={styles.stat}>
-          {group.tasks?.length ?? 0} tâche{(group.tasks?.length ?? 0) > 1 ? 's' : ''}
+          {(group.tasks as unknown[])?.length ?? 0} tâche{((group.tasks as unknown[])?.length ?? 0) > 1 ? 's' : ''}
         </Text>
       </View>
 

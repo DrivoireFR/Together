@@ -1,58 +1,55 @@
 import { create } from 'zustand';
 import { router } from 'expo-router';
-import { groupRepository } from '../repositories/groupRepository';
-import { DataSuccess } from '../utils/DataResult';
-import type {
-  Group,
-  CreateGroupPayload,
-  JoinGroupPayload,
-  CreateBulkTagsPayload,
-  CreateBulkTasksPayload,
-  StarterPack,
-  Tag,
-  Task,
-} from '../types';
+import type { CreateGroupDto, JoinGroupDto, AddTagsDto, AddTasksDto } from '../api/dto';
+import {
+  createGroupUseCase,
+  getGroupUseCase,
+  searchGroupsUseCase,
+  joinGroupUseCase,
+  leaveGroupUseCase,
+  updateGroupUseCase,
+  addTagsToGroupUseCase,
+  addTasksToGroupUseCase,
+} from '../core/di';
+
+export interface GroupData {
+  id: number;
+  nom: string;
+  code: string;
+  users?: { id: number; pseudo: string; avatar?: string | null }[];
+  tasks?: unknown[];
+  [key: string]: unknown;
+}
 
 interface GroupState {
-  groups: Group[];
-  currentGroup: Group | null;
-  searchResults: Group[];
+  groups: GroupData[];
+  currentGroup: GroupData | null;
+  searchResults: GroupData[];
   isLoading: boolean;
   isSearching: boolean;
   error: string | null;
 
-  // Starter pack flow
+  createdGroupId: number | null;
   showGroupCreatedModal: boolean;
   showStarterPackTagsModal: boolean;
   showStarterPackTasksModal: boolean;
-  createdGroupData: { group: Group; starterPack: StarterPack } | null;
-  createdGroupId: number | null;
 
-  // Actions
   fetchGroupById: (id: number) => Promise<void>;
-  createGroup: (payload: CreateGroupPayload) => Promise<boolean>;
-  getUserGroups: (userId: number) => Promise<void>;
+  createGroup: (payload: CreateGroupDto) => Promise<boolean>;
   searchGroupsByName: (nom: string) => Promise<void>;
-  joinGroup: (payload: JoinGroupPayload) => Promise<boolean>;
+  joinGroup: (groupId: number, payload: JoinGroupDto) => Promise<boolean>;
   leaveGroup: (groupId: number) => Promise<boolean>;
-  updateGroup: (id: number, payload: Partial<CreateGroupPayload>) => Promise<boolean>;
+  updateGroup: (id: number, payload: Partial<CreateGroupDto>) => Promise<boolean>;
   navigateToGroup: (groupId: number) => void;
   clearSearchResults: () => void;
 
-  // Starter pack flow
   startStarterPackSetup: () => void;
   skipGroupSetup: () => void;
   afterTagsCreated: () => void;
   finishGroupSetup: () => void;
   closeModals: () => void;
-  createBulkTags: (
-    groupId: number,
-    payload: CreateBulkTagsPayload,
-  ) => Promise<Tag[]>;
-  createBulkTasks: (
-    groupId: number,
-    payload: CreateBulkTasksPayload,
-  ) => Promise<Task[]>;
+  createBulkTags: (groupId: number, payload: AddTagsDto) => Promise<unknown[]>;
+  createBulkTasks: (groupId: number, payload: AddTasksDto) => Promise<unknown[]>;
   reset: () => void;
 }
 
@@ -63,132 +60,90 @@ export const useGroupStore = create<GroupState>((set, get) => ({
   isLoading: false,
   isSearching: false,
   error: null,
+  createdGroupId: null,
   showGroupCreatedModal: false,
   showStarterPackTagsModal: false,
   showStarterPackTasksModal: false,
-  createdGroupData: null,
-  createdGroupId: null,
 
-  fetchGroupById: async (id: number) => {
+  fetchGroupById: async (id) => {
     set({ isLoading: true, error: null });
-    try {
-      const result = await groupRepository.getGroupById(id);
-      if (result instanceof DataSuccess) {
-        set({ currentGroup: result.data.group, isLoading: false });
-      } else {
-        set({ error: result.message, isLoading: false });
-      }
-    } catch {
-      set({ error: 'Erreur lors du chargement du groupe', isLoading: false });
+    const result = await getGroupUseCase.execute(id);
+    if (result.success) {
+      set({ currentGroup: result.data as GroupData, isLoading: false });
+    } else {
+      set({ error: result.error, isLoading: false });
     }
   },
 
-  createGroup: async (payload: CreateGroupPayload) => {
+  createGroup: async (payload) => {
     set({ isLoading: true, error: null });
-    try {
-      const result = await groupRepository.createGroup(payload);
-      if (result instanceof DataSuccess) {
-        const { group, starterPack } = result.data;
-        set({
-          createdGroupData: { group, starterPack },
-          createdGroupId: group.id,
-          showGroupCreatedModal: true,
-          isLoading: false,
-        });
-        return true;
-      }
-      set({ error: result.message, isLoading: false });
-      return false;
-    } catch {
-      set({ error: 'Erreur lors de la création du groupe', isLoading: false });
-      return false;
+    const result = await createGroupUseCase.execute(payload);
+    if (result.success) {
+      const data = result.data as GroupData;
+      set({
+        createdGroupId: data.id,
+        showGroupCreatedModal: true,
+        isLoading: false,
+      });
+      return true;
     }
+    set({ error: result.error, isLoading: false });
+    return false;
   },
 
-  getUserGroups: async (userId: number) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await groupRepository.getUserGroups(userId);
-      if (result instanceof DataSuccess) {
-        set({ groups: result.data.groups, isLoading: false });
-      } else {
-        set({ error: result.message, isLoading: false });
-      }
-    } catch {
-      set({ error: 'Erreur lors du chargement des groupes', isLoading: false });
-    }
-  },
-
-  searchGroupsByName: async (nom: string) => {
+  searchGroupsByName: async (nom) => {
     if (!nom.trim()) {
       set({ searchResults: [] });
       return;
     }
     set({ isSearching: true });
-    try {
-      const result = await groupRepository.searchGroupsByName(nom);
-      if (result instanceof DataSuccess) {
-        set({ searchResults: result.data.groups, isSearching: false });
-      } else {
-        set({ isSearching: false });
-      }
-    } catch {
+    const result = await searchGroupsUseCase.execute(nom);
+    if (result.success) {
+      const data = result.data as GroupData[] | { groups: GroupData[] };
+      const groups = Array.isArray(data) ? data : (data as { groups: GroupData[] }).groups ?? [];
+      set({ searchResults: groups, isSearching: false });
+    } else {
       set({ isSearching: false });
     }
   },
 
-  joinGroup: async (payload: JoinGroupPayload) => {
+  joinGroup: async (groupId, payload) => {
     set({ isLoading: true, error: null });
-    try {
-      const result = await groupRepository.joinGroup(payload);
-      if (result instanceof DataSuccess) {
-        set({ isLoading: false });
-        return true;
-      }
-      set({ error: result.message, isLoading: false });
-      return false;
-    } catch {
-      set({ error: 'Erreur pour rejoindre le groupe', isLoading: false });
-      return false;
+    const result = await joinGroupUseCase.execute({ groupId, payload });
+    if (result.success) {
+      set({ isLoading: false });
+      return true;
     }
+    set({ error: result.error, isLoading: false });
+    return false;
   },
 
-  leaveGroup: async (groupId: number) => {
+  leaveGroup: async (groupId) => {
     set({ isLoading: true, error: null });
-    try {
-      const result = await groupRepository.leaveGroup(groupId);
-      if (result instanceof DataSuccess) {
-        set((state) => ({
-          groups: state.groups.filter((g) => g.id !== groupId),
-          isLoading: false,
-        }));
-        return true;
-      }
-      set({ error: result.message, isLoading: false });
-      return false;
-    } catch {
-      set({ error: 'Erreur pour quitter le groupe', isLoading: false });
-      return false;
+    const result = await leaveGroupUseCase.execute(groupId);
+    if (result.success) {
+      set((state) => ({
+        groups: state.groups.filter((g) => g.id !== groupId),
+        isLoading: false,
+      }));
+      return true;
     }
+    set({ error: result.error, isLoading: false });
+    return false;
   },
 
-  updateGroup: async (id: number, payload: Partial<CreateGroupPayload>) => {
+  updateGroup: async (id, payload) => {
     set({ isLoading: true, error: null });
-    try {
-      const result = await groupRepository.updateGroup(id, payload);
-      if (result instanceof DataSuccess) {
-        set({ isLoading: false });
-        return true;
-      }
-      set({ error: result.message, isLoading: false });
-      return false;
-    } catch {
-      set({ error: 'Erreur de mise à jour du groupe', isLoading: false });
-      return false;
+    const result = await updateGroupUseCase.execute({ id, payload });
+    if (result.success) {
+      set({ isLoading: false });
+      return true;
     }
+    set({ error: result.error, isLoading: false });
+    return false;
   },
 
-  navigateToGroup: (groupId: number) => {
+  navigateToGroup: (groupId) => {
     router.push(`/(app)/group/${groupId}/(tabs)`);
   },
 
@@ -203,7 +158,6 @@ export const useGroupStore = create<GroupState>((set, get) => ({
       showGroupCreatedModal: false,
       showStarterPackTagsModal: false,
       showStarterPackTasksModal: false,
-      createdGroupData: null,
     });
     if (createdGroupId) {
       router.push(`/(app)/group/${createdGroupId}/(tabs)`);
@@ -215,10 +169,7 @@ export const useGroupStore = create<GroupState>((set, get) => ({
 
   finishGroupSetup: () => {
     const { createdGroupId } = get();
-    set({
-      showStarterPackTasksModal: false,
-      createdGroupData: null,
-    });
+    set({ showStarterPackTasksModal: false });
     if (createdGroupId) {
       router.push(`/(app)/group/${createdGroupId}/(tabs)`);
     }
@@ -231,24 +182,22 @@ export const useGroupStore = create<GroupState>((set, get) => ({
       showStarterPackTasksModal: false,
     }),
 
-  createBulkTags: async (groupId: number, payload: CreateBulkTagsPayload) => {
-    try {
-      const result = await groupRepository.createBulkTags(groupId, payload);
-      if (result instanceof DataSuccess) return result.data.tags;
-      return [];
-    } catch {
-      return [];
+  createBulkTags: async (groupId, payload) => {
+    const result = await addTagsToGroupUseCase.execute({ groupId, payload });
+    if (result.success) {
+      const data = result.data as { tags?: unknown[] };
+      return data.tags ?? [];
     }
+    return [];
   },
 
-  createBulkTasks: async (groupId: number, payload: CreateBulkTasksPayload) => {
-    try {
-      const result = await groupRepository.createBulkTasks(groupId, payload);
-      if (result instanceof DataSuccess) return result.data.tasks;
-      return [];
-    } catch {
-      return [];
+  createBulkTasks: async (groupId, payload) => {
+    const result = await addTasksToGroupUseCase.execute({ groupId, payload });
+    if (result.success) {
+      const data = result.data as { tasks?: unknown[] };
+      return data.tasks ?? [];
     }
+    return [];
   },
 
   reset: () =>
@@ -262,7 +211,6 @@ export const useGroupStore = create<GroupState>((set, get) => ({
       showGroupCreatedModal: false,
       showStarterPackTagsModal: false,
       showStarterPackTasksModal: false,
-      createdGroupData: null,
       createdGroupId: null,
     }),
 }));

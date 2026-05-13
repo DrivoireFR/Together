@@ -1,11 +1,11 @@
 import { apiClient } from '../api/apiClient';
 import type { ApiResult } from '../utils/DataResult';
-import type { GetOverviewResponse } from '../types';
+import type { IStatsRepository } from '../core/interfaces/IStatsRepository';
 
-class StatsRepository {
-  async getOverview(groupId: number): Promise<ApiResult<GetOverviewResponse>> {
-    return apiClient.get<GetOverviewResponse>(`/stats/group/${groupId}/overview`);
+class StatsRepository implements IStatsRepository {
+  async getOverview(groupId: number): Promise<ApiResult<unknown>> {
+    return apiClient.get(`/stats/group/${groupId}/overview`);
   }
 }
 
-export const statsRepository = new StatsRepository();
+export const statsRepository: IStatsRepository = new StatsRepository();

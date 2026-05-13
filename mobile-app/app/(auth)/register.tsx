@@ -16,36 +16,69 @@ import { useAuthStore } from '../../src/stores/authStore';
 import { colors, spacing, fontSize, borderRadius } from '../../src/theme';
 
 export default function RegisterScreen() {
-  const { register, isLoading, error, clearError } = useAuthStore();
+  const { register, verifyOtp, isLoading, error, clearError } = useAuthStore();
   const [nom, setNom] = useState('');
   const [prenom, setPrenom] = useState('');
   const [pseudo, setPseudo] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [code, setCode] = useState('');
+  const [step, setStep] = useState<'form' | 'otp'>('form');
 
   const handleRegister = async () => {
     clearError();
-    const success = await register({ nom, prenom, pseudo, email, password });
-    if (success) setIsSuccess(true);
+    const success = await register({ nom, prenom, pseudo, email });
+    if (success) setStep('otp');
   };
 
-  if (isSuccess) {
+  const handleVerifyOtp = async () => {
+    clearError();
+    const success = await verifyOtp({ email, code });
+    if (success) {
+      router.replace('/(app)/groups');
+    }
+  };
+
+  if (step === 'otp') {
     return (
       <SafeAreaView style={styles.safe}>
-        <View style={styles.successContainer}>
-          <Text style={styles.successTitle}>Inscription réussie !</Text>
-          <Text style={styles.successText}>
-            Un email de confirmation a été envoyé à votre adresse.
-            Veuillez vérifier votre boîte de réception.
-          </Text>
-          <BaseButton
-            title="Retour à la connexion"
-            onPress={() => router.replace('/(auth)/login')}
-            fullWidth
-            size="lg"
-          />
-        </View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.flex}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.card}>
+              <Text style={styles.title}>Vérification</Text>
+              <Text style={styles.otpInfo}>
+                Un code à 6 chiffres a été envoyé à {email}
+              </Text>
+
+              {error && (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              )}
+
+              <BaseInput
+                label="Code OTP"
+                value={code}
+                onChangeText={setCode}
+                placeholder="123456"
+                keyboardType="number-pad"
+                maxLength={6}
+              />
+              <BaseButton
+                title="Valider"
+                onPress={handleVerifyOtp}
+                loading={isLoading}
+                fullWidth
+                size="lg"
+              />
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     );
   }
@@ -73,24 +106,9 @@ export default function RegisterScreen() {
               </View>
             )}
 
-            <BaseInput
-              label="Nom"
-              value={nom}
-              onChangeText={setNom}
-              placeholder="Votre nom"
-            />
-            <BaseInput
-              label="Prénom"
-              value={prenom}
-              onChangeText={setPrenom}
-              placeholder="Votre prénom"
-            />
-            <BaseInput
-              label="Pseudo"
-              value={pseudo}
-              onChangeText={setPseudo}
-              placeholder="Votre pseudo"
-            />
+            <BaseInput label="Nom" value={nom} onChangeText={setNom} placeholder="Votre nom" />
+            <BaseInput label="Prénom" value={prenom} onChangeText={setPrenom} placeholder="Votre prénom" />
+            <BaseInput label="Pseudo" value={pseudo} onChangeText={setPseudo} placeholder="Votre pseudo" />
             <BaseInput
               label="Email"
               value={email}
@@ -98,13 +116,6 @@ export default function RegisterScreen() {
               placeholder="votre@email.com"
               keyboardType="email-address"
               autoCapitalize="none"
-            />
-            <BaseInput
-              label="Mot de passe"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="6 caractères minimum"
-              isPassword
             />
 
             <BaseButton
@@ -116,10 +127,7 @@ export default function RegisterScreen() {
             />
           </View>
 
-          <TouchableOpacity
-            onPress={() => router.push('/(auth)/login')}
-            style={styles.footer}
-          >
+          <TouchableOpacity onPress={() => router.push('/(auth)/login')} style={styles.footer}>
             <Text style={styles.footerText}>
               Déjà un compte ?{' '}
               <Text style={styles.footerLink}>Se connecter</Text>
@@ -173,23 +181,11 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     textAlign: 'center',
   },
-  successContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: spacing.xl,
-    alignItems: 'center',
-  },
-  successTitle: {
-    fontSize: fontSize.xxl,
-    fontWeight: '700',
-    color: colors.success,
-    marginBottom: spacing.lg,
-  },
-  successText: {
-    fontSize: fontSize.md,
+  otpInfo: {
+    fontSize: fontSize.sm,
     color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: spacing.xxl,
+    marginBottom: spacing.lg,
   },
   footer: { marginTop: spacing.xl, alignItems: 'center' },
   footerText: { fontSize: fontSize.md, color: colors.textSecondary },

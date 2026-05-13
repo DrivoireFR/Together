@@ -16,13 +16,22 @@ import { useAuthStore } from '../../src/stores/authStore';
 import { colors, spacing, fontSize, borderRadius } from '../../src/theme';
 
 export default function LoginScreen() {
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { requestOtp, verifyOtp, isLoading, error, clearError } = useAuthStore();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
 
-  const handleLogin = async () => {
+  const handleRequestOtp = async () => {
     clearError();
-    const success = await login({ email, password });
+    if (!email.trim()) return;
+    const success = await requestOtp({ email });
+    if (success) setOtpSent(true);
+  };
+
+  const handleVerifyOtp = async () => {
+    clearError();
+    if (!code.trim()) return;
+    const success = await verifyOtp({ email, code });
     if (success) {
       router.replace('/(app)/groups');
     }
@@ -54,36 +63,49 @@ export default function LoginScreen() {
               </View>
             )}
 
-            <BaseInput
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="votre@email.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-
-            <BaseInput
-              label="Mot de passe"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Votre mot de passe"
-              isPassword
-            />
-
-            <TouchableOpacity
-              onPress={() => router.push('/(auth)/forgot-password')}
-            >
-              <Text style={styles.forgotLink}>Mot de passe oublié ?</Text>
-            </TouchableOpacity>
-
-            <BaseButton
-              title="Se connecter"
-              onPress={handleLogin}
-              loading={isLoading}
-              fullWidth
-              size="lg"
-            />
+            {!otpSent ? (
+              <>
+                <BaseInput
+                  label="Email"
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="votre@email.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+                <BaseButton
+                  title="Recevoir un code"
+                  onPress={handleRequestOtp}
+                  loading={isLoading}
+                  fullWidth
+                  size="lg"
+                />
+              </>
+            ) : (
+              <>
+                <Text style={styles.otpInfo}>
+                  Un code à 6 chiffres a été envoyé à {email}
+                </Text>
+                <BaseInput
+                  label="Code OTP"
+                  value={code}
+                  onChangeText={setCode}
+                  placeholder="123456"
+                  keyboardType="number-pad"
+                  maxLength={6}
+                />
+                <BaseButton
+                  title="Se connecter"
+                  onPress={handleVerifyOtp}
+                  loading={isLoading}
+                  fullWidth
+                  size="lg"
+                />
+                <TouchableOpacity onPress={() => { setOtpSent(false); clearError(); }}>
+                  <Text style={styles.resendLink}>Renvoyer le code</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
 
           <TouchableOpacity
@@ -152,11 +174,17 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     textAlign: 'center',
   },
-  forgotLink: {
+  otpInfo: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  resendLink: {
     color: colors.primary,
     fontSize: fontSize.sm,
-    textAlign: 'right',
-    marginBottom: spacing.lg,
+    textAlign: 'center',
+    marginTop: spacing.md,
   },
   footer: {
     marginTop: spacing.xl,

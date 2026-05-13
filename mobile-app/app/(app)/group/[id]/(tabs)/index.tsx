@@ -24,7 +24,7 @@ export default function TasksTab() {
   const {
     tags,
     filteredTasks,
-    createActionForTask,
+    createAction,
     loadingTaskIds,
     selectedTagFilter,
   } = useTasksStore();
@@ -74,9 +74,9 @@ export default function TasksTab() {
               router.push(`/(app)/group/${id}/edit/task?taskId=${item.id}`)
             }
             onAction={() =>
-              createActionForTask({
+              createAction({
                 taskId: item.id,
-                date: new Date().toISOString(),
+                date: new Date().toISOString().split('T')[0],
               })
             }
           />

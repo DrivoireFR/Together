@@ -1,76 +1,64 @@
 import { apiClient } from '../api/apiClient';
 import type { ApiResult } from '../utils/DataResult';
+import type { IGroupRepository } from '../core/interfaces/IGroupRepository';
 import type {
-  Group,
-  CreateGroupPayload,
-  GroupSearchResponse,
-  UserGroupResponse,
-  CreateGroupResponse,
-  FetchGroupResponse,
-  JoinGroupPayload,
-  CreateBulkTagsPayload,
-  CreateBulkTasksPayload,
-  CreateBulkTagsResponse,
-  CreateBulkTasksResponse,
-} from '../types';
+  CreateGroupDto,
+  JoinGroupDto,
+  UpdateGroupDto,
+  AddTagsDto,
+  AddTasksDto,
+} from '../api/dto';
 
-class GroupRepository {
-  async getAllGroups(): Promise<ApiResult<Group[]>> {
-    return apiClient.get<Group[]>('/groups');
+class GroupRepository implements IGroupRepository {
+  async getAll(page?: number, limit?: number): Promise<ApiResult<unknown>> {
+    const params = new URLSearchParams();
+    if (page) params.set('page', String(page));
+    if (limit) params.set('limit', String(limit));
+    const qs = params.toString();
+    return apiClient.get(`/groups${qs ? `?${qs}` : ''}`);
   }
 
-  async getGroupById(id: number): Promise<ApiResult<FetchGroupResponse>> {
-    return apiClient.get<FetchGroupResponse>(`/groups/${id}`);
+  async getById(id: number): Promise<ApiResult<unknown>> {
+    return apiClient.get(`/groups/${id}`);
   }
 
-  async createGroup(payload: CreateGroupPayload): Promise<ApiResult<CreateGroupResponse>> {
-    return apiClient.post<CreateGroupResponse>('/groups', payload);
+  async create(payload: CreateGroupDto): Promise<ApiResult<unknown>> {
+    return apiClient.post('/groups', payload);
   }
 
-  async searchGroupsByName(nom: string): Promise<ApiResult<GroupSearchResponse>> {
-    return apiClient.get<GroupSearchResponse>(
-      `/groups/search?nom=${encodeURIComponent(nom)}`,
-    );
+  async update(id: number, payload: UpdateGroupDto): Promise<ApiResult<unknown>> {
+    return apiClient.put(`/groups/${id}`, payload);
   }
 
-  async getUserGroups(userId: number): Promise<ApiResult<UserGroupResponse>> {
-    return apiClient.get<UserGroupResponse>(`/groups/user/${userId}`);
-  }
-
-  async joinGroup(payload: JoinGroupPayload): Promise<ApiResult<void>> {
-    return apiClient.post<void>(`/groups/${payload.groupId}/join`, {
-      code: payload.code,
-    });
-  }
-
-  async leaveGroup(groupId: number): Promise<ApiResult<void>> {
-    return apiClient.post<void>(`/groups/${groupId}/leave`);
-  }
-
-  async updateGroup(
-    id: number,
-    payload: Partial<CreateGroupPayload>,
-  ): Promise<ApiResult<Group>> {
-    return apiClient.put<Group>(`/groups/${id}`, payload);
-  }
-
-  async deleteGroup(id: number): Promise<ApiResult<void>> {
+  async delete(id: number): Promise<ApiResult<void>> {
     return apiClient.delete<void>(`/groups/${id}`);
   }
 
-  async createBulkTags(
-    groupId: number,
-    payload: CreateBulkTagsPayload,
-  ): Promise<ApiResult<CreateBulkTagsResponse>> {
-    return apiClient.post<CreateBulkTagsResponse>(`/groups/${groupId}/tags`, payload);
+  async search(nom: string, limit?: number): Promise<ApiResult<unknown>> {
+    const params = new URLSearchParams({ nom });
+    if (limit) params.set('limit', String(limit));
+    return apiClient.get(`/groups/search?${params.toString()}`);
   }
 
-  async createBulkTasks(
-    groupId: number,
-    payload: CreateBulkTasksPayload,
-  ): Promise<ApiResult<CreateBulkTasksResponse>> {
-    return apiClient.post<CreateBulkTasksResponse>(`/groups/${groupId}/tasks`, payload);
+  async getHotActions(groupId: number): Promise<ApiResult<unknown>> {
+    return apiClient.get(`/groups/${groupId}/hot-actions`);
+  }
+
+  async join(groupId: number, payload: JoinGroupDto): Promise<ApiResult<unknown>> {
+    return apiClient.post(`/groups/${groupId}/join`, payload);
+  }
+
+  async leave(groupId: number): Promise<ApiResult<void>> {
+    return apiClient.post<void>(`/groups/${groupId}/leave`);
+  }
+
+  async addTags(groupId: number, payload: AddTagsDto): Promise<ApiResult<unknown>> {
+    return apiClient.post(`/groups/${groupId}/tags`, payload);
+  }
+
+  async addTasks(groupId: number, payload: AddTasksDto): Promise<ApiResult<unknown>> {
+    return apiClient.post(`/groups/${groupId}/tasks`, payload);
   }
 }
 
-export const groupRepository = new GroupRepository();
+export const groupRepository: IGroupRepository = new GroupRepository();

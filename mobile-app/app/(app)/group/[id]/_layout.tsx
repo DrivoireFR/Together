@@ -7,23 +7,24 @@ import { colors } from '../../../../src/theme';
 export default function GroupLayout() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { fetchGroupById, currentGroup } = useGroupStore();
-  const { fetchRecentActionsByGroupId, fetchPendingActionAcknowledgment } =
-    useTasksStore();
+  const { fetchRecentActions, fetchTagsByGroup } = useTasksStore();
 
   useEffect(() => {
     const groupId = parseInt(id, 10);
     if (!isNaN(groupId)) {
       fetchGroupById(groupId);
-      fetchRecentActionsByGroupId(groupId);
-      fetchPendingActionAcknowledgment();
+      fetchRecentActions(groupId);
+      fetchTagsByGroup(groupId);
     }
   }, [id]);
 
   useEffect(() => {
     if (currentGroup) {
       const { setTasks, setTags } = useTasksStore.getState();
-      setTasks(currentGroup.tasks ?? []);
-      setTags(currentGroup.tags ?? []);
+      const tasks = (currentGroup as Record<string, unknown>).tasks;
+      const tags = (currentGroup as Record<string, unknown>).tags;
+      if (Array.isArray(tasks)) setTasks(tasks);
+      if (Array.isArray(tags)) setTags(tags);
     }
   }, [currentGroup]);
 
@@ -35,22 +36,9 @@ export default function GroupLayout() {
       }}
     >
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen
-        name="add"
-        options={{ presentation: 'modal' }}
-      />
-      <Stack.Screen
-        name="edit"
-        options={{ presentation: 'modal' }}
-      />
-      <Stack.Screen
-        name="settings"
-        options={{ presentation: 'modal' }}
-      />
-      <Stack.Screen
-        name="profile"
-        options={{ presentation: 'modal' }}
-      />
+      <Stack.Screen name="add" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="edit" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="profile" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }
