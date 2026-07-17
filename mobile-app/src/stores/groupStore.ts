@@ -12,6 +12,16 @@ import {
   addTagsToGroupUseCase,
   addTasksToGroupUseCase,
 } from '../core/di';
+import { unwrapGroupFromResponse } from '../utils/groupResponse';
+import { useTasksStore, type TagData, type TaskData } from './tasksStore';
+
+function syncGroupToTasksStore(group: GroupData): void {
+  const { setTasks, setTags } = useTasksStore.getState();
+  setTasks(Array.isArray(group.tasks) ? (group.tasks as TaskData[]) : []);
+  if (Array.isArray(group.tags)) {
+    setTags(group.tags as TagData[]);
+  }
+}
 
 export interface GroupData {
   id: number;
@@ -36,6 +46,7 @@ interface GroupState {
   showStarterPackTasksModal: boolean;
 
   fetchGroupById: (id: number) => Promise<void>;
+  refreshGroupById: (id: number) => Promise<void>;
   createGroup: (payload: CreateGroupDto) => Promise<boolean>;
   searchGroupsByName: (nom: string) => Promise<void>;
   joinGroup: (groupId: number, payload: JoinGroupDto) => Promise<boolean>;
@@ -70,9 +81,20 @@ export const useGroupStore = create<GroupState>((set, get) => ({
     set({ isLoading: true, error: null });
     const result = await getGroupUseCase.execute(id);
     if (result.success) {
-      set({ currentGroup: result.data as GroupData, isLoading: false });
+      const group = unwrapGroupFromResponse(result.data);
+      set({ currentGroup: group, isLoading: false });
+      syncGroupToTasksStore(group);
     } else {
       set({ error: result.error, isLoading: false });
+    }
+  },
+
+  refreshGroupById: async (id) => {
+    const result = await getGroupUseCase.execute(id);
+    if (result.success) {
+      const group = unwrapGroupFromResponse(result.data);
+      set({ currentGroup: group });
+      syncGroupToTasksStore(group);
     }
   },
 
@@ -80,9 +102,9 @@ export const useGroupStore = create<GroupState>((set, get) => ({
     set({ isLoading: true, error: null });
     const result = await createGroupUseCase.execute(payload);
     if (result.success) {
-      const data = result.data as GroupData;
+      const group = unwrapGroupFromResponse(result.data);
       set({
-        createdGroupId: data.id,
+        createdGroupId: group.id,
         showGroupCreatedModal: true,
         isLoading: false,
       });

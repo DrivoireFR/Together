@@ -98,6 +98,10 @@ export const useTasksStore = create<TasksState>((set, get) => ({
     if (result.success) {
       const data = result.data as TaskData | { task: TaskData };
       const task = 'task' in (data as object) ? (data as { task: TaskData }).task : (data as TaskData);
+      if (!task?.id) {
+        set({ isLoading: false });
+        return false;
+      }
       set((state) => ({ tasks: [...state.tasks, task], isLoading: false }));
       return true;
     }

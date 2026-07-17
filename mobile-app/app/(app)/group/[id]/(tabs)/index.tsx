@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGroupStore } from '../../../../../src/stores/groupStore';
 import { useTasksStore } from '../../../../../src/stores/tasksStore';
@@ -15,21 +16,34 @@ import { TagFilter } from '../../../../../src/components/molecules/TagFilter';
 import { TaskCard } from '../../../../../src/components/molecules/TaskCard';
 import { AvatarDisplay } from '../../../../../src/components/atoms/AvatarDisplay';
 import { LoadingSpinner } from '../../../../../src/components/atoms/LoadingSpinner';
+import { parseRouteParam } from '../../../../../src/utils/routeParams';
 import { colors, spacing, fontSize, borderRadius } from '../../../../../src/theme';
 
 export default function TasksTab() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { currentGroup, isLoading } = useGroupStore();
+  const groupId = parseRouteParam(id);
+  const { currentGroup, isLoading, refreshGroupById } = useGroupStore();
   const { user } = useAuthStore();
-  const {
-    tags,
-    filteredTasks,
-    createAction,
-    loadingTaskIds,
-    selectedTagFilter,
-  } = useTasksStore();
+  const tasks = useTasksStore((state) => {
+    if (state.selectedTagFilter) {
+      return state.tasks.filter(
+        (task) => task.tag?.id === state.selectedTagFilter!.id,
+      );
+    }
+    return state.tasks;
+  });
+  const tags = useTasksStore((state) => state.tags);
+  const createAction = useTasksStore((state) => state.createAction);
+  const loadingTaskIds = useTasksStore((state) => state.loadingTaskIds);
+  const selectedTagFilter = useTasksStore((state) => state.selectedTagFilter);
 
-  const tasks = filteredTasks();
+  useFocusEffect(
+    useCallback(() => {
+      if (groupId != null) {
+        refreshGroupById(groupId);
+      }
+    }, [groupId, refreshGroupById]),
+  );
 
   if (isLoading || !currentGroup) {
     return <LoadingSpinner message="Chargement du groupe..." />;
