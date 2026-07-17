@@ -1,14 +1,29 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTasksStore } from '../../../../../src/stores/tasksStore';
 import { useAuthStore } from '../../../../../src/stores/authStore';
 import { ActionCard } from '../../../../../src/components/molecules/ActionCard';
+import { parseRouteParam } from '../../../../../src/utils/routeParams';
 import { colors, spacing, fontSize } from '../../../../../src/theme';
 
 export default function HistoryTab() {
-  const { actions, deleteAction } = useTasksStore();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const groupId = parseRouteParam(id);
+  const actions = useTasksStore((state) => state.actions);
+  const fetchRecentActions = useTasksStore((state) => state.fetchRecentActions);
+  const deleteAction = useTasksStore((state) => state.deleteAction);
   const { user } = useAuthStore();
+
+  useFocusEffect(
+    useCallback(() => {
+      if (groupId != null) {
+        fetchRecentActions(groupId);
+      }
+    }, [groupId, fetchRecentActions]),
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

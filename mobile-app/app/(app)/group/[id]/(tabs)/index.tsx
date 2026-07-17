@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -24,18 +24,15 @@ export default function TasksTab() {
   const groupId = parseRouteParam(id);
   const { currentGroup, isLoading, refreshGroupById } = useGroupStore();
   const { user } = useAuthStore();
-  const tasks = useTasksStore((state) => {
-    if (state.selectedTagFilter) {
-      return state.tasks.filter(
-        (task) => task.tag?.id === state.selectedTagFilter!.id,
-      );
-    }
-    return state.tasks;
-  });
+  const allTasks = useTasksStore((state) => state.tasks);
+  const selectedTagFilter = useTasksStore((state) => state.selectedTagFilter);
+  const tasks = useMemo(() => {
+    if (!selectedTagFilter) return allTasks;
+    return allTasks.filter((task) => task.tag?.id === selectedTagFilter.id);
+  }, [allTasks, selectedTagFilter]);
   const tags = useTasksStore((state) => state.tags);
   const createAction = useTasksStore((state) => state.createAction);
   const loadingTaskIds = useTasksStore((state) => state.loadingTaskIds);
-  const selectedTagFilter = useTasksStore((state) => state.selectedTagFilter);
 
   useFocusEffect(
     useCallback(() => {

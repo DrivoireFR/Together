@@ -16,6 +16,10 @@ import {
   userTaskStateRepository,
 } from '../core/di';
 import { DataSuccess } from '../utils/DataResult';
+import {
+  unwrapActionFromCreateResponse,
+  unwrapActionsFromResponse,
+} from '../utils/actionResponse';
 
 export interface TaskData {
   id: number;
@@ -187,7 +191,7 @@ export const useTasksStore = create<TasksState>((set, get) => ({
   fetchRecentActions: async (groupId) => {
     const result = await getRecentActionsUseCase.execute(groupId);
     if (result.success) {
-      set({ actions: result.data });
+      set({ actions: unwrapActionsFromResponse(result.data) });
     }
   },
 
@@ -202,6 +206,17 @@ export const useTasksStore = create<TasksState>((set, get) => ({
       newSet.delete(taskId);
       return { loadingTaskIds: newSet };
     });
+    if (result.success) {
+      const action = unwrapActionFromCreateResponse(result.data);
+      if (action) {
+        set((state) => ({
+          actions: [
+            action,
+            ...state.actions.filter((existing) => existing.id !== action.id),
+          ],
+        }));
+      }
+    }
     return result.success;
   },
 
