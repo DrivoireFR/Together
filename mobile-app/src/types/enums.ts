@@ -6,18 +6,18 @@ export enum Icon {
   Poubelle = 'Poubelle',
   Sanitaires = 'Sanitaires',
   Surfaces = 'Surfaces',
-  Default = 'Défaut',
-  Tasks = 'Tâches',
+  Default = 'Default',
+  Tasks = 'Tasks',
   Historique = 'Historique',
   Stats = 'Stats',
   Parametres = 'Parametres',
   Urgent = 'Urgent',
-  Add = 'Ajouter',
+  Add = 'Add',
+  Patoune = 'Patoune',
   Options = 'Options',
-  Paw = 'Patoune',
-  Plants = 'Plantes',
-  Clean = 'Nettoyage',
-  Trash = 'Poubelles',
+  Plantes = 'Plantes',
+  Nettoyage = 'Nettoyage',
+  Poubelles = 'Poubelles',
 }
 
 export enum Avatar {
@@ -33,4 +33,10 @@ export enum Avatar {
   Woman4 = 'Woman4',
   Woman5 = 'Woman5',
   Woman6 = 'Woman6',
+}
+
+export enum UniteFrequence {
+  JOUR = 'jour',
+  SEMAINE = 'semaine',
+  MOIS = 'mois',
 }

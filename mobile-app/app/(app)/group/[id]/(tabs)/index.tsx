@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGroupStore } from '../../../../../src/stores/groupStore';
 import { useTasksStore } from '../../../../../src/stores/tasksStore';
@@ -15,21 +16,31 @@ import { TagFilter } from '../../../../../src/components/molecules/TagFilter';
 import { TaskCard } from '../../../../../src/components/molecules/TaskCard';
 import { AvatarDisplay } from '../../../../../src/components/atoms/AvatarDisplay';
 import { LoadingSpinner } from '../../../../../src/components/atoms/LoadingSpinner';
+import { parseRouteParam } from '../../../../../src/utils/routeParams';
 import { colors, spacing, fontSize, borderRadius } from '../../../../../src/theme';
 
 export default function TasksTab() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { currentGroup, isLoading } = useGroupStore();
+  const groupId = parseRouteParam(id);
+  const { currentGroup, isLoading, refreshGroupById } = useGroupStore();
   const { user } = useAuthStore();
-  const {
-    tags,
-    filteredTasks,
-    createActionForTask,
-    loadingTaskIds,
-    selectedTagFilter,
-  } = useTasksStore();
+  const allTasks = useTasksStore((state) => state.tasks);
+  const selectedTagFilter = useTasksStore((state) => state.selectedTagFilter);
+  const tasks = useMemo(() => {
+    if (!selectedTagFilter) return allTasks;
+    return allTasks.filter((task) => task.tag?.id === selectedTagFilter.id);
+  }, [allTasks, selectedTagFilter]);
+  const tags = useTasksStore((state) => state.tags);
+  const createAction = useTasksStore((state) => state.createAction);
+  const loadingTaskIds = useTasksStore((state) => state.loadingTaskIds);
 
-  const tasks = filteredTasks();
+  useFocusEffect(
+    useCallback(() => {
+      if (groupId != null) {
+        refreshGroupById(groupId);
+      }
+    }, [groupId, refreshGroupById]),
+  );
 
   if (isLoading || !currentGroup) {
     return <LoadingSpinner message="Chargement du groupe..." />;
@@ -74,9 +85,9 @@ export default function TasksTab() {
               router.push(`/(app)/group/${id}/edit/task?taskId=${item.id}`)
             }
             onAction={() =>
-              createActionForTask({
+              createAction({
                 taskId: item.id,
-                date: new Date().toISOString(),
+                date: new Date().toISOString().split('T')[0],
               })
             }
           />

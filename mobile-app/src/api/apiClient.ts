@@ -3,7 +3,6 @@ import { DataSuccess, DataError, type ApiResult } from '../utils/DataResult';
 import { API_BASE_URL, STORAGE_KEYS, HTTP_STATUS } from '../constants';
 import { StorageUtil } from '../utils/storage';
 import { router } from 'expo-router';
-import type { ApiError } from '../types';
 
 class ApiClient {
   private client: AxiosInstance;
@@ -81,7 +80,7 @@ class ApiClient {
   }
 
   private handleError<T>(error: AxiosError): DataError<T> {
-    const apiError = error.response?.data as ApiError;
+    const apiError = error.response?.data as { message?: string } | undefined;
     const message = apiError?.message || error.message || 'Une erreur est survenue';
     const statusCode = error.response?.status || 0;
     return new DataError<T>(message, statusCode, error);

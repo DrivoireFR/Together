@@ -4,7 +4,7 @@ import { BaseInput } from '../atoms/BaseInput';
 import { BaseButton } from '../atoms/BaseButton';
 import { TagChip } from '../atoms/TagChip';
 import { useTasksStore } from '../../stores/tasksStore';
-import { UniteFrequence } from '../../types';
+import { UniteFrequence } from '../../types/enums';
 import { colors, spacing, fontSize } from '../../theme';
 
 interface CreateTaskFormProps {

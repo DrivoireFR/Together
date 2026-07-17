@@ -14,17 +14,15 @@ import { BaseInput } from '../../src/components/atoms/BaseInput';
 import { BaseButton } from '../../src/components/atoms/BaseButton';
 import { BaseModal } from '../../src/components/atoms/BaseModal';
 import { GroupCard } from '../../src/components/molecules/GroupCard';
-import { LoadingSpinner } from '../../src/components/atoms/LoadingSpinner';
-import { colors, spacing, fontSize, borderRadius } from '../../src/theme';
+import { colors, spacing, fontSize } from '../../src/theme';
 
 export default function GroupsScreen() {
   const { user, logout } = useAuthStore();
   const {
-    groups,
+    currentGroup,
     searchResults,
     isLoading,
-    isSearching,
-    getUserGroups,
+    fetchGroupById,
     searchGroupsByName,
     clearSearchResults,
     createGroup,
@@ -34,7 +32,7 @@ export default function GroupsScreen() {
     closeModals,
     skipGroupSetup,
     startStarterPackSetup,
-    createdGroupData,
+    createdGroupId,
   } = useGroupStore();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,8 +43,10 @@ export default function GroupsScreen() {
   const [joinGroupId, setJoinGroupId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (user?.id) getUserGroups(user.id);
-  }, [user?.id]);
+    if (user?.groupId) {
+      fetchGroupById(user.groupId);
+    }
+  }, [user?.groupId]);
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
@@ -63,18 +63,16 @@ export default function GroupsScreen() {
     if (success) {
       setShowCreateModal(false);
       setNewGroupName('');
-      if (user?.id) getUserGroups(user.id);
     }
   };
 
   const handleJoinGroup = async () => {
     if (!joinCode.trim() || !joinGroupId) return;
-    const success = await joinGroup({ groupId: joinGroupId, code: joinCode.trim() });
+    const success = await joinGroup(joinGroupId, { code: joinCode.trim() });
     if (success) {
       setShowJoinModal(false);
       setJoinCode('');
       setJoinGroupId(null);
-      if (user?.id) getUserGroups(user.id);
       navigateToGroup(joinGroupId);
     }
   };
@@ -94,16 +92,18 @@ export default function GroupsScreen() {
         refreshControl={
           <RefreshControl
             refreshing={isLoading}
-            onRefresh={() => user?.id && getUserGroups(user.id)}
+            onRefresh={() => user?.groupId && fetchGroupById(user.groupId)}
           />
         }
       >
-        <BaseButton
-          title="+ Créer un groupe"
-          onPress={() => setShowCreateModal(true)}
-          fullWidth
-          size="lg"
-        />
+        {!user?.groupId && (
+          <BaseButton
+            title="+ Créer un groupe"
+            onPress={() => setShowCreateModal(true)}
+            fullWidth
+            size="lg"
+          />
+        )}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Rechercher un groupe</Text>
@@ -118,7 +118,7 @@ export default function GroupsScreen() {
               group={group}
               currentUser={user}
               onPress={() => {
-                const isMember = group.users?.some((u) => u.id === user?.id);
+                const isMember = group.id === user?.groupId;
                 if (isMember) {
                   navigateToGroup(group.id);
                 } else {
@@ -131,26 +131,22 @@ export default function GroupsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Mes groupes</Text>
-          {groups.length === 0 && !isLoading ? (
+          <Text style={styles.sectionTitle}>Mon groupe</Text>
+          {!currentGroup && !isLoading ? (
             <Text style={styles.emptyText}>
               Vous ne faites partie d'aucun groupe. Créez-en un ou rejoignez un
               groupe existant !
             </Text>
-          ) : (
-            groups.map((group) => (
-              <GroupCard
-                key={group.id}
-                group={group}
-                currentUser={user}
-                onPress={() => navigateToGroup(group.id)}
-              />
-            ))
-          )}
+          ) : currentGroup ? (
+            <GroupCard
+              group={currentGroup}
+              currentUser={user}
+              onPress={() => navigateToGroup(currentGroup.id)}
+            />
+          ) : null}
         </View>
       </ScrollView>
 
-      {/* Create Group Modal */}
       <BaseModal
         visible={showCreateModal}
         onClose={() => setShowCreateModal(false)}
@@ -170,7 +166,6 @@ export default function GroupsScreen() {
         />
       </BaseModal>
 
-      {/* Join Group Modal */}
       <BaseModal
         visible={showJoinModal}
         onClose={() => setShowJoinModal(false)}
@@ -180,7 +175,7 @@ export default function GroupsScreen() {
           label="Code d'invitation"
           value={joinCode}
           onChangeText={setJoinCode}
-          placeholder="ABCD1234"
+          placeholder="AB12CD34"
           autoCapitalize="characters"
         />
         <BaseButton
@@ -191,35 +186,29 @@ export default function GroupsScreen() {
         />
       </BaseModal>
 
-      {/* Group Created Modal */}
       <BaseModal
         visible={showGroupCreatedModal}
         onClose={() => closeModals()}
         title="Groupe créé !"
       >
-        {createdGroupData && (
-          <View>
-            <Text style={styles.createdGroupName}>
-              {createdGroupData.group.nom}
-            </Text>
-            <Text style={styles.createdGroupCode}>
-              Code : {createdGroupData.group.code}
-            </Text>
-            <View style={styles.modalActions}>
-              <BaseButton
-                title="Configurer avec le starter pack"
-                onPress={startStarterPackSetup}
-                fullWidth
-              />
-              <BaseButton
-                title="Passer"
-                variant="ghost"
-                onPress={skipGroupSetup}
-                fullWidth
-              />
-            </View>
+        <View>
+          <Text style={styles.createdInfo}>
+            Votre groupe a été créé avec succès.
+          </Text>
+          <View style={styles.modalActions}>
+            <BaseButton
+              title="Configurer avec le starter pack"
+              onPress={startStarterPackSetup}
+              fullWidth
+            />
+            <BaseButton
+              title="Passer"
+              variant="ghost"
+              onPress={skipGroupSetup}
+              fullWidth
+            />
           </View>
-        )}
+        </View>
       </BaseModal>
     </SafeAreaView>
   );
@@ -259,18 +248,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     padding: spacing.xl,
   },
-  createdGroupName: {
-    fontSize: fontSize.xl,
-    fontWeight: '600',
-    color: colors.text,
+  createdInfo: {
+    fontSize: fontSize.md,
+    color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: spacing.sm,
-  },
-  createdGroupCode: {
-    fontSize: fontSize.lg,
-    color: colors.primary,
-    textAlign: 'center',
-    fontWeight: '700',
     marginBottom: spacing.xl,
   },
   modalActions: { gap: spacing.md },

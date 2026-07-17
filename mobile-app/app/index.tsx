@@ -2,10 +2,11 @@ import React, { useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useAuthStore } from '../src/stores/authStore';
+import { getPostAuthAppHref } from '../src/utils/postAuthNavigation';
 import { colors } from '../src/theme';
 
 export default function Index() {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading, user } = useAuthStore();
 
   if (isLoading) {
     return (
@@ -16,7 +17,7 @@ export default function Index() {
   }
 
   if (isAuthenticated) {
-    return <Redirect href="/(app)/groups" />;
+    return <Redirect href={getPostAuthAppHref(user?.groupId)} />;
   }
 
   return <Redirect href="/(auth)/login" />;

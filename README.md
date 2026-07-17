@@ -31,16 +31,16 @@ npm install
 npm run start:dev
 ```
 
-#### Frontend Web App
+#### Frontend Mobile App
 ```bash
-cd web-app
-npm install
+cd mobile-app
+
+npm i
+expo run:ios
+OU
+expo run:android
+
+puis 
 npm run dev
 ```
 
-#### Landing Page
-```bash
-cd landing
-npm install
-npm run dev
-```

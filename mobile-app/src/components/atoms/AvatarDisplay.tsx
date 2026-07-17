@@ -1,10 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, borderRadius, fontSize } from '../../theme';
-import type { Avatar } from '../../types';
+import { colors } from '../../theme';
 
 interface AvatarDisplayProps {
-  avatar?: Avatar;
+  avatar?: string | null;
   name?: string;
   size?: number;
 }

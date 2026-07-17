@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import type { Action, User } from '../../types';
+import type { ActionDetailDto, UserResponseDto } from '../../api/dto';
 import { AvatarDisplay } from '../atoms/AvatarDisplay';
 import { colors, borderRadius, spacing, fontSize } from '../../theme';
 
 interface ActionCardProps {
-  action: Action;
-  currentUser?: User | null;
+  action: ActionDetailDto;
+  currentUser?: UserResponseDto | null;
   onDelete?: () => void;
 }
 
@@ -40,8 +40,7 @@ export function ActionCard({ action, currentUser, onDelete }: ActionCardProps) {
           {action.task.label}
         </Text>
         <Text style={styles.meta}>
-          {action.user.pseudo} · {timeAgo(action.createdAt)}
-          {action.isHelpingHand && ' · 🤝'}
+          {action.user.pseudo} · {timeAgo(action.date)}
         </Text>
       </View>
       {isOwn && onDelete && (

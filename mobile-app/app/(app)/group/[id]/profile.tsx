@@ -12,20 +12,21 @@ import { BaseInput } from '../../../../src/components/atoms/BaseInput';
 import { BaseButton } from '../../../../src/components/atoms/BaseButton';
 import { AvatarDisplay } from '../../../../src/components/atoms/AvatarDisplay';
 import { useAuthStore } from '../../../../src/stores/authStore';
-import { Avatar } from '../../../../src/types';
+import { Avatar } from '../../../../src/types/enums';
+import type { UpdateUserDto } from '../../../../src/api/dto';
 import { colors, spacing, fontSize, borderRadius } from '../../../../src/theme';
 
 const AVATAR_OPTIONS = Object.values(Avatar);
 
 export default function ProfileScreen() {
-  const { user, updateProfile, isLoading, resendConfirmation } = useAuthStore();
+  const { user, updateProfile, isLoading } = useAuthStore();
 
   const [isEditing, setIsEditing] = useState(false);
   const [nom, setNom] = useState(user?.nom ?? '');
   const [prenom, setPrenom] = useState(user?.prenom ?? '');
   const [pseudo, setPseudo] = useState(user?.pseudo ?? '');
-  const [selectedAvatar, setSelectedAvatar] = useState<Avatar | undefined>(
-    user?.avatar,
+  const [selectedAvatar, setSelectedAvatar] = useState<string | undefined>(
+    user?.avatar ?? undefined,
   );
 
   const handleSave = async () => {
@@ -33,7 +34,7 @@ export default function ProfileScreen() {
       nom: nom.trim(),
       prenom: prenom.trim(),
       pseudo: pseudo.trim(),
-      avatar: selectedAvatar,
+      avatar: selectedAvatar as UpdateUserDto['avatar'],
     });
     if (success) setIsEditing(false);
   };
@@ -42,7 +43,7 @@ export default function ProfileScreen() {
     setNom(user?.nom ?? '');
     setPrenom(user?.prenom ?? '');
     setPseudo(user?.pseudo ?? '');
-    setSelectedAvatar(user?.avatar);
+    setSelectedAvatar(user?.avatar ?? undefined);
     setIsEditing(false);
   };
 
@@ -69,12 +70,6 @@ export default function ProfileScreen() {
           {user && !user.emailVerified && (
             <View style={styles.unverifiedBanner}>
               <Text style={styles.unverifiedText}>Email non vérifié</Text>
-              <BaseButton
-                title="Renvoyer"
-                variant="ghost"
-                size="sm"
-                onPress={() => user.email && resendConfirmation(user.email)}
-              />
             </View>
           )}
         </View>
@@ -99,9 +94,9 @@ export default function ProfileScreen() {
 
             <Text style={styles.label}>Avatar</Text>
             <View style={styles.avatarGrid}>
-              {AVATAR_OPTIONS.map((av: Avatar) => (
+              {AVATAR_OPTIONS.map((av) => (
                 <TouchableOpacity
-                  key={av as string}
+                  key={av}
                   onPress={() => setSelectedAvatar(av)}
                   style={[
                     styles.avatarOption,

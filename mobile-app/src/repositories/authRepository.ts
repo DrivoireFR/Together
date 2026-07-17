@@ -1,68 +1,55 @@
 import { apiClient } from '../api/apiClient';
 import type { ApiResult } from '../utils/DataResult';
+import { DataSuccess } from '../utils/DataResult';
+import { unwrapUserFromProfileResponse } from '../utils/userProfileResponse';
+import type { IAuthRepository } from '../core/interfaces/IAuthRepository';
 import type {
-  LoginPayload,
-  RegisterPayload,
-  UpdateProfilePayload,
-  ForgotPasswordPayload,
-  ChangePasswordPayload,
-  AuthResponse,
-  User,
-  GetProfileResponse,
-} from '../types';
+  RegisterDto,
+  RegisterResponseDto,
+  RequestOtpDto,
+  RequestOtpResponseDto,
+  VerifyOtpDto,
+  VerifyOtpResponseDto,
+  UpdateUserDto,
+  UserResponseDto,
+} from '../api/dto';
 
-class AuthRepository {
-  async login(payload: LoginPayload): Promise<ApiResult<AuthResponse>> {
-    return apiClient.post<AuthResponse>('/auth/login', payload);
+class AuthRepository implements IAuthRepository {
+  async register(payload: RegisterDto): Promise<ApiResult<RegisterResponseDto>> {
+    return apiClient.post<RegisterResponseDto>('/auth/register', payload);
   }
 
-  async register(payload: RegisterPayload): Promise<ApiResult<AuthResponse>> {
-    return apiClient.post<AuthResponse>('/auth/register', payload);
+  async requestOtp(payload: RequestOtpDto): Promise<ApiResult<RequestOtpResponseDto>> {
+    return apiClient.post<RequestOtpResponseDto>('/auth/request-otp', payload);
   }
 
-  async getProfile(): Promise<ApiResult<GetProfileResponse>> {
-    return apiClient.get<GetProfileResponse>('/auth/profile');
+  async verifyOtp(payload: VerifyOtpDto): Promise<ApiResult<VerifyOtpResponseDto>> {
+    return apiClient.post<VerifyOtpResponseDto>('/auth/verify-otp', payload);
   }
 
-  async updateProfile(
-    payload: UpdateProfilePayload,
-  ): Promise<ApiResult<{ message: string; user: User }>> {
-    return apiClient.put<{ message: string; user: User }>('/users/profile', payload);
+  async verifyToken(): Promise<ApiResult<void>> {
+    return apiClient.get<void>('/auth/verify');
   }
 
-  async refreshToken(): Promise<ApiResult<AuthResponse>> {
-    return apiClient.post<AuthResponse>('/auth/refresh');
+  async getProfile(): Promise<ApiResult<UserResponseDto>> {
+    const result = await apiClient.get<unknown>('/users/profile');
+    if (result instanceof DataSuccess) {
+      return new DataSuccess(unwrapUserFromProfileResponse(result.data));
+    }
+    return result;
   }
 
-  async rememberMe(): Promise<ApiResult<AuthResponse>> {
-    return apiClient.get<AuthResponse>('/auth/remember-me');
+  async refreshToken(): Promise<ApiResult<{ token: string }>> {
+    return apiClient.post<{ token: string }>('/auth/refresh');
   }
 
-  async confirmEmail(
-    token: string,
-    email: string,
-  ): Promise<ApiResult<{ message: string; user: User }>> {
-    const encodedEmail = encodeURIComponent(email);
-    return apiClient.get<{ message: string; user: User }>(
-      `/auth/confirm-email?token=${token}&email=${encodedEmail}`,
-    );
-  }
-
-  async resendConfirmation(email: string): Promise<ApiResult<{ message: string }>> {
-    return apiClient.post<{ message: string }>('/auth/resend-confirmation', { email });
-  }
-
-  async requestPasswordReset(
-    payload: ForgotPasswordPayload,
-  ): Promise<ApiResult<{ message: string }>> {
-    return apiClient.post<{ message: string }>('/auth/forgot-password', payload);
-  }
-
-  async changePassword(
-    payload: ChangePasswordPayload,
-  ): Promise<ApiResult<{ message: string }>> {
-    return apiClient.put<{ message: string }>('/auth/change-password', payload);
+  async updateProfile(payload: UpdateUserDto): Promise<ApiResult<UserResponseDto>> {
+    const result = await apiClient.put<unknown>('/users/profile', payload);
+    if (result instanceof DataSuccess) {
+      return new DataSuccess(unwrapUserFromProfileResponse(result.data));
+    }
+    return result;
   }
 }
 
-export const authRepository = new AuthRepository();
+export const authRepository: IAuthRepository = new AuthRepository();

@@ -53,16 +53,11 @@ export default function SettingsTab() {
     );
   };
 
-  const handleChangePassword = () => {
-    router.push(`/(app)/group/${id}/settings/password`);
-  };
-
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>Paramètres</Text>
 
-        {/* Group Info */}
         <BaseCard title="Le groupe" style={styles.card}>
           <Text style={styles.groupName}>{currentGroup?.nom}</Text>
 
@@ -74,18 +69,9 @@ export default function SettingsTab() {
             size="sm"
           />
 
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>
-              {currentGroup?.tasks?.length ?? 0} tâche(s)
-            </Text>
-            <Text style={styles.infoLabel}>
-              {currentGroup?.tags?.length ?? 0} catégorie(s)
-            </Text>
-          </View>
-
           <Text style={styles.membersTitle}>Membres</Text>
           <View style={styles.membersGrid}>
-            {currentGroup?.users?.map((member) => (
+            {(currentGroup?.users as { id: number; pseudo: string; avatar?: string | null }[] | undefined)?.map((member) => (
               <View key={member.id} style={styles.memberItem}>
                 <AvatarDisplay
                   avatar={member.avatar}
@@ -100,16 +86,7 @@ export default function SettingsTab() {
           </View>
         </BaseCard>
 
-        {/* Account */}
         <BaseCard title="Compte" style={styles.card}>
-          <BaseButton
-            title="Changer de mot de passe"
-            variant="outline"
-            onPress={handleChangePassword}
-            fullWidth
-            size="sm"
-          />
-
           <View style={styles.accountActions}>
             <BaseButton
               title="Quitter le groupe"
@@ -148,16 +125,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
     marginBottom: spacing.md,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: spacing.md,
-    marginBottom: spacing.md,
-  },
-  infoLabel: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
   },
   membersTitle: {
     fontSize: fontSize.md,

@@ -37,6 +37,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   "icon": "./assets/images/icon.png",
   "scheme": "mobileapptogether",
   "userInterfaceStyle": "automatic",
+  // @ts-expect-error newArchEnabled is a valid Expo config field
   "newArchEnabled": true,
   "ios": {
     "supportsTablet": true,

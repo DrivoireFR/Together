@@ -13,7 +13,7 @@ import { BaseInput } from '../../../../../src/components/atoms/BaseInput';
 import { BaseButton } from '../../../../../src/components/atoms/BaseButton';
 import { TagChip } from '../../../../../src/components/atoms/TagChip';
 import { useTasksStore } from '../../../../../src/stores/tasksStore';
-import { UniteFrequence } from '../../../../../src/types';
+import { UniteFrequence } from '../../../../../src/types/enums';
 import { colors, spacing, fontSize } from '../../../../../src/theme';
 
 export default function EditTaskScreen() {
@@ -26,7 +26,7 @@ export default function EditTaskScreen() {
   const [frequenceEstimee, setFrequenceEstimee] = useState(
     String(task?.frequenceEstimee ?? 1),
   );
-  const [uniteFrequence, setUniteFrequence] = useState<UniteFrequence>(
+  const [uniteFrequence, setUniteFrequence] = useState<string>(
     task?.uniteFrequence ?? UniteFrequence.SEMAINE,
   );
   const [points, setPoints] = useState(String(task?.points ?? 1));
@@ -53,7 +53,7 @@ export default function EditTaskScreen() {
     const success = await updateTask(task.id, {
       label: label.trim(),
       frequenceEstimee: parseInt(frequenceEstimee) || 1,
-      uniteFrequence,
+      uniteFrequence: uniteFrequence as 'jour' | 'semaine' | 'mois',
       tagId: selectedTagId,
       points: parseInt(points) || 1,
     });
@@ -74,7 +74,7 @@ export default function EditTaskScreen() {
     ]);
   };
 
-  const unitOptions: { label: string; value: UniteFrequence }[] = [
+  const unitOptions: { label: string; value: string }[] = [
     { label: 'Jour', value: UniteFrequence.JOUR },
     { label: 'Semaine', value: UniteFrequence.SEMAINE },
     { label: 'Mois', value: UniteFrequence.MOIS },

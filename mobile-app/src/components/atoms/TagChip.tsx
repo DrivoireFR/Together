@@ -1,10 +1,9 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-import type { Tag } from '../../types';
 import { colors, borderRadius, spacing, fontSize } from '../../theme';
 
 interface TagChipProps {
-  tag: Tag;
+  tag: { id: number; label: string; color: string };
   selected?: boolean;
   onPress?: () => void;
 }

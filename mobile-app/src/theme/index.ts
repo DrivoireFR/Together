@@ -20,9 +20,6 @@ export const colors = {
   white: '#FFFFFF',
   black: '#000000',
   overlay: 'rgba(0, 0, 0, 0.5)',
-  hurryYes: '#EF4444',
-  hurryMaybe: '#F59E0B',
-  hurryNo: '#10B981',
 } as const;
 
 export const spacing = {

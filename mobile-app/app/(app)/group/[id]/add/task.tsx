@@ -3,11 +3,12 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CreateTaskForm } from '../../../../../src/components/molecules/CreateTaskForm';
+import { parseRouteParam } from '../../../../../src/utils/routeParams';
 import { colors, spacing, fontSize } from '../../../../../src/theme';
 
 export default function AddTaskScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const groupId = parseInt(id, 10);
+  const groupId = parseRouteParam(id) ?? 0;
 
   return (
     <SafeAreaView style={styles.safe}>
